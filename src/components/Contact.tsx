@@ -58,7 +58,7 @@ export default function Contact() {
             </div>
 
             {/* Background Graphic */}
-            <div className="absolute bottom-0 right-0 w-[80vw] h-[80vw] max-w-[800px] max-h-[800px] rounded-full bg-gradient-to-tr from-zinc-800 to-transparent opacity-10 blur-3xl pointer-events-none translate-x-1/4 translate-y-1/4" />
+            <div className="absolute bottom-0 right-0 w-[80vw] h-[80vw] max-w-[800px] max-h-[800px] rounded-full bg-gradient-to-tr from-zinc-800 to-transparent opacity-10 blur-3xl pointer-events-none translate-x-1/3 translate-y-1/3" />
         </section>
     );
 }
