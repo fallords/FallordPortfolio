@@ -1,69 +1,64 @@
 "use client";
 
-import { useEffect, useState } from "react";
+import { useEffect, useRef, useState } from "react";
 import { motion } from "framer-motion";
 
 export default function Cursor() {
-    const [mousePosition, setMousePosition] = useState({ x: 0, y: 0 });
     const [isHovered, setIsHovered] = useState(false);
+    const posRef = useRef({ x: 0, y: 0 });
+    const cursorRef = useRef<HTMLDivElement>(null);
+    const dotRef = useRef<HTMLDivElement>(null);
+    const rafRef = useRef<number>(0);
 
     useEffect(() => {
+        // Use RAF loop instead of setState for mouse position — avoids re-renders
         const updateMousePosition = (e: MouseEvent) => {
-            setMousePosition({ x: e.clientX, y: e.clientY });
+            posRef.current.x = e.clientX;
+            posRef.current.y = e.clientY;
         };
 
         const handleMouseOver = (e: MouseEvent) => {
-            if ((e.target as HTMLElement).closest("a, button, .hoverable")) {
-                setIsHovered(true);
-            } else {
-                setIsHovered(false);
-            }
+            const hovered = !!(e.target as HTMLElement).closest("a, button, .hoverable");
+            setIsHovered(hovered);
         };
 
-        window.addEventListener("mousemove", updateMousePosition);
-        window.addEventListener("mouseover", handleMouseOver);
+        // Animate cursor position via RAF — no React re-renders
+        const animate = () => {
+            const { x, y } = posRef.current;
+            if (cursorRef.current) {
+                cursorRef.current.style.transform = `translate3d(${x - 16}px, ${y - 16}px, 0)`;
+            }
+            if (dotRef.current) {
+                dotRef.current.style.transform = `translate3d(${x - 4}px, ${y - 4}px, 0)`;
+            }
+            rafRef.current = requestAnimationFrame(animate);
+        };
+
+        window.addEventListener("mousemove", updateMousePosition, { passive: true });
+        window.addEventListener("mouseover", handleMouseOver, { passive: true });
+        rafRef.current = requestAnimationFrame(animate);
 
         return () => {
             window.removeEventListener("mousemove", updateMousePosition);
             window.removeEventListener("mouseover", handleMouseOver);
+            cancelAnimationFrame(rafRef.current);
         };
     }, []);
 
-    const variants = {
-        default: {
-            x: mousePosition.x - 16,
-            y: mousePosition.y - 16,
-            opacity: 1,
-        },
-        hover: {
-            x: mousePosition.x - 40,
-            y: mousePosition.y - 40,
-            height: 80,
-            width: 80,
-            backgroundColor: "rgba(255, 255, 255, 1)",
-            mixBlendMode: "difference" as const,
-            opacity: 1,
-        }
-    };
-
     return (
         <>
-            <motion.div
-                className="fixed top-0 left-0 w-8 h-8 bg-white rounded-full pointer-events-none z-[100] mix-blend-difference hidden md:block style-will-change-transform"
-                variants={variants}
-                animate={isHovered ? "hover" : "default"}
-                transition={{ type: "tween", ease: "backOut", duration: 0.15 }}
-                style={{ willChange: "transform, width, height, background-color" }}
+            <div
+                ref={cursorRef}
+                className={`fixed top-0 left-0 rounded-full pointer-events-none z-[100] mix-blend-difference hidden md:block transition-[width,height] duration-150 ease-out ${
+                    isHovered ? "w-20 h-20 bg-white" : "w-8 h-8 bg-white"
+                }`}
+                style={{ willChange: "transform" }}
                 aria-hidden="true"
             />
             {isHovered && (
-                <motion.div
-                    className="fixed top-0 left-0 w-2 h-2 bg-white rounded-full pointer-events-none z-[101] mix-blend-difference hidden md:block style-will-change-transform"
-                    animate={{
-                        x: mousePosition.x - 4,
-                        y: mousePosition.y - 4,
-                    }}
-                    transition={{ type: "tween", ease: "linear", duration: 0 }}
+                <div
+                    ref={dotRef}
+                    className="fixed top-0 left-0 w-2 h-2 bg-white rounded-full pointer-events-none z-[101] mix-blend-difference hidden md:block"
                     style={{ willChange: "transform" }}
                     aria-hidden="true"
                 />

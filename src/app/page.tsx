@@ -1,4 +1,5 @@
 import SequenceScroll from "@/components/SequenceScroll";
+import GradientDivider from "@/components/GradientDivider";
 import Works from "@/components/Works";
 import About from "@/components/About";
 import Services from "@/components/Services";
@@ -12,6 +13,7 @@ export default function Home() {
     <main className="bg-black text-white selection:bg-white/20">
       <SequenceScroll />
       <div className="relative z-10 w-full bg-[#0a0a0a]">
+        <GradientDivider />
         <Works />
         <About />
         <Services />
