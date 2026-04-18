@@ -138,7 +138,7 @@ export default function SequenceScroll() {
     const heroWords = ["Hi,", "I'm", "Fadhlan"];
 
     return (
-        <section ref={containerRef} className="relative h-[500vh] w-full bg-black">
+        <section ref={containerRef} className="relative h-[500svh] w-full bg-black">
             <div className="sticky top-0 h-[100svh] w-full overflow-hidden will-change-transform transform-gpu">
                 {/* Canvas for Sequence */}
                 <canvas ref={canvasRef} className="absolute inset-0 w-full h-full object-cover will-change-transform transform-gpu" />

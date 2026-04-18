@@ -32,7 +32,7 @@ export default function About() {
     return (
         <section
             id="about"
-            className="py-20 md:py-32 px-6 md:px-12 lg:px-24 bg-[#0a0a0a] text-white flex justify-center items-center min-h-[60vh] md:min-h-[80vh]"
+            className="py-20 md:py-32 px-6 md:px-12 lg:px-24 bg-[#0a0a0a] text-white flex justify-center items-center min-h-[60svh] md:min-h-[80svh]"
         >
             <div className="max-w-5xl mx-auto flex flex-col items-center text-center">
                 <h2 className="text-zinc-500 uppercase tracking-widest text-xs font-semibold mb-12">

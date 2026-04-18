@@ -17,7 +17,7 @@ export default function Footer() {
     return (
         <footer
             ref={containerRef}
-            className="relative bg-black text-white overflow-hidden h-[50vh] md:h-[80vh] flex flex-col justify-end"
+            className="relative bg-black text-white overflow-hidden h-[50svh] md:h-[80svh] flex flex-col justify-end"
         >
             <div className="absolute inset-0 bg-zinc-950 pointer-events-none -z-10" />
 
