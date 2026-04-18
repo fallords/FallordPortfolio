@@ -6,6 +6,8 @@ import SmoothScroll from "@/components/SmoothScroll";
 import Preloader from "@/components/Preloader";
 import Navbar from "@/components/Navbar";
 
+import ViewportFix from "@/components/ViewportFix";
+
 const syne = Syne({
   variable: "--font-syne",
   subsets: ["latin"],
@@ -63,6 +65,7 @@ export default function RootLayout({
       <body
         className={`${syne.variable} ${manrope.variable} font-sans antialiased bg-black text-white overflow-x-clip`}
       >
+        <ViewportFix />
         <Preloader />
         <Cursor />
         <SmoothScroll>
