@@ -139,9 +139,9 @@ export default function SequenceScroll() {
 
     return (
         <section ref={containerRef} className="relative h-[500vh] w-full bg-black">
-            <div className="sticky top-0 h-[100svh] w-full overflow-hidden">
+            <div className="sticky top-0 h-[100svh] w-full overflow-hidden will-change-transform transform-gpu">
                 {/* Canvas for Sequence */}
-                <canvas ref={canvasRef} className="absolute inset-0 w-full h-full object-cover" />
+                <canvas ref={canvasRef} className="absolute inset-0 w-full h-full object-cover will-change-transform transform-gpu" />
 
                 {/* Global overlay for contrast if needed */}
                 <div className="absolute inset-0 bg-black/40 pointer-events-none" />
