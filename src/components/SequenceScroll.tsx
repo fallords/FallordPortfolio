@@ -10,13 +10,22 @@ export default function SequenceScroll() {
     const canvasRef = useRef<HTMLCanvasElement>(null);
     const [images, setImages] = useState<HTMLImageElement[]>([]);
 
-    const { scrollYProgress } = useScroll({
-        target: containerRef,
-        offset: ["start start", "end end"]
-    });
+    // Fix: Instead of using IntersectionObserver which violently recalculates 
+    // when Instagram/iOS Webviews hide their UI, we track pure pixel scrolling!
+    const { scrollY } = useScroll();
+    const [scrollRange, setScrollRange] = useState(4000);
+
+    useEffect(() => {
+        // We have h-[500svh] which is 5 screens tall. The scrollable distance to reach the end is 4 screens.
+        // We lock this pure pixel value on mount so it NEVER recalculates when Instagram resizes the screen!
+        setScrollRange(window.innerHeight * 4);
+    }, []);
+
+    // Create a 0 to 1 progress based purely on absolute pixels scrolled since the top
+    const fixedProgress = useTransform(scrollY, [0, scrollRange], [0, 1], { clamp: false });
 
     // Dampen the violent layout recalculations caused by mobile Safari's hiding/showing URL bar
-    const smoothedProgress = useSpring(scrollYProgress, { stiffness: 300, damping: 40, restDelta: 0.001 });
+    const smoothedProgress = useSpring(fixedProgress, { stiffness: 300, damping: 40, restDelta: 0.001 });
 
     const currentIndex = useTransform(smoothedProgress, [0, 1], [1, TOTAL_FRAMES]);
 
