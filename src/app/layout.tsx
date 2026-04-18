@@ -53,7 +53,7 @@ export default function RootLayout({
         />
       </head>
       <body
-        className={`${syne.variable} ${manrope.variable} font-sans antialiased bg-black text-white overflow-x-hidden`}
+        className={`${syne.variable} ${manrope.variable} font-sans antialiased bg-black text-white overflow-x-clip`}
       >
         <Preloader />
         <Cursor />
