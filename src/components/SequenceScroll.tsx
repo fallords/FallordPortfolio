@@ -1,7 +1,7 @@
 "use client";
 
 import { useEffect, useRef, useState } from "react";
-import { motion, useScroll, useTransform, useMotionValueEvent } from "framer-motion";
+import { motion, useScroll, useTransform, useMotionValueEvent, useSpring } from "framer-motion";
 
 const TOTAL_FRAMES = 181;
 
@@ -15,7 +15,10 @@ export default function SequenceScroll() {
         offset: ["start start", "end end"]
     });
 
-    const currentIndex = useTransform(scrollYProgress, [0, 1], [1, TOTAL_FRAMES]);
+    // Dampen the violent layout recalculations caused by mobile Safari's hiding/showing URL bar
+    const smoothedProgress = useSpring(scrollYProgress, { stiffness: 300, damping: 40, restDelta: 0.001 });
+
+    const currentIndex = useTransform(smoothedProgress, [0, 1], [1, TOTAL_FRAMES]);
 
     // Preload Images
     useEffect(() => {
@@ -106,29 +109,29 @@ export default function SequenceScroll() {
         };
     }, [images, currentIndex]);
 
-    // Text Animations mapped to scrollYProgress
+    // Text Animations mapped to smoothedProgress
 
     // Text 1: Visible on load, fades out by 0.2
-    const opacity1 = useTransform(scrollYProgress, [0, 0.15, 0.2], [1, 1, 0]);
-    const translateY1 = useTransform(scrollYProgress, [0, 0.2], [0, -60]);
+    const opacity1 = useTransform(smoothedProgress, [0, 0.15, 0.2], [1, 1, 0]);
+    const translateY1 = useTransform(smoothedProgress, [0, 0.2], [0, -60]);
 
     // Text 2: 0.2 to 0.4
-    const opacity2 = useTransform(scrollYProgress, [0.2, 0.26, 0.34, 0.4], [0, 1, 1, 0]);
-    const translateY2 = useTransform(scrollYProgress, [0.2, 0.26, 0.34, 0.4], [60, 0, 0, -60]);
+    const opacity2 = useTransform(smoothedProgress, [0.2, 0.26, 0.34, 0.4], [0, 1, 1, 0]);
+    const translateY2 = useTransform(smoothedProgress, [0.2, 0.26, 0.34, 0.4], [60, 0, 0, -60]);
 
     // Text 3: 0.4 to 0.6
-    const opacity3 = useTransform(scrollYProgress, [0.4, 0.46, 0.54, 0.6], [0, 1, 1, 0]);
-    const translateX3 = useTransform(scrollYProgress, [0.4, 0.46, 0.54, 0.6], [80, 0, 0, -80]);
+    const opacity3 = useTransform(smoothedProgress, [0.4, 0.46, 0.54, 0.6], [0, 1, 1, 0]);
+    const translateX3 = useTransform(smoothedProgress, [0.4, 0.46, 0.54, 0.6], [80, 0, 0, -80]);
 
     // Text 4: 0.6 to 0.8
-    const opacity4 = useTransform(scrollYProgress, [0.6, 0.66, 0.74, 0.8], [0, 1, 1, 0]);
-    const translateY4 = useTransform(scrollYProgress, [0.6, 0.66, 0.74, 0.8], [60, 0, 0, -60]);
+    const opacity4 = useTransform(smoothedProgress, [0.6, 0.66, 0.74, 0.8], [0, 1, 1, 0]);
+    const translateY4 = useTransform(smoothedProgress, [0.6, 0.66, 0.74, 0.8], [60, 0, 0, -60]);
     // Button fades in after text
-    const buttonOpacity4 = useTransform(scrollYProgress, [0.6, 0.69, 0.74, 0.8], [0, 0, 1, 0]);
-    const buttonY4 = useTransform(scrollYProgress, [0.6, 0.69, 0.74, 0.8], [20, 20, 0, -20]);
+    const buttonOpacity4 = useTransform(smoothedProgress, [0.6, 0.69, 0.74, 0.8], [0, 0, 1, 0]);
+    const buttonY4 = useTransform(smoothedProgress, [0.6, 0.69, 0.74, 0.8], [20, 20, 0, -20]);
 
     // Scroll indicator
-    const scrollIndicatorOpacity = useTransform(scrollYProgress, [0, 0.03], [1, 0]);
+    const scrollIndicatorOpacity = useTransform(smoothedProgress, [0, 0.03], [1, 0]);
 
     // Track when overlay 4 is visible so its button becomes clickable
     const [isOverlay4Visible, setIsOverlay4Visible] = useState(false);
