@@ -49,10 +49,12 @@ export default function SequenceScroll() {
         let needsResize = true;
 
         const handleResize = () => {
-            canvasWidth = window.innerWidth;
-            canvasHeight = window.innerHeight;
-            needsResize = true;
-            lastRenderedIndex = -1; // Force re-render on resize
+            if (canvasWidth !== window.innerWidth) {
+                canvasWidth = window.innerWidth;
+                canvasHeight = window.innerHeight;
+                needsResize = true;
+                lastRenderedIndex = -1; // Force re-render on resize
+            }
         };
 
         window.addEventListener("resize", handleResize);
@@ -137,7 +139,7 @@ export default function SequenceScroll() {
 
     return (
         <section ref={containerRef} className="relative h-[500vh] w-full bg-black">
-            <div className="sticky top-0 h-screen w-full overflow-hidden">
+            <div className="sticky top-0 h-[100svh] w-full overflow-hidden">
                 {/* Canvas for Sequence */}
                 <canvas ref={canvasRef} className="absolute inset-0 w-full h-full object-cover" />
 

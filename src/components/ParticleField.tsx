@@ -40,6 +40,7 @@ export default function ParticleField() {
         let height = window.innerHeight;
 
         const resize = () => {
+            if (canvas.width === window.innerWidth) return;
             width = window.innerWidth;
             height = window.innerHeight;
             canvas.width = width;

@@ -48,7 +48,7 @@ export default function Contact() {
                     <div className="flex flex-col gap-4 mt-8">
                         <span className="text-zinc-600 uppercase tracking-widest text-xs font-semibold">Socials</span>
                         <div className="flex flex-wrap gap-6 md:gap-8 font-sans font-semibold uppercase tracking-widest text-sm">
-                            <a href="https://www.linkedin.com/in/fadhlan-bani-nugraha" target="_blank" rel="noopener noreferrer" className="hoverable hover:text-zinc-400 transition-colors">LinkedIn</a>
+                            <a href="https://www.linkedin.com/in/fadhlan-bani" target="_blank" rel="noopener noreferrer" className="hoverable hover:text-zinc-400 transition-colors">LinkedIn</a>
                             <a href="#" className="hoverable hover:text-zinc-400 transition-colors">Twitter</a>
                             <a href="https://www.instagram.com/fadhlanbani/" target="_blank" rel="noopener noreferrer" className="hoverable hover:text-zinc-400 transition-colors">Instagram</a>
                             <a href="#" className="hoverable hover:text-zinc-400 transition-colors">GitHub</a>

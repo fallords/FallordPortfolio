@@ -27,7 +27,7 @@ const services = [
 
 export default function Services() {
     return (
-        <section className="py-20 md:py-32 px-6 md:px-12 lg:px-24 bg-black text-white min-h-screen">
+        <section className="py-20 md:py-32 px-6 md:px-12 lg:px-24 bg-black text-white min-h-[100svh]">
             <div className="max-w-7xl mx-auto flex flex-col lg:flex-row gap-16 lg:gap-32">
 
                 <div className="lg:w-1/3 static lg:sticky top-40 h-fit">

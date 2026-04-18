@@ -224,7 +224,7 @@ function ProjectCard({ project, index }: { project: typeof projects[0]; index: n
 
 export default function WorksPage() {
     return (
-        <main className="bg-[#0a0a0a] text-white min-h-screen selection:bg-white/20">
+        <main className="bg-[#0a0a0a] text-white min-h-[100svh] selection:bg-white/20">
             {/* Hero header */}
             <section className="pt-36 pb-20 px-6 md:px-12 lg:px-24">
                 <div className="max-w-7xl mx-auto">
