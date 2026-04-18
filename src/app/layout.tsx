@@ -16,6 +16,14 @@ const manrope = Manrope({
   subsets: ["latin"],
 });
 
+export const viewport: import("next").Viewport = {
+  width: "device-width",
+  initialScale: 1,
+  maximumScale: 1,
+  userScalable: false,
+  viewportFit: "cover",
+};
+
 export const metadata: Metadata = {
   metadataBase: new URL("https://fadhlanbani.com"),
   title: "Fadhlan Bani | Creative Developer",
