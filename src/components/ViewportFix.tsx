@@ -23,12 +23,19 @@ export default function ViewportFix() {
             }
         };
 
+        let orientationTimer: ReturnType<typeof setTimeout>;
+        const handleOrientationChange = () => {
+            clearTimeout(orientationTimer);
+            orientationTimer = setTimeout(setVh, 100);
+        };
+
         window.addEventListener("resize", handleResize);
-        window.addEventListener("orientationchange", () => setTimeout(setVh, 100));
+        window.addEventListener("orientationchange", handleOrientationChange);
 
         return () => {
+            clearTimeout(orientationTimer);
             window.removeEventListener("resize", handleResize);
-            window.removeEventListener("orientationchange", setVh);
+            window.removeEventListener("orientationchange", handleOrientationChange);
         };
     }, []);
 

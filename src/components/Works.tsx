@@ -1,248 +1,156 @@
 "use client";
 
 import { useRef } from "react";
-import { motion, useMotionValue, useSpring, useTransform } from "framer-motion";
+import { motion, useScroll, useSpring, useTransform } from "framer-motion";
 import Image from "next/image";
-import Link from "next/link";
+import Reveal from "./Reveal";
+import Corners from "./Corners";
+import SectionLabel from "./SectionLabel";
+import { EASE, VIEWPORT, fadeUp } from "@/lib/motion";
 
+/*
+ * Only real, shipped work belongs here. Add an entry when a project is
+ * actually live — placeholders read worse than a short list.
+ */
 const projects = [
     {
         id: 1,
         title: "S.E.R.A.",
         category: "AI / Forensic Analytics",
+        description:
+            "Smart Emotional Relationship Adviser. A web app that analyses relationship patterns using an LLM. Built with Next.js and TypeScript, deployed on Vercel.",
         image: "/sera-preview.png",
         href: "https://s-e-r-a-smart-emotional-relationshi.vercel.app/",
         objectPosition: "center 20%",
-        comingSoon: false,
-    },
-    {
-        id: 2,
-        title: "Aetherial",
-        category: "Web Development / 3D",
-        image: "https://images.unsplash.com/photo-1618005182384-a83a8bd57fbe?q=80&w=2564&auto=format&fit=crop",
-        href: "#",
-        comingSoon: true,
-    },
-    {
-        id: 3,
-        title: "Quantum UI",
-        category: "Design System",
-        image: "https://images.unsplash.com/photo-1550751827-4bd374c3f58b?q=80&w=2670&auto=format&fit=crop",
-        href: "#",
-        comingSoon: true,
-    },
-    {
-        id: 4,
-        title: "Nexus Core",
-        category: "AI Integration",
-        image: "https://images.unsplash.com/photo-1620121692029-d088224ddc74?q=80&w=2832&auto=format&fit=crop",
-        href: "#",
-        comingSoon: true,
+        year: "2026",
+        stack: ["Next.js", "TypeScript", "LLM API"],
     },
 ];
 
-function ProjectCard({ project, index }: { project: typeof projects[0]; index: number }) {
-    const cardRef = useRef<HTMLDivElement>(null);
+function ProjectCard({ project }: { project: (typeof projects)[0] }) {
+    const cardRef = useRef<HTMLAnchorElement>(null);
 
-    // Mouse position for 3D tilt
-    const mouseX = useMotionValue(0);
-    const mouseY = useMotionValue(0);
-
-    const springConfig = { stiffness: 150, damping: 20, mass: 0.5 };
-    const rotateX = useSpring(useTransform(mouseY, [-0.5, 0.5], [8, -8]), springConfig);
-    const rotateY = useSpring(useTransform(mouseX, [-0.5, 0.5], [-8, 8]), springConfig);
-
-    // Spotlight gradient position
-    const spotlightX = useSpring(useTransform(mouseX, [-0.5, 0.5], [0, 100]), springConfig);
-    const spotlightY = useSpring(useTransform(mouseY, [-0.5, 0.5], [0, 100]), springConfig);
-
-    const handleMouseMove = (e: React.MouseEvent) => {
-        if (!cardRef.current) return;
-        const rect = cardRef.current.getBoundingClientRect();
-        const x = (e.clientX - rect.left) / rect.width - 0.5;
-        const y = (e.clientY - rect.top) / rect.height - 0.5;
-        mouseX.set(x);
-        mouseY.set(y);
-    };
-
-    const handleMouseLeave = () => {
-        mouseX.set(0);
-        mouseY.set(0);
-    };
+    // Parallax: the image drifts slower than the page, which reads as depth.
+    // Kept to a few percent — any more and it becomes the thing you notice.
+    const { scrollYProgress } = useScroll({
+        target: cardRef,
+        offset: ["start end", "end start"],
+    });
+    const rawY = useTransform(scrollYProgress, [0, 1], ["-6%", "6%"]);
+    const imageY = useSpring(rawY, { stiffness: 120, damping: 30, restDelta: 0.001 });
 
     return (
-        <motion.div
-            initial={{ opacity: 0, y: 60 }}
-            whileInView={{ opacity: 1, y: 0 }}
-            viewport={{ once: true, amount: 0.15 }}
-            transition={{ duration: 0.9, delay: index * 0.15, ease: [0.22, 1, 0.36, 1] }}
-            className={`${index % 2 !== 0 ? "md:mt-32" : ""}`}
-        >
-            <motion.div
+        <motion.div initial="hidden" whileInView="visible" viewport={VIEWPORT}>
+            <a
                 ref={cardRef}
-                onMouseMove={handleMouseMove}
-                onMouseLeave={handleMouseLeave}
-                style={{
-                    rotateX,
-                    rotateY,
-                    transformPerspective: 800,
-                }}
-                className={`group relative ${project.comingSoon ? "cursor-default" : "hoverable cursor-pointer"}`}
+                href={project.href}
+                target="_blank"
+                rel="noopener noreferrer"
+                data-cursor-label="View"
+                className="hoverable group grid grid-cols-1 lg:grid-cols-[minmax(0,1.35fr)_minmax(0,1fr)] gap-8 lg:gap-14 items-center"
             >
-                {project.comingSoon ? (
-                    <div className="block">
-                        <div className="relative w-full aspect-[16/10] overflow-hidden rounded-xl bg-zinc-900 border border-white/10">
-                            {/* Project number watermark */}
-                            <div className="absolute top-3 left-4 z-10 font-heading font-bold text-[5rem] md:text-[7rem] leading-none text-white/[0.03] select-none pointer-events-none">
-                                {String(index + 1).padStart(2, "0")}
-                            </div>
-
-                            <Image
-                                src={project.image}
-                                alt={project.title}
-                                fill
-                                sizes="(max-width: 768px) 100vw, (max-width: 1200px) 50vw, 33vw"
-                                className="object-cover grayscale opacity-40"
-                                style={{ objectPosition: project.objectPosition || "center" }}
-                            />
-
-                            {/* Dark overlay */}
-                            <div className="absolute inset-0 bg-black/50" />
-
-                            {/* Coming Soon badge */}
-                            <div className="absolute inset-0 flex items-center justify-center z-20">
-                                <span className="px-5 py-2 text-xs font-sans font-bold uppercase tracking-[0.25em] text-white/70 border border-white/20 rounded-full backdrop-blur-md bg-white/5">
-                                    Coming Soon
-                                </span>
-                            </div>
-                        </div>
-
-                        {/* Project info below */}
-                        <div className="mt-4 flex justify-between items-center">
-                            <div>
-                                <h3 className="text-lg md:text-xl font-heading font-bold tracking-tight text-zinc-600">
-                                    Coming Soon
-                                </h3>
-                                <p className="text-zinc-700 text-xs font-sans tracking-widest uppercase mt-0.5">
-                                    Coming Soon
-                                </p>
-                            </div>
-                        </div>
-                    </div>
-                ) : (
-                    <a
-                        href={project.href}
-                        target="_blank"
-                        rel="noopener noreferrer"
-                        className="block"
+                {/* Preview — fades up while the image settles out of a 4% over-scale.
+                    Small enough to feel like the frame coming to rest rather than a
+                    zoom. The inner scale is a variant so the card's labels reach it. */}
+                <motion.div
+                    variants={{ hidden: { opacity: 0 }, visible: { opacity: 1 } }}
+                    transition={{ duration: 0.9, ease: EASE.out }}
+                    className="relative w-full aspect-[16/10] overflow-hidden bg-[var(--surface)] border border-[var(--rule)] group-hover:border-[var(--rule-strong)] transition-colors duration-500"
+                >
+                    <motion.div
+                        variants={{ hidden: { scale: 1.04 }, visible: { scale: 1 } }}
+                        transition={{ duration: 1.1, ease: EASE.out }}
+                        style={{ y: imageY }}
+                        className="absolute -inset-y-[8%] inset-x-0"
                     >
-                        <div className="relative w-full aspect-[16/10] overflow-hidden rounded-xl bg-zinc-900 border border-white/5 group-hover:border-white/20 transition-colors duration-500">
-                            {/* Project number watermark */}
-                            <div className="absolute top-3 left-4 z-10 font-heading font-bold text-[5rem] md:text-[7rem] leading-none text-white/[0.03] group-hover:text-white/[0.08] transition-colors duration-700 select-none pointer-events-none">
-                                {String(index + 1).padStart(2, "0")}
-                            </div>
+                        <Image
+                            src={project.image}
+                            alt={`${project.title} — screenshot`}
+                            fill
+                            sizes="(max-width: 1024px) 100vw, 60vw"
+                            priority
+                            className="object-cover transition-transform duration-700 ease-out group-hover:scale-[1.03]"
+                            style={{ objectPosition: project.objectPosition }}
+                        />
+                    </motion.div>
 
-                            {/* Image with zoom */}
-                            <Image
-                                src={project.image}
-                                alt={project.title}
-                                fill
-                                sizes="(max-width: 768px) 100vw, (max-width: 1200px) 50vw, 33vw"
-                                priority={index < 2}
-                                className="object-cover transition-transform duration-1000 ease-out group-hover:scale-110"
-                                style={{ objectPosition: project.objectPosition || "center" }}
+                    <div className="absolute inset-0 bg-black/25 group-hover:bg-black/5 transition-colors duration-500" />
+
+                    {/* Crop marks instead of a closed border */}
+                    <Corners className="m-2" tone="border-[var(--rule-strong)]" />
+                </motion.div>
+
+                {/* Detail */}
+                <div>
+                    <motion.div
+                        variants={fadeUp}
+                        className="flex items-center gap-3 font-mono text-[10px] uppercase tracking-[0.24em] text-[var(--fg-faint)]"
+                    >
+                        <span className="tabular-nums">{project.year}</span>
+                        <span className="h-px w-4 bg-white/15" />
+                        <span className="text-[var(--fg-dim)]">{project.category}</span>
+                    </motion.div>
+
+                    <h3 className="mt-4 font-heading text-2xl md:text-3xl font-bold tracking-tight">
+                        <Reveal delay={0.05}>{project.title}</Reveal>
+                    </h3>
+
+                    <motion.p
+                        variants={fadeUp}
+                        custom={1}
+                        className="mt-4 max-w-md font-sans text-sm leading-relaxed text-[var(--fg-muted)]"
+                    >
+                        {project.description}
+                    </motion.p>
+
+                    <motion.ul variants={fadeUp} custom={2} className="mt-5 flex flex-wrap gap-1.5">
+                        {project.stack.map((tool) => (
+                            <li
+                                key={tool}
+                                className="border border-[var(--rule)] px-2.5 py-1 font-mono text-[10px] uppercase tracking-[0.12em] text-[var(--fg-dim)] transition-colors duration-300 group-hover:border-[var(--rule-strong)] group-hover:text-[var(--fg-soft)]"
+                            >
+                                {tool}
+                            </li>
+                        ))}
+                    </motion.ul>
+
+                    <motion.span
+                        variants={fadeUp}
+                        custom={3}
+                        className="mt-7 inline-flex items-center gap-3 font-mono text-[10px] uppercase tracking-[0.24em] text-[var(--fg-muted)] transition-colors duration-300 group-hover:text-white"
+                    >
+                        {/* Underline draws from the left on hover */}
+                        <span className="relative">
+                            Open live site
+                            <span
+                                aria-hidden="true"
+                                className="absolute -bottom-1 left-0 h-px w-0 bg-white transition-all duration-500 ease-[cubic-bezier(0.22,1,0.36,1)] group-hover:w-full"
                             />
-
-                            {/* Dark overlay → transparent on hover */}
-                            <div className="absolute inset-0 bg-black/30 group-hover:bg-black/10 transition-colors duration-500" />
-
-                            {/* Mouse-following spotlight */}
-                            <motion.div
-                                className="absolute inset-0 opacity-0 group-hover:opacity-100 transition-opacity duration-500 pointer-events-none"
-                                style={{
-                                    background: useTransform(
-                                        [spotlightX, spotlightY],
-                                        ([x, y]) =>
-                                            `radial-gradient(circle at ${x}% ${y}%, rgba(255,255,255,0.08) 0%, transparent 60%)`
-                                    ),
-                                }}
-                            />
-
-                            {/* Bottom gradient with project info on hover */}
-                            <div className="absolute inset-0 bg-gradient-to-t from-black/90 via-black/20 to-transparent opacity-0 group-hover:opacity-100 transition-opacity duration-500 pointer-events-none" />
-
-                            {/* Hover category badge */}
-                            <div className="absolute bottom-4 left-4 right-4 z-10 opacity-0 group-hover:opacity-100 translate-y-4 group-hover:translate-y-0 transition-all duration-500">
-                                <span className="inline-block px-3 py-1 text-xs font-sans font-semibold uppercase tracking-widest text-white/80 border border-white/20 rounded-full backdrop-blur-sm">
-                                    {project.category}
-                                </span>
-                            </div>
-
-                            {/* Corner glow on hover */}
-                            <div className="absolute -inset-[1px] rounded-xl opacity-0 group-hover:opacity-100 transition-opacity duration-700 pointer-events-none"
-                                style={{
-                                    background: "linear-gradient(135deg, rgba(255,255,255,0.1) 0%, transparent 40%, transparent 60%, rgba(255,255,255,0.05) 100%)",
-                                }}
-                            />
-                        </div>
-
-                        {/* Project info below */}
-                        <div className="mt-4 flex justify-between items-center">
-                            <div>
-                                <h3 className="text-lg md:text-xl font-heading font-bold tracking-tight group-hover:text-white transition-colors">
-                                    {project.title}
-                                </h3>
-                                <p className="text-zinc-500 text-xs font-sans tracking-widest uppercase mt-0.5 group-hover:text-zinc-400 transition-colors">
-                                    {project.category}
-                                </p>
-                            </div>
-                            <div className="w-8 h-8 rounded-full border border-white/20 group-hover:border-white/40 flex items-center justify-center translate-x-4 opacity-0 group-hover:translate-x-0 group-hover:opacity-100 transition-all duration-300 group-hover:rotate-0 rotate-45">
-                                <span className="text-sm">↗</span>
-                            </div>
-                        </div>
-                    </a>
-                )}
-            </motion.div>
+                        </span>
+                        <span className="transition-transform duration-500 ease-[cubic-bezier(0.22,1,0.36,1)] group-hover:translate-x-1.5">
+                            →
+                        </span>
+                    </motion.span>
+                </div>
+            </a>
         </motion.div>
     );
 }
 
 export default function Works() {
     return (
-        <section id="works" className="pt-24 pb-32 px-6 md:px-12 lg:px-24 bg-[#0a0a0a] text-white">
-            <div className="max-w-7xl mx-auto border-t border-white/10 pt-16">
-                <div className="flex flex-col md:flex-row justify-between items-end mb-16 gap-8">
-                    <motion.h2
-                        initial={{ opacity: 0, y: 40 }}
-                        whileInView={{ opacity: 1, y: 0 }}
-                        viewport={{ once: true, amount: 0.1 }}
-                        transition={{ duration: 0.8, ease: "easeOut" }}
-                        className="text-5xl md:text-7xl font-heading font-bold tracking-tighter uppercase"
-                    >
-                        Selected <br className="hidden md:block" />
-                        <span className="text-zinc-500">Works</span>
-                    </motion.h2>
+        <section
+            id="works"
+            className="relative py-20 md:py-28 px-6 md:px-12 lg:px-24 bg-[var(--surface)] text-[var(--fg)]"
+        >
+            <div className="max-w-7xl mx-auto">
+                <h2>
+                    <SectionLabel index="01">Work</SectionLabel>
+                </h2>
 
-                    <Link
-                        href="/works"
-                        className="hoverable flex items-center gap-2 pb-2 border-b border-white hover:text-zinc-400 hover:border-zinc-400 transition-colors uppercase font-sans tracking-widest text-sm font-semibold"
-                    >
-                        <motion.span
-                            initial={{ opacity: 0 }}
-                            whileInView={{ opacity: 1 }}
-                            viewport={{ once: true, amount: 0.1 }}
-                            transition={{ duration: 0.8, delay: 0.1 }}
-                            className="flex items-center gap-2"
-                        >
-                            See All Projects
-                            <span className="text-xl">↗</span>
-                        </motion.span>
-                    </Link>
-                </div>
-
-                <div className="grid grid-cols-1 md:grid-cols-2 gap-6 md:gap-8">
-                    {projects.map((project, i) => (
-                        <ProjectCard key={project.id} project={project} index={i} />
+                <div className="mt-14 md:mt-20 flex flex-col gap-24">
+                    {projects.map((project) => (
+                        <ProjectCard key={project.id} project={project} />
                     ))}
                 </div>
             </div>

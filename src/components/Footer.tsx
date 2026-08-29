@@ -2,6 +2,7 @@
 
 import { motion, useScroll, useTransform } from "framer-motion";
 import { useRef } from "react";
+import LocalTime from "./LocalTime";
 
 export default function Footer() {
     const containerRef = useRef<HTMLDivElement>(null);
@@ -17,23 +18,40 @@ export default function Footer() {
     return (
         <footer
             ref={containerRef}
-            className="relative bg-black text-white overflow-hidden h-[50svh] md:h-[80svh] flex flex-col justify-end"
+            className="relative bg-[var(--surface)] text-white overflow-hidden h-[42svh] md:h-[58svh] flex flex-col justify-end"
         >
-            <div className="absolute inset-0 bg-zinc-950 pointer-events-none -z-10" />
-
             <motion.div
                 style={{ y, opacity }}
                 className="w-full flex justify-center items-center pb-20 px-4"
             >
-                <h1 className="text-[12vw] font-heading font-extrabold uppercase tracking-tighter leading-none text-center bg-clip-text text-transparent bg-gradient-to-b from-white to-zinc-600">
+                {/*
+                 * A wordmark, not a heading. It was an <h1>, which gave the page
+                 * a second top-level heading and told a screen reader the footer
+                 * was where the document begins. It carries no information the
+                 * hero has not already given, so it is marked decorative.
+                 */}
+                <p
+                    aria-hidden="true"
+                    className="text-[6.5vw] font-heading font-extrabold uppercase tracking-tight leading-none text-center bg-clip-text text-transparent bg-gradient-to-b from-white to-[var(--fg-ghost)]"
+                >
                     Fadhlan Bani
-                </h1>
+                </p>
             </motion.div>
 
-            <div className="flex flex-col sm:flex-row justify-between items-center p-6 lg:px-12 border-t border-white/10 font-sans text-sm uppercase tracking-widest text-zinc-500 font-semibold relative z-10 bg-black">
-                <p>© {new Date().getFullYear()} — All Rights Reserved.</p>
-                <div className="flex gap-6 mt-4 sm:mt-0 cursor-pointer">
-                    <span className="hoverable hover:text-white transition-colors" onClick={() => window.scrollTo({ top: 0, behavior: "smooth" })}>Back to Top ↑</span>
+            {/* pb-9 clears the fixed HUD strip pinned to the bottom of the viewport */}
+            <div className="flex flex-col sm:flex-row justify-between items-center gap-3 px-6 py-5 lg:px-12 border-t border-[var(--rule)] font-mono text-[10px] uppercase tracking-[0.22em] text-[var(--fg-faint)] relative z-10 bg-[var(--surface)]">
+                <p>© {new Date().getFullYear()} — All rights reserved</p>
+
+                <LocalTime className="text-[10px] tracking-[0.22em] text-[var(--fg-faint)]" />
+
+                <div className="flex gap-6">
+                    <button
+                        type="button"
+                        className="hoverable uppercase tracking-[0.22em] transition-colors hover:text-white cursor-pointer"
+                        onClick={() => window.scrollTo({ top: 0, behavior: "smooth" })}
+                    >
+                        Back to top ↑
+                    </button>
                 </div>
             </div>
         </footer>

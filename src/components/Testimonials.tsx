@@ -1,6 +1,8 @@
 "use client";
 
 import { motion } from "framer-motion";
+import SectionLabel from "./SectionLabel";
+import { VIEWPORT, fadeUp } from "@/lib/motion";
 
 const testimonials = [
     {
@@ -17,35 +19,53 @@ const testimonials = [
 
 export default function Testimonials() {
     return (
-        <section className="py-32 px-6 md:px-12 lg:px-24 bg-[#050505] text-white">
+        <section
+            className="py-20 md:py-28 px-6 md:px-12 lg:px-24 bg-[var(--surface)] text-[var(--fg)]"
+        >
             <div className="max-w-7xl mx-auto">
-                <h2 className="text-zinc-500 uppercase tracking-widest text-xs font-semibold mb-16 text-center">
-                    Client Feedback
+                <h2>
+                    <SectionLabel>Client Feedback</SectionLabel>
                 </h2>
 
-                <div className="grid grid-cols-1 md:grid-cols-2 gap-16 md:gap-24">
+                <div className="mt-14 md:mt-20 grid grid-cols-1 md:grid-cols-2 gap-12 md:gap-16">
+                    {/*
+                     * figure/blockquote/figcaption, not a div with a heading.
+                     * The attribution was an <h4> under an <h2>, which both
+                     * skipped a level and told assistive tech that a person's
+                     * name was a section of the page. This markup says what the
+                     * thing actually is: a quotation and its source.
+                     */}
                     {testimonials.map((test, i) => (
-                        <motion.div
+                        <motion.figure
                             key={i}
-                            initial={{ opacity: 0, y: 50 }}
-                            whileInView={{ opacity: 1, y: 0 }}
-                            viewport={{ once: true, amount: 0.1 }}
-                            transition={{ duration: 0.8, delay: i * 0.2 }}
-                            className="flex flex-col gap-8"
+                            variants={fadeUp}
+                            custom={i}
+                            initial="hidden"
+                            whileInView="visible"
+                            viewport={VIEWPORT}
+                            className="group m-0 flex flex-col gap-6"
                         >
-                            <p className="text-xl md:text-4xl font-heading font-medium tracking-tight leading-snug">
-                                &quot;{test.quote}&quot;
-                            </p>
-                            <div className="flex gap-4 items-center mt-auto">
-                                <div className="w-12 h-12 bg-zinc-800 rounded-full flex justify-center items-center text-xl font-heading font-bold">
+                            <blockquote className="text-base md:text-xl font-heading font-medium tracking-tight leading-relaxed">
+                                <span className="text-[var(--fg)]/25 select-none">&ldquo;</span>
+                                {test.quote}
+                                <span className="text-[var(--fg)]/25 select-none">&rdquo;</span>
+                            </blockquote>
+
+                            <figcaption className="flex gap-4 items-center mt-auto">
+                                <span
+                                    aria-hidden="true"
+                                    className="w-9 h-9 flex justify-center items-center font-mono text-xs font-medium bg-[var(--fg)]/[0.07] ring-1 ring-[var(--rule)] transition-colors duration-500 group-hover:bg-[var(--fg)]/[0.14]"
+                                >
                                     {test.author[0]}
-                                </div>
-                                <div>
-                                    <h4 className="font-sans font-bold text-lg">{test.author}</h4>
-                                    <span className="text-zinc-500 uppercase tracking-widest text-xs font-semibold">{test.role}</span>
-                                </div>
-                            </div>
-                        </motion.div>
+                                </span>
+                                <span className="flex flex-col">
+                                    <span className="font-sans font-bold text-sm">{test.author}</span>
+                                    <span className="font-mono text-[10px] uppercase tracking-[0.16em] text-[var(--fg-dim)]">
+                                        {test.role}
+                                    </span>
+                                </span>
+                            </figcaption>
+                        </motion.figure>
                     ))}
                 </div>
             </div>

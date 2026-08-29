@@ -8,47 +8,45 @@ const TOTAL_FRAMES = 181;
 export default function SequenceScroll() {
     const containerRef = useRef<HTMLDivElement>(null);
     const canvasRef = useRef<HTMLCanvasElement>(null);
-    const [images, setImages] = useState<HTMLImageElement[]>([]);
+    const imagesRef = useRef<HTMLImageElement[]>([]);
 
-    // Fix: Instead of using IntersectionObserver which violently recalculates 
+    // Fix: Instead of using IntersectionObserver which violently recalculates
     // when Instagram/iOS Webviews hide their UI, we track pure pixel scrolling!
     const { scrollY } = useScroll();
-    const [scrollRange, setScrollRange] = useState(4000);
 
+    // The section is h-[400svh] — four screens tall — so the scrollable distance
+    // to reach the end is three screens. Locked in a ref on mount (not state, so
+    // no cascading re-render) so it NEVER recalculates when an in-app browser
+    // hides or shows its chrome mid-scroll.
+    const scrollRangeRef = useRef(3000);
     useEffect(() => {
-        // We have h-[500svh] which is 5 screens tall. The scrollable distance to reach the end is 4 screens.
-        // We lock this pure pixel value on mount so it NEVER recalculates when Instagram resizes the screen!
-        setScrollRange(window.innerHeight * 4);
+        scrollRangeRef.current = window.innerHeight * 3;
     }, []);
 
     // Create a 0 to 1 progress based purely on absolute pixels scrolled since the top
-    const fixedProgress = useTransform(scrollY, [0, scrollRange], [0, 1], { clamp: false });
+    const fixedProgress = useTransform(scrollY, (v) => v / scrollRangeRef.current);
 
     // Dampen the violent layout recalculations caused by mobile Safari's hiding/showing URL bar
     const smoothedProgress = useSpring(fixedProgress, { stiffness: 300, damping: 40, restDelta: 0.001 });
 
     const currentIndex = useTransform(smoothedProgress, [0, 1], [1, TOTAL_FRAMES]);
 
-    // Preload Images
+    // Preload Images (kept in a ref — they're an external resource, not render state)
     useEffect(() => {
-        let loadedCount = 0;
         const loadedImages: HTMLImageElement[] = [];
 
         for (let i = 1; i <= TOTAL_FRAMES; i++) {
             const img = new Image();
             const paddedIndex = i.toString().padStart(3, "0");
             img.src = `/sequence/ezgif-frame-${paddedIndex}.jpg`;
-            img.onload = () => {
-                loadedCount++;
-            };
             loadedImages.push(img);
         }
-        setImages(loadedImages);
+        imagesRef.current = loadedImages;
     }, []);
 
     // Draw to Canvas with cached dimensions
     useEffect(() => {
-        if (images.length === 0 || !canvasRef.current) return;
+        if (!canvasRef.current) return;
 
         const canvas = canvasRef.current;
         const ctx = canvas.getContext("2d", { alpha: false });
@@ -82,7 +80,7 @@ export default function SequenceScroll() {
                 return;
             }
 
-            const img = images[index - 1];
+            const img = imagesRef.current[index - 1];
             if (!img || !img.complete) {
                 animationFrameId = requestAnimationFrame(render);
                 return;
@@ -116,47 +114,61 @@ export default function SequenceScroll() {
             cancelAnimationFrame(animationFrameId);
             window.removeEventListener("resize", handleResize);
         };
-    }, [images, currentIndex]);
+    }, [currentIndex]);
 
-    // Text Animations mapped to smoothedProgress
+    /*
+     * Two overlays, not three. The opening used to hold the visitor through
+     * five screens of scrolling and three separate statements before any work
+     * appeared — the second and third were saying the same thing in two goes.
+     * Merged, the hero says its piece in one pass and hands over sooner.
+     */
 
-    // Text 1: Visible on load, fades out by 0.2
-    const opacity1 = useTransform(smoothedProgress, [0, 0.15, 0.2], [1, 1, 0]);
-    const translateY1 = useTransform(smoothedProgress, [0, 0.2], [0, -60]);
+    // Text 1: visible on load, gone by 0.3
+    const opacity1 = useTransform(smoothedProgress, [0, 0.22, 0.3], [1, 1, 0]);
+    const translateY1 = useTransform(smoothedProgress, [0, 0.3], [0, -60]);
 
-    // Text 2: 0.2 to 0.4
-    const opacity2 = useTransform(smoothedProgress, [0.2, 0.26, 0.34, 0.4], [0, 1, 1, 0]);
-    const translateY2 = useTransform(smoothedProgress, [0.2, 0.26, 0.34, 0.4], [60, 0, 0, -60]);
-
-    // Text 3: 0.4 to 0.6
-    const opacity3 = useTransform(smoothedProgress, [0.4, 0.46, 0.54, 0.6], [0, 1, 1, 0]);
-    const translateX3 = useTransform(smoothedProgress, [0.4, 0.46, 0.54, 0.6], [80, 0, 0, -80]);
-
-    // Text 4: 0.6 to 0.8
-    const opacity4 = useTransform(smoothedProgress, [0.6, 0.66, 0.74, 0.8], [0, 1, 1, 0]);
-    const translateY4 = useTransform(smoothedProgress, [0.6, 0.66, 0.74, 0.8], [60, 0, 0, -60]);
-    // Button fades in after text
-    const buttonOpacity4 = useTransform(smoothedProgress, [0.6, 0.69, 0.74, 0.8], [0, 0, 1, 0]);
-    const buttonY4 = useTransform(smoothedProgress, [0.6, 0.69, 0.74, 0.8], [20, 20, 0, -20]);
+    // Text 2: 0.32 to 0.86, carrying the statement, the stack and the CTA
+    const opacity2 = useTransform(smoothedProgress, [0.32, 0.42, 0.76, 0.86], [0, 1, 1, 0]);
+    const translateY2 = useTransform(smoothedProgress, [0.32, 0.42, 0.76, 0.86], [60, 0, 0, -60]);
+    // Button settles in just after the lines above it
+    const buttonOpacity2 = useTransform(smoothedProgress, [0.32, 0.5, 0.76, 0.86], [0, 0, 1, 0]);
+    const buttonY2 = useTransform(smoothedProgress, [0.32, 0.5, 0.76, 0.86], [20, 20, 0, -20]);
 
     // Scroll indicator
     const scrollIndicatorOpacity = useTransform(smoothedProgress, [0, 0.03], [1, 0]);
 
-    // Track when overlay 4 is visible so its button becomes clickable
-    const [isOverlay4Visible, setIsOverlay4Visible] = useState(false);
-    useMotionValueEvent(opacity4, "change", (v) => setIsOverlay4Visible(v > 0.5));
+    // Track when the CTA is visible so it only becomes clickable then
+    const [isCtaVisible, setIsCtaVisible] = useState(false);
+    useMotionValueEvent(opacity2, "change", (v) => setIsCtaVisible(v > 0.5));
 
     // Words for text 1 clip reveal
     const heroWords = ["Hi,", "I'm", "Fadhlan"];
 
     return (
-        <section ref={containerRef} className="relative h-[500svh] w-full bg-black">
+        <section ref={containerRef} className="relative h-[400svh] w-full bg-[var(--surface)]">
             <div
-                className="sticky top-0 w-full overflow-hidden will-change-transform transform-gpu"
-                style={{ height: "calc(var(--vh, 1vh) * 100)" }}
+                // Sticky offset and height both account for the frame gutter, so
+                // the pinned hero sits inside the panel instead of being clipped
+                // by it. `overflow: clip` on the frame keeps sticky working —
+                // `hidden` would turn it into a scroll container and break it.
+                className="sticky w-full overflow-hidden will-change-transform transform-gpu"
+                style={{
+                    top: "var(--frame)",
+                    height: "calc(var(--vh, 1vh) * 100 - var(--frame) * 2)",
+                }}
             >
-                {/* Canvas for Sequence */}
-                <canvas ref={canvasRef} className="absolute inset-0 w-full h-full object-cover will-change-transform transform-gpu" />
+                {/*
+                 * Desaturated in CSS rather than by re-exporting 181 files. The
+                 * source frames are lit hard red, which was the only saturated
+                 * colour left on an otherwise strictly monochrome site — and it
+                 * sat on the largest, first thing anyone sees. Slight contrast
+                 * lift compensates for the punch that removing the hue costs.
+                 */}
+                <canvas
+                    ref={canvasRef}
+                    className="absolute inset-0 w-full h-full object-cover will-change-transform transform-gpu"
+                    style={{ filter: "grayscale(1) contrast(1.06)" }}
+                />
 
                 {/* Global overlay for contrast if needed */}
                 <div className="absolute inset-0 bg-black/40 pointer-events-none" />
@@ -166,32 +178,25 @@ export default function SequenceScroll() {
                     style={{ opacity: opacity1, y: translateY1 }}
                     className="absolute inset-0 flex flex-col items-center justify-center text-center px-4 pointer-events-none"
                 >
-                    <h1 className="font-heading font-bold text-5xl md:text-7xl lg:text-9xl tracking-tighter uppercase mb-6 flex flex-wrap justify-center gap-x-[0.3em]">
+                    {/*
+                     * No mount-time entrance here. The intro overlay covers the
+                     * first couple of seconds, so an animation timed to page load
+                     * plays entirely behind it — invisible, but still able to fail
+                     * and leave the name stuck off-screen. The intro dissolving
+                     * *is* the reveal.
+                     */}
+                    <h1 className="font-heading font-bold text-3xl md:text-5xl lg:text-6xl tracking-tight uppercase mb-5 flex flex-wrap justify-center gap-x-[0.3em]">
                         {heroWords.map((word, i) => (
-                            <span key={i} className="overflow-hidden inline-block">
-                                <motion.span
-                                    initial={{ y: "100%" }}
-                                    animate={{ y: "0%" }}
-                                    transition={{
-                                        duration: 0.8,
-                                        delay: 0.2 * i + 3,
-                                        ease: [0.22, 1, 0.36, 1],
-                                    }}
-                                    className="inline-block"
-                                >
-                                    {word}
-                                </motion.span>
+                            <span key={i} className="inline-block">
+                                {word}
                             </span>
                         ))}
                     </h1>
-                    <motion.p
-                        initial={{ opacity: 0, y: 10 }}
-                        animate={{ opacity: 1, y: 0 }}
-                        transition={{ duration: 0.7, delay: 3.8, ease: "easeOut" }}
-                        className="font-sans text-lg md:text-2xl font-light text-zinc-300 max-w-xl"
+                    <p
+                        className="font-mono text-[10px] md:text-xs uppercase tracking-[0.2em] text-[var(--fg-muted)] max-w-3xl leading-relaxed"
                     >
-                        Web Developer, Designer, Software Engineer & AI Integration Developer
-                    </motion.p>
+                        Web Developer · Designer · Software Engineer · AI Integration
+                    </p>
                 </motion.div>
 
                 {/* Scroll indicator */}
@@ -199,59 +204,53 @@ export default function SequenceScroll() {
                     style={{ opacity: scrollIndicatorOpacity }}
                     className="absolute bottom-10 left-1/2 -translate-x-1/2 flex flex-col items-center gap-2 pointer-events-none"
                 >
-                    <span className="font-sans text-xs uppercase tracking-[0.25em] text-zinc-400">
+                    <span className="font-mono text-[10px] uppercase tracking-[0.3em] text-[var(--fg-dim)]">
                         Scroll
                     </span>
                     <motion.div
                         animate={{ y: [0, 8, 0] }}
                         transition={{ repeat: Infinity, duration: 1.5, ease: "easeInOut" }}
                     >
-                        <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="1.5" className="text-zinc-400">
+                        <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="1.5" className="text-[var(--fg-muted)]">
                             <path d="M7 13l5 5 5-5M7 6l5 5 5-5" />
                         </svg>
                     </motion.div>
                 </motion.div>
 
-                {/* Text 2 — Simple fade-up */}
+                {/* Text 2 — the statement, the stack and the way in, together */}
                 <motion.div
                     style={{ opacity: opacity2, y: translateY2 }}
                     className="absolute inset-0 flex flex-col items-start justify-center text-left px-8 md:px-24 max-w-4xl pointer-events-none"
                 >
-                    <h2 className="font-heading font-bold text-4xl md:text-6xl tracking-tight mb-6">
-                        Bridging the gap between<br />Design and Engineering.
+                    <h2 className="font-heading font-bold text-2xl md:text-4xl tracking-tight mb-6">
+                        I design and build<br />web applications.
                     </h2>
-                    <p className="font-sans text-lg md:text-xl font-light text-zinc-400">
-                        I craft digital experiences that are not only visually stunning but also technically robust, fluid, and scalable.
+                    <p className="font-mono text-[10px] md:text-xs uppercase tracking-[0.24em] text-[var(--fg-dim)] leading-loose">
+                        Next.js · React · TypeScript · Python
+                        <br />
+                        Based in Indonesia
                     </p>
-                </motion.div>
 
-                {/* Text 3 — Slide from right */}
-                <motion.div
-                    style={{ opacity: opacity3, x: translateX3 }}
-                    className="absolute inset-0 flex flex-col items-end justify-center text-right px-8 md:px-24 pointer-events-none"
-                >
-                    <div className="max-w-2xl">
-                        <h2 className="font-heading font-bold text-4xl md:text-7xl mb-6 tracking-tight uppercase">
-                            Motion <br />
-                            is <span className="text-neutral-500 italic">Emotion</span>
-                        </h2>
-                    </div>
-                </motion.div>
-
-                {/* Text 4 — Fade-up with delayed button */}
-                <motion.div
-                    style={{ opacity: opacity4, y: translateY4 }}
-                    className="absolute inset-0 flex flex-col items-center justify-center text-center px-4 pointer-events-none"
-                >
-                    <h2 className="font-heading font-bold text-5xl md:text-8xl mb-8 tracking-tighter">
-                        Let&apos;s build something<br />Extraordinary.
-                    </h2>
+                    {/* Label swap on hover: the word leaves upward while its twin
+                        arrives from below. Nothing scales, nothing bounces. */}
                     <motion.a
                         href="#works"
-                        style={{ opacity: buttonOpacity4, y: buttonY4 }}
-                        className={`hoverable px-8 py-4 bg-white text-black font-semibold rounded-full font-sans uppercase tracking-widest text-sm hover:scale-105 transition-transform ${isOverlay4Visible ? "pointer-events-auto" : "pointer-events-none"}`}
+                        style={{ opacity: buttonOpacity2, y: buttonY2 }}
+                        className={`hoverable group relative mt-8 overflow-hidden px-6 py-3 bg-white text-black font-medium font-mono uppercase tracking-[0.2em] text-[11px] ${
+                            isCtaVisible ? "pointer-events-auto" : "pointer-events-none"
+                        }`}
                     >
-                        Explore My Work
+                        <span className="relative block overflow-hidden">
+                            <span className="block transition-transform duration-500 ease-[cubic-bezier(0.22,1,0.36,1)] group-hover:-translate-y-full">
+                                See my work
+                            </span>
+                            <span
+                                aria-hidden="true"
+                                className="absolute inset-0 block translate-y-full transition-transform duration-500 ease-[cubic-bezier(0.22,1,0.36,1)] group-hover:translate-y-0"
+                            >
+                                See my work
+                            </span>
+                        </span>
                     </motion.a>
                 </motion.div>
             </div>

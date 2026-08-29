@@ -22,7 +22,7 @@ export default function GradientDivider() {
                     scaleX,
                     opacity,
                     background:
-                        "linear-gradient(90deg, transparent, #6366f1, #a855f7, #ec4899, #6366f1, transparent)",
+                        "linear-gradient(90deg, transparent, rgba(255,255,255,0.35), rgba(255,255,255,0.85), rgba(255,255,255,0.35), transparent)",
                 }}
             />
             {/* Glow effect */}
@@ -32,7 +32,7 @@ export default function GradientDivider() {
                     scaleX,
                     opacity,
                     background:
-                        "linear-gradient(90deg, transparent, rgba(99, 102, 241, 0.4), rgba(168, 85, 247, 0.4), rgba(236, 72, 153, 0.4), rgba(99, 102, 241, 0.4), transparent)",
+                        "linear-gradient(90deg, transparent, rgba(255,255,255,0.18), rgba(255,255,255,0.35), rgba(255,255,255,0.18), transparent)",
                     filter: "blur(4px)",
                 }}
             />

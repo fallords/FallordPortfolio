@@ -1,7 +1,11 @@
 "use client";
 
 import { useState } from "react";
+import Link from "next/link";
 import { motion, AnimatePresence, Variants } from "framer-motion";
+import { hasEssays } from "@/content/writing";
+
+const MotionLink = motion.create(Link);
 
 export default function Navbar() {
     const [isOpen, setIsOpen] = useState(false);
@@ -30,20 +34,24 @@ export default function Navbar() {
         })
     };
 
+    // "Writing" only appears once there is something to read — a menu item
+    // pointing at an anchor that doesn't exist is worse than no menu item.
     const navLinks = [
-        { title: "Home", href: "#" },
-        { title: "Works", href: "#works" },
-        { title: "About", href: "#about" },
-        { title: "Contact", href: "#contact" }
+        { title: "Home", href: "/" },
+        { title: "Works", href: "/#works" },
+        { title: "About", href: "/#about" },
+        ...(hasEssays ? [{ title: "Writing", href: "/#writing" }] : []),
+        { title: "Expertise", href: "/#expertise" },
+        { title: "Contact", href: "/#contact" }
     ];
 
     return (
         <>
             {/* Logo — always visible */}
-            <div className="fixed top-6 left-6 lg:top-8 lg:left-8 z-[50] mix-blend-difference pointer-events-auto">
-                <a href="#" className="font-heading font-bold text-xl text-white uppercase tracking-widest cursor-pointer hoverable">
+            <div className="fixed top-6 left-6 lg:top-8 lg:left-8 z-[50] pointer-events-auto">
+                <Link href="/" className="font-heading font-bold text-base text-white uppercase tracking-[0.2em] cursor-pointer hoverable">
                     Fallord
-                </a>
+                </Link>
             </div>
 
             {/* Floating pill menu button */}
@@ -82,44 +90,45 @@ export default function Navbar() {
                         className="fixed inset-0 z-[60] bg-[#111] text-white flex flex-col"
                     >
                         {/* Overlay content */}
-                        <div className="flex flex-col lg:flex-row h-full">
+                        <div className="flex flex-col lg:flex-row h-full overflow-y-auto lg:overflow-y-visible">
                             {/* Left: Nav links */}
                             <div className="flex-1 flex flex-col justify-center px-8 md:px-16 lg:px-24 py-20">
-                                <span className="text-zinc-500 uppercase tracking-widest text-xs font-semibold mb-8">Navigation</span>
+                                <span className="text-[var(--fg-dim)] uppercase tracking-widest text-xs font-semibold mb-8">Navigation</span>
                                 <div className="flex flex-col gap-2">
                                     {navLinks.map((link, i) => (
                                         <div key={i} className="overflow-hidden">
-                                            <motion.a
+                                            <MotionLink
                                                 custom={i}
                                                 variants={linkVariants}
                                                 href={link.href}
                                                 className="group flex items-center gap-6 py-3 hoverable"
                                                 onClick={() => setIsOpen(false)}
                                             >
-                                                <span className="font-sans text-sm text-zinc-600 w-8 tabular-nums">
+                                                <span className="font-mono text-[10px] tracking-[0.2em] text-[var(--fg-faint)] w-8 tabular-nums">
                                                     0{i + 1}
                                                 </span>
-                                                <span className="text-4xl lg:text-7xl font-heading font-bold tracking-tight group-hover:text-zinc-400 transition-colors duration-300">
+                                                <span className="text-2xl lg:text-4xl font-heading font-bold tracking-tight group-hover:text-[var(--fg-muted)] transition-colors duration-300">
                                                     {link.title}
                                                 </span>
                                                 <span className="hidden lg:block w-0 group-hover:w-16 h-[2px] bg-white transition-all duration-500" />
-                                            </motion.a>
+                                            </MotionLink>
                                         </div>
                                     ))}
                                 </div>
                             </div>
 
                             {/* Right: Info panel */}
-                            <div className="lg:w-[380px] flex flex-col justify-end gap-10 px-8 md:px-16 lg:px-12 pb-12 lg:pb-16 border-t lg:border-t-0 lg:border-l border-white/10">
+                            <div className="lg:w-[380px] flex flex-col justify-end gap-10 px-8 md:px-16 lg:px-12 pb-12 lg:pb-16 border-t lg:border-t-0 lg:border-l border-[var(--rule)]">
                                 <motion.div
                                     initial={{ opacity: 0, y: 20 }}
                                     animate={{ opacity: 1, y: 0 }}
                                     transition={{ delay: 0.5, duration: 0.6 }}
-                                    className="flex flex-col gap-3"
+                                    className="flex flex-col items-start gap-3"
                                 >
-                                    <span className="text-zinc-500 uppercase tracking-widest text-xs font-semibold">About</span>
-                                    <p className="text-sm leading-relaxed text-zinc-300">
-                                        A Creative Developer specializing in Next.js, Motion, and web interactions. Crafting digital experiences that feel alive.
+                                    <span className="font-mono text-[10px] uppercase tracking-[0.3em] text-[var(--fg-faint)]">About</span>
+                                    <p className="text-sm leading-relaxed text-[var(--fg-soft)]">
+                                        Developer and designer. I build web applications with Next.js,
+                                        React, and TypeScript. Based in Indonesia.
                                     </p>
                                 </motion.div>
 
@@ -129,12 +138,9 @@ export default function Navbar() {
                                     transition={{ delay: 0.6, duration: 0.6 }}
                                     className="flex flex-col gap-3"
                                 >
-                                    <span className="text-zinc-500 uppercase tracking-widest text-xs font-semibold">Get in Touch</span>
-                                    <a href="mailto:fadhlanbanin@gmail.com" className="text-lg font-heading hoverable hover:text-zinc-400 transition-colors">
+                                    <span className="font-mono text-[10px] uppercase tracking-[0.3em] text-[var(--fg-faint)]">Get in Touch</span>
+                                    <a href="mailto:fadhlanbanin@gmail.com" className="text-sm font-sans hoverable hover:text-[var(--fg-muted)] transition-colors break-all">
                                         fadhlanbanin@gmail.com
-                                    </a>
-                                    <a href="https://wa.me/+6282295007446" className="text-lg font-heading hoverable hover:text-zinc-400 transition-colors">
-                                        +62 822 9500 7446
                                     </a>
                                 </motion.div>
 
@@ -142,12 +148,10 @@ export default function Navbar() {
                                     initial={{ opacity: 0 }}
                                     animate={{ opacity: 1 }}
                                     transition={{ delay: 0.7, duration: 0.6 }}
-                                    className="flex gap-6 font-sans font-semibold uppercase tracking-widest text-xs text-zinc-500"
+                                    className="flex gap-6 font-sans font-semibold uppercase tracking-widest text-xs text-[var(--fg-dim)]"
                                 >
-                                    <a href="https://www.linkedin.com/in/fadhlan-bani-nugraha" target="_blank" rel="noopener noreferrer" className="hoverable hover:text-white transition-colors">Li</a>
-                                    <a href="https://www.instagram.com/fadhlanbani/" target="_blank" rel="noopener noreferrer" className="hoverable hover:text-white transition-colors">Ig</a>
-                                    <a href="#" className="hoverable hover:text-white transition-colors">Tw</a>
-                                    <a href="#" className="hoverable hover:text-white transition-colors">Gh</a>
+                                    <a href="https://www.linkedin.com/in/fadhlan-bani-nugraha" target="_blank" rel="noopener noreferrer" className="hoverable hover:text-white transition-colors">LinkedIn</a>
+                                    <a href="https://www.instagram.com/fadhlanbani/" target="_blank" rel="noopener noreferrer" className="hoverable hover:text-white transition-colors">Instagram</a>
                                 </motion.div>
                             </div>
                         </div>

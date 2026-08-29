@@ -3,29 +3,151 @@
 :root {
   --background: #000000;
   --foreground: #ffffff;
+
+  /* Width of the gutter between the viewport edge and the content panel. */
+  --frame: 0.75rem;
+
+  /* One surface, one text ramp, used by every section. Components reference
+     these instead of hard-coded greys so the palette has a single source.
+
+     Six steps, and six is the whole set. The ramp used to define four while the
+     components reached for six Tailwind greys, three of which had no token at
+     all — so the system described a palette the site was not actually using.
+     --soft and --ghost were the two real roles that had gone unnamed:
+     --soft for body copy and resting link text, --ghost for the bracket and
+     slash punctuation that frames a label without competing with it. */
+  /* Contrast against --surface, measured, not guessed:
+       --fg-soft   13.4:1   --fg-dim    6.0:1
+       --fg-muted   7.7:1   --fg-faint  4.7:1
+     Every step above carries real information — section numbers, dates,
+     reading times, certificate metadata — so every one of them clears 4.5:1.
+     --fg-ghost sits at 2.9:1 and is the one exception: it is only ever used
+     for the brackets and slashes that frame a label. Nothing is said in it,
+     so nothing is lost if it is not read. */
+  --surface: #0a0a0a;
+  --fg: #ffffff;
+  --fg-soft: #d4d4d8;
+  --fg-muted: #a1a1aa;
+  --fg-dim: #8d8d97;
+  --fg-faint: #7a7a85;
+  --fg-ghost: #5a5a63;
+  --rule: rgba(255, 255, 255, 0.12);
+  --rule-strong: rgba(255, 255, 255, 0.28);
+
+  /* Certificate scans are large pale rectangles; against this surface they
+     have to be held back or they out-shout every heading on the page. */
+  --thumb-rest: 0.55;
+}
+
+@media (min-width: 768px) {
+  :root {
+    --frame: 1.25rem;
+  }
 }
 
 @theme inline {
   --color-background: var(--background);
   --color-foreground: var(--foreground);
   --font-sans: var(--font-manrope);
-  --font-heading: var(--font-syne);
+  --font-heading: var(--font-newsreader);
+  --font-mono: var(--font-jetbrains);
 }
 
+/*
+ * The surround. A halftone dot field sits behind everything, and the content
+ * panel is inset from the viewport so a band of it stays visible on all four
+ * sides. The dots are a repeating radial-gradient rather than an image, so the
+ * texture costs nothing to load and stays crisp at any density.
+ *
+ * The soft vignette on top keeps the field from reading as a flat mechanical
+ * grid — it gives the texture somewhere to fall away.
+ */
 body {
-  background: var(--background);
+  background-color: #000000;
   color: var(--foreground);
-  font-family: var(--font-sans), Arial, Helvetica, sans-serif;
   overflow-x: clip;
 }
 
-h1,
-h2,
-h3,
-h4,
-h5,
-h6 {
-  font-family: var(--font-heading), sans-serif;
+/*
+ * The texture is a fixed layer of its own rather than `background-attachment:
+ * fixed` on the body.
+ *
+ * That property looks identical but costs far more: the browser cannot cache a
+ * viewport-anchored background as a composited layer, so it repaints the full
+ * viewport — a 5px dot grid across the whole document — on every scroll frame.
+ * It is also long-broken on mobile Safari. A `position: fixed` element paints
+ * once and is then only composited, and it survives the panel above it being
+ * opaque, which it almost always is.
+ */
+body::before {
+  content: "";
+  position: fixed;
+  inset: 0;
+  z-index: -1;
+  pointer-events: none;
+  background-image:
+    radial-gradient(circle at 30% 20%, rgba(255, 255, 255, 0.05), transparent 55%),
+    radial-gradient(circle at 75% 80%, rgba(255, 255, 255, 0.04), transparent 50%),
+    radial-gradient(rgba(255, 255, 255, 0.16) 0.5px, transparent 0.5px);
+  background-size: 100% 100%, 100% 100%, 5px 5px;
+}
+
+/*
+ * Typography defaults must live inside @layer base.
+ *
+ * `@import "tailwindcss"` registers the cascade layers, and an unlayered rule
+ * beats every layered one no matter how specific — so a bare `h1 { font-family }`
+ * out here would silently override the `font-mono` and `font-sans` utilities
+ * wherever they are used on a heading.
+ *
+ * They also have to name the real next/font variables. `--font-heading` and
+ * `--font-sans` only exist inside `@theme inline`, which inlines them into the
+ * generated utilities rather than emitting them as custom properties — reading
+ * them at runtime yields nothing and the declaration silently dies.
+ */
+@layer base {
+  body {
+    font-family: var(--font-manrope), ui-sans-serif, system-ui, sans-serif;
+  }
+
+  h1,
+  h2,
+  h3,
+  h4,
+  h5,
+  h6 {
+    font-family: var(--font-newsreader), ui-serif, Georgia, serif;
+  }
+}
+
+/* The inset panel that carries all page content. */
+.frame {
+  padding: var(--frame);
+}
+
+.frame-inner {
+  overflow: clip;
+  background: var(--surface);
+}
+
+/*
+ * Certificate track — native scrollbar off, hairline rail drawn in the
+ * component instead.
+ *
+ * Styling the real one is not reliable: Chrome ignores every
+ * `::-webkit-scrollbar` rule the moment `scrollbar-width` is set, so the two
+ * approaches cancel each other out and you end up with the platform default —
+ * on Windows, an 11px bar with stepper triangles at both ends. Drawing the rail
+ * from the scroll position gives the same information and looks identical
+ * everywhere.
+ */
+.cert-track {
+  scrollbar-width: none;
+  -ms-overflow-style: none;
+}
+
+.cert-track::-webkit-scrollbar {
+  display: none;
 }
 
 /* Custom Selection */
@@ -34,89 +156,34 @@ h6 {
   color: white;
 }
 
-/* Infinite Marquee Animation */
-@keyframes marquee {
-  0% {
-    transform: translateX(0);
-  }
-
-  100% {
-    transform: translateX(-50%);
-  }
+/*
+ * Focus ring.
+ *
+ * There was none anywhere on the site — a keyboard user tabbing through had no
+ * way to tell where they were. That is WCAG 2.4.7, and unlike a contrast
+ * choice it is not a matter of taste.
+ *
+ * `:focus-visible` rather than `:focus`, so it appears for keyboard navigation
+ * and never on a mouse click. The offset puts the ring outside the element,
+ * against the dark page background, which keeps it legible even on the white
+ * menu button and the pale certificate cards.
+ */
+:focus-visible {
+  outline: 2px solid var(--fg);
+  outline-offset: 3px;
+  border-radius: 1px;
 }
 
-.animate-marquee {
-  animation: marquee 20s linear infinite;
-}
-
-/* Glow pulse animation */
-@keyframes glow-pulse {
-  0%,
-  100% {
-    filter: drop-shadow(0 0 8px rgba(139, 92, 246, 0.3));
-  }
-  50% {
-    filter: drop-shadow(0 0 20px rgba(139, 92, 246, 0.6));
-  }
-}
-
-.animate-glow-pulse {
-  animation: glow-pulse 3s ease-in-out infinite;
-}
-
-/* Floating animation */
-@keyframes float {
-  0%,
-  100% {
-    transform: translateY(0px);
-  }
-  50% {
-    transform: translateY(-10px);
+/*
+ * Respect the OS "reduce motion" setting. Transitions collapse to a
+ * near-instant change so the site stays usable (and doesn't make anyone
+ * motion-sick) without losing any content.
+ */
+@media (prefers-reduced-motion: reduce) {
+  *,
+  *::before,
+  *::after {
+    transition-duration: 0.01ms !important;
+    scroll-behavior: auto !important;
   }
 }
-
-.animate-float {
-  animation: float 6s ease-in-out infinite;
-}
-
-/* Smooth gradient text */
-.gradient-text {
-  background: linear-gradient(135deg, #ffffff, #a855f7, #6366f1);
-  -webkit-background-clip: text;
-  -webkit-text-fill-color: transparent;
-  background-clip: text;
-}
-
-/* Noise texture overlay for premium feel */
-.noise-overlay::after {
-  content: "";
-  position: absolute;
-  inset: 0;
-  opacity: 0.03;
-  background-image: url("data:image/svg+xml,%3Csvg viewBox='0 0 256 256' xmlns='http://www.w3.org/2000/svg'%3E%3Cfilter id='noise'%3E%3CfeTurbulence type='fractalNoise' baseFrequency='0.9' numOctaves='4' stitchTiles='stitch'/%3E%3C/filter%3E%3Crect width='100%25' height='100%25' filter='url(%23noise)'/%3E%3C/svg%3E");
-  pointer-events: none;
-  z-index: 50;
-}
-
-/* Aurora background — CSS keyframes instead of Framer Motion for GPU compositing */
-@keyframes aurora-1 {
-  0%, 100% { transform: translate3d(0, 0, 0) scale(1); }
-  33% { transform: translate3d(100px, -80px, 0) scale(1.2); }
-  66% { transform: translate3d(-50px, 50px, 0) scale(0.9); }
-}
-
-@keyframes aurora-2 {
-  0%, 100% { transform: translate3d(0, 0, 0) scale(1); }
-  33% { transform: translate3d(-120px, 60px, 0) scale(0.85); }
-  66% { transform: translate3d(60px, -40px, 0) scale(1.15); }
-}
-
-@keyframes aurora-3 {
-  0%, 100% { transform: translate3d(0, 0, 0) scale(1); }
-  33% { transform: translate3d(-80px, 100px, 0) scale(1.3); }
-  66% { transform: translate3d(40px, -60px, 0) scale(0.8); }
-}
-
-.animate-aurora-1 { animation: aurora-1 20s ease-in-out infinite; }
-.animate-aurora-2 { animation: aurora-2 25s ease-in-out infinite; }
-.animate-aurora-3 { animation: aurora-3 18s ease-in-out infinite; }
