@@ -49,13 +49,11 @@ function ProjectCard({ project }: { project: (typeof projects)[0] }) {
                 data-cursor-label="View"
                 className="hoverable group grid grid-cols-1 lg:grid-cols-[minmax(0,1.35fr)_minmax(0,1fr)] gap-8 lg:gap-14 items-center"
             >
-                {/* Preview — fades up while the image settles out of a 4% over-scale.
-                    Small enough to feel like the frame coming to rest rather than a
-                    zoom. The inner scale is a variant so the card's labels reach it. */}
+                {/* Preview — clean editorial frame */}
                 <motion.div
                     variants={{ hidden: { opacity: 0 }, visible: { opacity: 1 } }}
                     transition={{ duration: 0.9, ease: EASE.out }}
-                    className="relative w-full aspect-[16/10] overflow-hidden bg-[var(--surface)] border border-[var(--rule)] group-hover:border-[var(--rule-strong)] transition-colors duration-500"
+                    className="relative w-full aspect-[16/10] overflow-hidden bg-[var(--surface-card)] border border-[var(--rule)] group-hover:border-[var(--rule-strong)] transition-colors duration-500"
                 >
                     <motion.div
                         variants={{ hidden: { scale: 1.04 }, visible: { scale: 1 } }}
@@ -69,12 +67,12 @@ function ProjectCard({ project }: { project: (typeof projects)[0] }) {
                             fill
                             sizes="(max-width: 1024px) 100vw, 60vw"
                             priority
-                            className="object-cover transition-transform duration-700 ease-out group-hover:scale-[1.03]"
+                            className="object-cover transition-transform duration-700 ease-out group-hover:scale-[1.02]"
                             style={{ objectPosition: project.objectPosition }}
                         />
                     </motion.div>
 
-                    <div className="absolute inset-0 bg-black/25 group-hover:bg-black/5 transition-colors duration-500" />
+                    <div className="absolute inset-0 bg-black/20 group-hover:bg-transparent transition-colors duration-500" />
 
                     {/* Crop marks instead of a closed border */}
                     <Corners className="m-2" tone="border-[var(--rule-strong)]" />
@@ -86,12 +84,12 @@ function ProjectCard({ project }: { project: (typeof projects)[0] }) {
                         variants={fadeUp}
                         className="flex items-center gap-3 font-mono text-[10px] uppercase tracking-[0.24em] text-[var(--fg-faint)]"
                     >
-                        <span className="tabular-nums">{project.year}</span>
+                        <span className="tabular-nums font-semibold text-[var(--brass)]">{project.year}</span>
                         <span className="h-px w-4 bg-white/15" />
                         <span className="text-[var(--fg-dim)]">{project.category}</span>
                     </motion.div>
 
-                    <h3 className="mt-4 font-heading text-2xl md:text-3xl font-bold tracking-tight">
+                    <h3 className="mt-4 font-heading text-2xl md:text-3xl font-bold tracking-tight text-white group-hover:text-[var(--fg-soft)] transition-colors duration-300">
                         <Reveal delay={0.05}>{project.title}</Reveal>
                     </h3>
 
@@ -107,7 +105,7 @@ function ProjectCard({ project }: { project: (typeof projects)[0] }) {
                         {project.stack.map((tool) => (
                             <li
                                 key={tool}
-                                className="border border-[var(--rule)] px-2.5 py-1 font-mono text-[10px] uppercase tracking-[0.12em] text-[var(--fg-dim)] transition-colors duration-300 group-hover:border-[var(--rule-strong)] group-hover:text-[var(--fg-soft)]"
+                                className="border border-[var(--rule)] bg-[var(--surface-card)] px-2.5 py-1 font-mono text-[10px] uppercase tracking-[0.12em] text-[var(--fg-dim)] transition-colors duration-300 group-hover:border-[var(--rule-strong)] group-hover:text-[var(--fg-soft)]"
                             >
                                 {tool}
                             </li>
@@ -124,10 +122,10 @@ function ProjectCard({ project }: { project: (typeof projects)[0] }) {
                             Open live site
                             <span
                                 aria-hidden="true"
-                                className="absolute -bottom-1 left-0 h-px w-0 bg-white transition-all duration-500 ease-[cubic-bezier(0.22,1,0.36,1)] group-hover:w-full"
+                                className="absolute -bottom-1 left-0 h-px w-0 bg-[var(--brass)] transition-all duration-500 ease-[cubic-bezier(0.22,1,0.36,1)] group-hover:w-full"
                             />
                         </span>
-                        <span className="transition-transform duration-500 ease-[cubic-bezier(0.22,1,0.36,1)] group-hover:translate-x-1.5">
+                        <span className="transition-transform duration-500 ease-[cubic-bezier(0.22,1,0.36,1)] group-hover:translate-x-1.5 text-[var(--brass)]">
                             →
                         </span>
                     </motion.span>

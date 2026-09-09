@@ -45,12 +45,12 @@ export default function Contact() {
                     >
                         <a
                             href="mailto:fadhlanbanin@gmail.com"
-                            className="group hoverable flex items-center gap-4 border-b border-[var(--rule-strong)] pb-5 transition-colors hover:border-white w-fit"
+                            className="group hoverable flex items-center gap-4 border-b border-[var(--rule-strong)] pb-5 transition-all duration-300 hover:border-[var(--brass)] w-fit"
                         >
-                            <span className="font-sans text-base md:text-xl font-bold tracking-tight break-all">
+                            <span className="font-sans text-base md:text-xl font-bold tracking-tight break-all text-white group-hover:text-[var(--steel-bright)] transition-colors duration-300">
                                 fadhlanbanin@gmail.com
                             </span>
-                            <span className="shrink-0 text-xl transition-transform duration-300 group-hover:translate-x-1">
+                            <span className="shrink-0 text-xl text-[var(--brass)] transition-transform duration-300 group-hover:translate-x-1 group-hover:text-[var(--steel-bright)]">
                                 →
                             </span>
                         </a>
@@ -61,7 +61,7 @@ export default function Contact() {
                     </motion.div>
 
                     <div className="flex flex-col gap-4 mt-4">
-                        <span className="font-mono text-[10px] uppercase tracking-[0.3em] text-[var(--fg-faint)]">
+                        <span className="font-mono text-[10px] uppercase tracking-[0.3em] text-[var(--brass)] font-semibold">
                             Elsewhere
                         </span>
                         <div className="flex flex-wrap gap-6 md:gap-8 font-mono text-[11px] uppercase tracking-[0.2em]">
@@ -71,7 +71,7 @@ export default function Contact() {
                                     href={social.href}
                                     target="_blank"
                                     rel="noopener noreferrer"
-                                    className="hoverable relative text-[var(--fg-soft)] hover:text-white transition-colors after:absolute after:-bottom-1 after:left-0 after:h-px after:w-0 after:bg-white hover:after:w-full after:transition-all after:duration-300"
+                                    className="hoverable relative text-[var(--fg-soft)] hover:text-white transition-colors after:absolute after:-bottom-1 after:left-0 after:h-px after:w-0 after:bg-[var(--brass)] hover:after:w-full after:transition-all after:duration-300"
                                 >
                                     {social.label}
                                 </a>

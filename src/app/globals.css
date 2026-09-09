@@ -1,42 +1,40 @@
 @import "tailwindcss";
 
 :root {
-  --background: #000000;
-  --foreground: #ffffff;
+  --background: #080c0a;
+  --foreground: #edf1f3;
 
   /* Width of the gutter between the viewport edge and the content panel. */
   --frame: 0.75rem;
 
-  /* One surface, one text ramp, used by every section. Components reference
-     these instead of hard-coded greys so the palette has a single source.
+  /* Handcrafted Doctor Doom Palette: Tailored Forest Slate, Surgical Steel & Antique Brass */
+  --surface: #0c120f;
+  --surface-card: #121a16;
+  --surface-raised: #17221d;
+  
+  /* Text Ramp */
+  --fg: #edf1f3;
+  --fg-soft: #c5d0d8;
+  --fg-muted: #8c9ba5;
+  --fg-dim: #5c6c76;
+  --fg-faint: #3d4a52;
+  --fg-ghost: #263137;
 
-     Six steps, and six is the whole set. The ramp used to define four while the
-     components reached for six Tailwind greys, three of which had no token at
-     all — so the system described a palette the site was not actually using.
-     --soft and --ghost were the two real roles that had gone unnamed:
-     --soft for body copy and resting link text, --ghost for the bracket and
-     slash punctuation that frames a label without competing with it. */
-  /* Contrast against --surface, measured, not guessed:
-       --fg-soft   13.4:1   --fg-dim    6.0:1
-       --fg-muted   7.7:1   --fg-faint  4.7:1
-     Every step above carries real information — section numbers, dates,
-     reading times, certificate metadata — so every one of them clears 4.5:1.
-     --fg-ghost sits at 2.9:1 and is the one exception: it is only ever used
-     for the brackets and slashes that frame a label. Nothing is said in it,
-     so nothing is lost if it is not read. */
-  --surface: #0a0a0a;
-  --fg: #ffffff;
-  --fg-soft: #d4d4d8;
-  --fg-muted: #a1a1aa;
-  --fg-dim: #8d8d97;
-  --fg-faint: #7a7a85;
-  --fg-ghost: #5a5a63;
-  --rule: rgba(255, 255, 255, 0.12);
-  --rule-strong: rgba(255, 255, 255, 0.28);
+  /* Hairlines: fine, tactile, archival */
+  --rule: rgba(255, 255, 255, 0.08);
+  --rule-strong: rgba(255, 255, 255, 0.18);
+  --rule-brass: rgba(197, 160, 89, 0.28);
 
-  /* Certificate scans are large pale rectangles; against this surface they
-     have to be held back or they out-shout every heading on the page. */
-  --thumb-rest: 0.55;
+  /* Material Accents */
+  --pine: #23533e;
+  --pine-deep: #132b20;
+  --brass: #c5a059;
+  --brass-dim: #8e733d;
+  --steel: #a8b6c1;
+  --steel-bright: #d9e3ea;
+
+  /* Certificate scans */
+  --thumb-rest: 0.65;
 }
 
 @media (min-width: 768px) {
@@ -54,31 +52,14 @@
 }
 
 /*
- * The surround. A halftone dot field sits behind everything, and the content
- * panel is inset from the viewport so a band of it stays visible on all four
- * sides. The dots are a repeating radial-gradient rather than an image, so the
- * texture costs nothing to load and stays crisp at any density.
- *
- * The soft vignette on top keeps the field from reading as a flat mechanical
- * grid — it gives the texture somewhere to fall away.
+ * The surround: an organic, textured dark paper field with a quiet forest vignette.
  */
 body {
-  background-color: #000000;
+  background-color: #080c0a;
   color: var(--foreground);
   overflow-x: clip;
 }
 
-/*
- * The texture is a fixed layer of its own rather than `background-attachment:
- * fixed` on the body.
- *
- * That property looks identical but costs far more: the browser cannot cache a
- * viewport-anchored background as a composited layer, so it repaints the full
- * viewport — a 5px dot grid across the whole document — on every scroll frame.
- * It is also long-broken on mobile Safari. A `position: fixed` element paints
- * once and is then only composited, and it survives the panel above it being
- * opaque, which it almost always is.
- */
 body::before {
   content: "";
   position: fixed;
@@ -86,24 +67,14 @@ body::before {
   z-index: -1;
   pointer-events: none;
   background-image:
-    radial-gradient(circle at 30% 20%, rgba(255, 255, 255, 0.05), transparent 55%),
-    radial-gradient(circle at 75% 80%, rgba(255, 255, 255, 0.04), transparent 50%),
-    radial-gradient(rgba(255, 255, 255, 0.16) 0.5px, transparent 0.5px);
+    radial-gradient(circle at 20% 20%, rgba(35, 83, 62, 0.1), transparent 60%),
+    radial-gradient(circle at 80% 80%, rgba(197, 160, 89, 0.04), transparent 50%),
+    radial-gradient(rgba(255, 255, 255, 0.1) 0.5px, transparent 0.5px);
   background-size: 100% 100%, 100% 100%, 5px 5px;
 }
 
 /*
  * Typography defaults must live inside @layer base.
- *
- * `@import "tailwindcss"` registers the cascade layers, and an unlayered rule
- * beats every layered one no matter how specific — so a bare `h1 { font-family }`
- * out here would silently override the `font-mono` and `font-sans` utilities
- * wherever they are used on a heading.
- *
- * They also have to name the real next/font variables. `--font-heading` and
- * `--font-sans` only exist inside `@theme inline`, which inlines them into the
- * generated utilities rather than emitting them as custom properties — reading
- * them at runtime yields nothing and the declaration silently dies.
  */
 @layer base {
   body {
@@ -128,18 +99,12 @@ body::before {
 .frame-inner {
   overflow: clip;
   background: var(--surface);
+  border: 1px solid rgba(255, 255, 255, 0.08);
+  box-shadow: 0 0 50px -15px rgba(10, 24, 18, 0.6) inset;
 }
 
 /*
- * Certificate track — native scrollbar off, hairline rail drawn in the
- * component instead.
- *
- * Styling the real one is not reliable: Chrome ignores every
- * `::-webkit-scrollbar` rule the moment `scrollbar-width` is set, so the two
- * approaches cancel each other out and you end up with the platform default —
- * on Windows, an 11px bar with stepper triangles at both ends. Drawing the rail
- * from the scroll position gives the same information and looks identical
- * everywhere.
+ * Certificate track
  */
 .cert-track {
   scrollbar-width: none;
@@ -150,26 +115,17 @@ body::before {
   display: none;
 }
 
-/* Custom Selection */
+/* Custom Selection: Tailored Pine Wash */
 ::selection {
-  background: rgba(255, 255, 255, 0.2);
-  color: white;
+  background: rgba(35, 83, 62, 0.45);
+  color: #f3f6f8;
 }
 
 /*
- * Focus ring.
- *
- * There was none anywhere on the site — a keyboard user tabbing through had no
- * way to tell where they were. That is WCAG 2.4.7, and unlike a contrast
- * choice it is not a matter of taste.
- *
- * `:focus-visible` rather than `:focus`, so it appears for keyboard navigation
- * and never on a mouse click. The offset puts the ring outside the element,
- * against the dark page background, which keeps it legible even on the white
- * menu button and the pale certificate cards.
+ * Focus ring: Clean surgical steel outline
  */
 :focus-visible {
-  outline: 2px solid var(--fg);
+  outline: 2px solid var(--steel);
   outline-offset: 3px;
   border-radius: 1px;
 }

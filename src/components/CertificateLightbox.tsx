@@ -110,16 +110,16 @@ export default function CertificateLightbox({
                 visibility: isOpen ? "visible" : "hidden",
                 transition: "opacity 300ms ease-out, visibility 300ms ease-out",
             }}
-            className="fixed inset-0 z-[200] flex flex-col items-center justify-center bg-black/92 px-4 py-16 backdrop-blur-sm md:px-10"
+            className="fixed inset-0 z-[200] flex flex-col items-center justify-center bg-[#030805]/95 px-4 py-16 backdrop-blur-md md:px-10"
         >
             <button
                 ref={closeButtonRef}
                 type="button"
                 onClick={onClose}
                 aria-label="Tutup"
-                className="hoverable absolute right-5 top-5 flex h-11 w-11 items-center justify-center rounded-full border border-white/50 text-white transition-colors hover:border-white md:right-8 md:top-8"
+                className="hoverable absolute right-5 top-5 flex h-11 w-11 items-center justify-center rounded-full border border-[var(--rule-brass)] bg-[var(--surface-card)] text-white transition-all duration-300 hover:border-[var(--brass)] hover:bg-[var(--surface-raised)] md:right-8 md:top-8"
             >
-                <span aria-hidden="true" className="text-lg leading-none">
+                <span aria-hidden="true" className="text-lg leading-none text-[var(--brass)]">
                     ✕
                 </span>
             </button>
@@ -143,7 +143,7 @@ export default function CertificateLightbox({
                         sizes="(max-width: 1024px) 92vw, 1024px"
                         className="object-contain"
                     />
-                    <Corners tone="border-white/50" size="size-3" />
+                    <Corners tone="border-[var(--brass)]/60" size="size-3.5" />
                 </div>
 
                 <div className="flex w-full shrink-0 flex-col items-center gap-3 text-center">
@@ -151,8 +151,8 @@ export default function CertificateLightbox({
                         {shown.name}
                     </p>
                     <p className="font-mono text-[10px] uppercase tracking-[0.22em] text-[var(--fg-dim)]">
-                        {shown.issuer} · {shown.year}
-                        {shown.field && ` · ${shown.field}`}
+                        <span className="text-[var(--brass)]">{shown.issuer}</span> · {shown.year}
+                        {shown.field && <span className="text-[var(--steel)]"> · {shown.field}</span>}
                     </p>
 
                     {/* Only appears for certificates that print one. */}
@@ -161,7 +161,7 @@ export default function CertificateLightbox({
                             href={shown.url}
                             target="_blank"
                             rel="noopener noreferrer"
-                            className="hoverable group font-mono text-[10px] uppercase tracking-[0.18em] text-[var(--fg-muted)] underline decoration-white/25 underline-offset-4 transition-colors hover:text-white hover:decoration-white"
+                            className="hoverable group font-mono text-[10px] uppercase tracking-[0.18em] text-[var(--brass)] underline decoration-[var(--rule-brass)] underline-offset-4 transition-colors hover:text-[var(--steel-bright)] hover:decoration-[var(--steel-bright)]"
                         >
                             Verify with issuer
                             <span
@@ -183,11 +183,11 @@ export default function CertificateLightbox({
                     type="button"
                     onClick={() => onStep(-1)}
                     aria-label="Sertifikat sebelumnya"
-                    className="hoverable flex h-11 w-11 items-center justify-center rounded-full border border-white/50 text-white transition-colors hover:border-white sm:h-10 sm:w-10"
+                    className="hoverable flex h-11 w-11 items-center justify-center rounded-full border border-[var(--rule-brass)] bg-[var(--surface-card)] text-white transition-all duration-300 hover:border-[var(--brass)] hover:bg-[var(--surface-raised)] sm:h-10 sm:w-10"
                 >
-                    <span aria-hidden="true">←</span>
+                    <span aria-hidden="true" className="text-[var(--brass)]">←</span>
                 </button>
-                <span className="font-mono text-[11px] uppercase tracking-[0.18em] text-[var(--fg-dim)] tabular-nums">
+                <span className="font-mono text-[11px] uppercase tracking-[0.18em] text-[var(--brass)] font-semibold tabular-nums">
                     {String((index ?? 0) + 1).padStart(2, "0")} /{" "}
                     {String(total).padStart(2, "0")}
                 </span>
@@ -195,9 +195,9 @@ export default function CertificateLightbox({
                     type="button"
                     onClick={() => onStep(1)}
                     aria-label="Sertifikat berikutnya"
-                    className="hoverable flex h-11 w-11 items-center justify-center rounded-full border border-white/50 text-white transition-colors hover:border-white sm:h-10 sm:w-10"
+                    className="hoverable flex h-11 w-11 items-center justify-center rounded-full border border-[var(--rule-brass)] bg-[var(--surface-card)] text-white transition-all duration-300 hover:border-[var(--brass)] hover:bg-[var(--surface-raised)] sm:h-10 sm:w-10"
                 >
-                    <span aria-hidden="true">→</span>
+                    <span aria-hidden="true" className="text-[var(--brass)]">→</span>
                 </button>
             </div>
         </div>,

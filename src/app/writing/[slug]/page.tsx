@@ -48,24 +48,15 @@ export default async function EssayPage({
     const older = essaysByYear[index + 1];
 
     return (
-        <main className="bg-[var(--surface)] text-white selection:bg-white/20">
+        <main className="bg-[var(--surface)] text-white selection:bg-[var(--pine)] selection:text-[var(--steel-bright)]">
             <ReadingProgress />
 
             <article className="px-6 md:px-12 lg:px-24 pt-36 pb-24 md:pt-44 md:pb-32">
                 {/* Header shares the body's measure so the whole thing reads as one column */}
                 <header className="mx-auto max-w-[68ch]">
-                    {/*
-                     * A way out, at the top.
-                     *
-                     * The only other one is at the foot of the article, which
-                     * assumes every reader arrived by scrolling down from the
-                     * homepage. Anyone who lands here from a search result or a
-                     * shared link would have to read to the end of a 47-minute
-                     * paper — or hunt for the menu button — just to get back.
-                     */}
                     <Link
                         href="/#writing"
-                        className="hoverable group mb-10 inline-flex items-center gap-3 font-mono text-[10px] uppercase tracking-[0.24em] text-[var(--fg-faint)] transition-colors hover:text-white"
+                        className="hoverable group mb-10 inline-flex items-center gap-3 font-mono text-[10px] uppercase tracking-[0.24em] text-[var(--brass)] transition-colors hover:text-[var(--steel-bright)]"
                     >
                         <span
                             aria-hidden="true"
@@ -77,13 +68,13 @@ export default async function EssayPage({
                     </Link>
 
                     <div className="flex flex-wrap items-center gap-x-3 gap-y-2 font-mono text-[10px] uppercase tracking-[0.24em] text-[var(--fg-faint)]">
-                        <span className="text-[var(--fg-ghost)]">[</span>
-                        <span className="text-[var(--fg-dim)]">{essay.field}</span>
-                        <span className="text-[var(--fg-ghost)]">/</span>
-                        <span className="tabular-nums">{essay.year}</span>
-                        <span className="text-[var(--fg-ghost)]">/</span>
-                        <span>{essay.readingTime} read</span>
-                        <span className="text-[var(--fg-ghost)]">]</span>
+                        <span className="text-[var(--rule-strong)]">[</span>
+                        <span className="text-[var(--brass)] font-semibold">{essay.field}</span>
+                        <span className="text-[var(--rule-strong)]">·</span>
+                        <span className="tabular-nums text-[var(--steel)]">{essay.year}</span>
+                        <span className="text-[var(--rule-strong)]">·</span>
+                        <span className="text-[var(--fg-dim)]">{essay.readingTime} read</span>
+                        <span className="text-[var(--rule-strong)]">]</span>
                     </div>
 
                     <h1 className="mt-7 font-heading text-2xl md:text-4xl font-bold leading-[1.15] tracking-tight text-balance">
@@ -169,14 +160,14 @@ export default async function EssayPage({
                     <div className="mx-auto mt-14 max-w-[68ch] border-t border-[var(--rule)] pt-10">
                         {essay.keywords && essay.keywords.length > 0 && (
                             <>
-                                <h2 className="font-mono text-[10px] uppercase tracking-[0.25em] text-[var(--fg-faint)]">
+                                <h2 className="font-mono text-[10px] uppercase tracking-[0.25em] text-[var(--brass)] font-semibold">
                                     Keywords
                                 </h2>
                                 <ul className="mt-4 flex flex-wrap gap-2">
                                     {essay.keywords.map((word) => (
                                         <li
                                             key={word}
-                                            className="border border-[var(--rule)] px-3 py-1.5 font-mono text-[10px] uppercase tracking-[0.14em] text-[var(--fg-dim)]"
+                                            className="border border-[var(--rule)] bg-[var(--surface-card)] px-3 py-1.5 font-mono text-[10px] uppercase tracking-[0.14em] text-[var(--fg-dim)] hover:border-[var(--steel)]/60 hover:text-[var(--steel-bright)] transition-colors"
                                         >
                                             {word}
                                         </li>
@@ -190,10 +181,10 @@ export default async function EssayPage({
                                 href={essay.pdfUrl}
                                 target="_blank"
                                 rel="noopener noreferrer"
-                                className="hoverable group mt-10 inline-flex items-center gap-3 border border-[var(--rule)] px-5 py-3 font-mono text-[10px] font-semibold uppercase tracking-[0.2em] text-[var(--fg-soft)] transition-colors hover:border-[var(--rule-strong)] hover:text-white"
+                                className="hoverable group mt-10 inline-flex items-center gap-3 border border-[var(--rule-brass)] bg-[var(--surface-card)] px-5 py-3 font-mono text-[10px] font-semibold uppercase tracking-[0.2em] text-[var(--brass)] transition-all hover:bg-[var(--brass)] hover:text-black"
                             >
                                 Read the full preprint
-                                <span className="transition-transform duration-500 ease-[cubic-bezier(0.22,1,0.36,1)] group-hover:translate-x-1">
+                                <span className="transition-transform duration-500 ease-[cubic-bezier(0.22,1,0.36,1)] group-hover:translate-x-1 text-current">
                                     ↗
                                 </span>
                             </a>

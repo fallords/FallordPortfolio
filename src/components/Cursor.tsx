@@ -106,34 +106,30 @@ export default function Cursor() {
                 ref={cursorRef}
                 className={`fixed top-0 left-0 rounded-full pointer-events-none z-[100] hidden md:flex items-center justify-center ${
                     label
-                        ? "w-14 h-14 bg-white text-black"
+                        ? "w-16 h-16 bg-[#0e1612] border border-[var(--brass)]/50 text-[var(--fg)] shadow-xl backdrop-blur-md"
                         : expanded
-                          ? "w-10 h-10 bg-white mix-blend-difference"
-                          : "w-5 h-5 bg-white mix-blend-difference"
+                          ? "w-9 h-9 border border-[var(--steel)]/60 bg-white/[0.03]"
+                          : "w-4 h-4 border border-[var(--steel)]/35"
                 }`}
                 style={{
                     willChange: "transform",
                     transition:
-                        "width 200ms cubic-bezier(0.22,1,0.36,1), height 200ms cubic-bezier(0.22,1,0.36,1)",
+                        "width 220ms cubic-bezier(0.22,1,0.36,1), height 220ms cubic-bezier(0.22,1,0.36,1), border-color 200ms ease, background-color 200ms ease",
                 }}
                 aria-hidden="true"
             >
                 {label && (
-                    <span className="font-sans text-[8px] font-bold uppercase tracking-[0.12em] select-none">
+                    <span className="font-mono text-[8px] font-semibold uppercase tracking-[0.2em] select-none text-[var(--brass)]">
                         {label}
                     </span>
                 )}
             </div>
 
-            {/*
-             * Always mounted, hidden with opacity. Mounting it on hover meant
-             * its transform was unset for the first frame, so it flashed at the
-             * top-left corner of the screen every time it appeared.
-             */}
+            {/* Precision center dot */}
             <div
                 ref={dotRef}
-                className={`fixed top-0 left-0 w-2 h-2 bg-white rounded-full pointer-events-none z-[101] mix-blend-difference hidden md:block transition-opacity duration-200 ${
-                    expanded && !label ? "opacity-100" : "opacity-0"
+                className={`fixed top-0 left-0 w-1.5 h-1.5 bg-white rounded-full pointer-events-none z-[101] hidden md:block transition-opacity duration-200 ${
+                    expanded && !label ? "opacity-100" : label ? "opacity-0" : "opacity-80"
                 }`}
                 style={{ willChange: "transform" }}
                 aria-hidden="true"

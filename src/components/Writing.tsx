@@ -57,15 +57,14 @@ export default function Writing() {
                                 data-cursor-label="Read"
                                 className="hoverable group relative block overflow-hidden py-5 md:py-6"
                             >
-                                {/* Fill wipes up from the baseline on hover — direction,
-                                    rather than a colour change. */}
+                                {/* Pine/slate wipe on hover */}
                                 <span
                                     aria-hidden="true"
-                                    className="absolute inset-0 bg-[var(--fg)]/[0.04] translate-y-full transition-transform duration-500 ease-[cubic-bezier(0.22,1,0.36,1)] group-hover:translate-y-0"
+                                    className="absolute inset-0 bg-gradient-to-r from-[var(--pine)]/15 via-[var(--surface-raised)]/30 to-transparent translate-y-full transition-transform duration-500 ease-[cubic-bezier(0.22,1,0.36,1)] group-hover:translate-y-0"
                                 />
 
                                 <div className="relative flex flex-col gap-3 md:flex-row md:items-baseline md:gap-8">
-                                    <span className="shrink-0 font-mono text-[10px] tabular-nums tracking-[0.18em] text-[var(--fg-faint)] md:w-12">
+                                    <span className="shrink-0 font-mono text-[10px] tabular-nums tracking-[0.18em] text-[var(--brass)] font-semibold md:w-12">
                                         {essay.year}
                                     </span>
 
@@ -79,7 +78,7 @@ export default function Writing() {
                                     </div>
 
                                     <div className="flex shrink-0 items-center gap-3 md:flex-col md:items-end md:gap-1.5">
-                                        <span className="border border-[var(--rule)] px-2.5 py-1 font-mono text-[10px] uppercase tracking-[0.14em] text-[var(--fg-dim)] transition-colors duration-300 group-hover:border-[var(--rule-strong)] group-hover:text-[var(--fg-soft)]">
+                                        <span className="border border-[var(--rule)] bg-[var(--surface-card)] px-2.5 py-1 font-mono text-[10px] uppercase tracking-[0.14em] text-[var(--fg-dim)] transition-colors duration-300 group-hover:border-[var(--steel)]/60 group-hover:text-[var(--steel-bright)]">
                                             {essay.field}
                                         </span>
                                         <span className="font-mono text-[10px] uppercase tracking-[0.14em] text-[var(--fg-faint)]">
@@ -89,7 +88,7 @@ export default function Writing() {
 
                                     <span
                                         aria-hidden="true"
-                                        className="hidden shrink-0 text-[var(--fg-faint)] opacity-0 transition-all duration-300 group-hover:opacity-100 group-hover:text-white md:block md:-translate-x-2 md:group-hover:translate-x-0"
+                                        className="hidden shrink-0 text-[var(--brass)] opacity-0 transition-all duration-300 group-hover:opacity-100 group-hover:translate-x-0 md:block md:-translate-x-2"
                                     >
                                         →
                                     </span>

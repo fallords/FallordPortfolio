@@ -32,7 +32,7 @@ export default function Footer() {
                  */}
                 <p
                     aria-hidden="true"
-                    className="text-[6.5vw] font-heading font-extrabold uppercase tracking-tight leading-none text-center bg-clip-text text-transparent bg-gradient-to-b from-white to-[var(--fg-ghost)]"
+                    className="text-[6.5vw] font-heading font-extrabold uppercase tracking-tight leading-none text-center bg-clip-text text-transparent bg-gradient-to-b from-white via-[var(--steel)] to-[var(--steel)]/20 drop-shadow-[0_4px_24px_rgba(0,0,0,0.7)]"
                 >
                     Fadhlan Bani
                 </p>
@@ -47,7 +47,7 @@ export default function Footer() {
                 <div className="flex gap-6">
                     <button
                         type="button"
-                        className="hoverable uppercase tracking-[0.22em] transition-colors hover:text-white cursor-pointer"
+                        className="hoverable uppercase tracking-[0.22em] transition-colors hover:text-[var(--brass)] cursor-pointer"
                         onClick={() => window.scrollTo({ top: 0, behavior: "smooth" })}
                     >
                         Back to top ↑

@@ -60,7 +60,7 @@ function LeadWord({
     return (
         <motion.span
             style={{ opacity }}
-            className={`inline-block ${accent ? "text-[var(--fg)]" : ""}`}
+            className={`inline-block ${accent ? "text-[var(--brass)] font-medium" : ""}`}
         >
             {word}
         </motion.span>
@@ -119,29 +119,28 @@ export default function About() {
                         className="mt-6 grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-px overflow-hidden border border-[var(--rule)] bg-[var(--rule)]"
                     >
                         {disciplines.map((discipline, i) => (
-                            <motion.li key={discipline} variants={fadeUp} className="bg-[var(--surface)]">
+                            <motion.li key={discipline} variants={fadeUp} className="bg-[var(--surface-card)]">
                                 <a
                                     href="#expertise"
                                     className="hoverable group relative flex h-full flex-col justify-between gap-6 overflow-hidden p-4 md:p-5"
                                 >
-                                    {/* Wipe that fills from the bottom on hover — cheaper to
-                                        read than a colour change, and it has direction. */}
+                                    {/* Tactile wipe on hover */}
                                     <span
                                         aria-hidden="true"
-                                        className="absolute inset-0 bg-[var(--fg)]/[0.05] translate-y-full transition-transform duration-500 ease-[cubic-bezier(0.22,1,0.36,1)] group-hover:translate-y-0"
+                                        className="absolute inset-0 bg-white/[0.04] translate-y-full transition-transform duration-500 ease-[cubic-bezier(0.22,1,0.36,1)] group-hover:translate-y-0"
                                     />
 
-                                    <span className="relative font-mono text-[10px] tabular-nums tracking-[0.18em] text-[var(--fg-faint)] transition-colors duration-300 group-hover:text-[var(--fg)]">
+                                    <span className="relative font-mono text-[10px] tabular-nums tracking-[0.18em] text-[var(--brass)] font-semibold transition-colors duration-300">
                                         {String(i + 1).padStart(2, "0")}
                                     </span>
 
                                     <span className="relative flex items-end justify-between gap-3">
-                                        <span className="font-heading text-sm md:text-base font-bold leading-tight tracking-tight text-[var(--fg-muted)] transition-colors duration-300 group-hover:text-[var(--fg)]">
+                                        <span className="font-heading text-sm md:text-base font-bold leading-tight tracking-tight text-[var(--fg-muted)] transition-colors duration-300 group-hover:text-white">
                                             {discipline}
                                         </span>
                                         <span
                                             aria-hidden="true"
-                                            className="shrink-0 text-[var(--fg-faint)] opacity-0 -translate-x-2 transition-all duration-300 group-hover:opacity-100 group-hover:translate-x-0 group-hover:text-[var(--fg)]"
+                                            className="shrink-0 text-[var(--brass)] opacity-0 -translate-x-2 transition-all duration-300 group-hover:opacity-100 group-hover:translate-x-0"
                                         >
                                             →
                                         </span>

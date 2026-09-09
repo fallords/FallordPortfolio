@@ -46,20 +46,20 @@ export default function Testimonials() {
                             className="group m-0 flex flex-col gap-6"
                         >
                             <blockquote className="text-base md:text-xl font-heading font-medium tracking-tight leading-relaxed">
-                                <span className="text-[var(--fg)]/25 select-none">&ldquo;</span>
+                                <span className="text-[var(--brass)]/50 select-none">&ldquo;</span>
                                 {test.quote}
-                                <span className="text-[var(--fg)]/25 select-none">&rdquo;</span>
+                                <span className="text-[var(--brass)]/50 select-none">&rdquo;</span>
                             </blockquote>
 
                             <figcaption className="flex gap-4 items-center mt-auto">
                                 <span
                                     aria-hidden="true"
-                                    className="w-9 h-9 flex justify-center items-center font-mono text-xs font-medium bg-[var(--fg)]/[0.07] ring-1 ring-[var(--rule)] transition-colors duration-500 group-hover:bg-[var(--fg)]/[0.14]"
+                                    className="w-9 h-9 flex justify-center items-center font-mono text-xs font-semibold text-[var(--brass)] bg-[var(--surface-card)] ring-1 ring-[var(--rule-brass)] transition-all duration-500 group-hover:ring-[var(--brass)]"
                                 >
                                     {test.author[0]}
                                 </span>
                                 <span className="flex flex-col">
-                                    <span className="font-sans font-bold text-sm">{test.author}</span>
+                                    <span className="font-sans font-bold text-sm text-white group-hover:text-[var(--steel-bright)] transition-colors">{test.author}</span>
                                     <span className="font-mono text-[10px] uppercase tracking-[0.16em] text-[var(--fg-dim)]">
                                         {test.role}
                                     </span>

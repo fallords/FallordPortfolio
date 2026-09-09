@@ -133,9 +133,10 @@ export default function Intro() {
                         // as grain rather than as a uniform screen.
                         const k = (n - GATE) / (1 - GATE);
                         const i = (row + x) * 4;
-                        data[i] = 255;
-                        data[i + 1] = 255;
-                        data[i + 2] = 255;
+                        // Archival silver-steel grain
+                        data[i] = 218;
+                        data[i + 1] = 224;
+                        data[i + 2] = 228;
                         data[i + 3] =
                             (ALPHA_MIN + Math.pow(k, FALLOFF) * (ALPHA_MAX - ALPHA_MIN)) * fade;
                     }

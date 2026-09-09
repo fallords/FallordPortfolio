@@ -167,25 +167,18 @@ export default function SequenceScroll() {
                 <canvas
                     ref={canvasRef}
                     className="absolute inset-0 w-full h-full object-cover will-change-transform transform-gpu"
-                    style={{ filter: "grayscale(1) contrast(1.06)" }}
+                    style={{ filter: "grayscale(1) contrast(1.08)" }}
                 />
 
-                {/* Global overlay for contrast if needed */}
-                <div className="absolute inset-0 bg-black/40 pointer-events-none" />
+                {/* Natural dark vignette that dissolves into page surface */}
+                <div className="absolute inset-0 bg-gradient-to-b from-black/45 via-transparent to-[var(--surface)] pointer-events-none" />
 
                 {/* Text 1 — Clip-reveal entrance */}
                 <motion.div
                     style={{ opacity: opacity1, y: translateY1 }}
                     className="absolute inset-0 flex flex-col items-center justify-center text-center px-4 pointer-events-none"
                 >
-                    {/*
-                     * No mount-time entrance here. The intro overlay covers the
-                     * first couple of seconds, so an animation timed to page load
-                     * plays entirely behind it — invisible, but still able to fail
-                     * and leave the name stuck off-screen. The intro dissolving
-                     * *is* the reveal.
-                     */}
-                    <h1 className="font-heading font-bold text-3xl md:text-5xl lg:text-6xl tracking-tight uppercase mb-5 flex flex-wrap justify-center gap-x-[0.3em]">
+                    <h1 className="font-heading font-bold text-3xl md:text-5xl lg:text-6xl tracking-tight uppercase mb-5 flex flex-wrap justify-center gap-x-[0.3em] text-white drop-shadow-[0_4px_24px_rgba(0,0,0,0.8)]">
                         {heroWords.map((word, i) => (
                             <span key={i} className="inline-block">
                                 {word}
@@ -193,7 +186,7 @@ export default function SequenceScroll() {
                         ))}
                     </h1>
                     <p
-                        className="font-mono text-[10px] md:text-xs uppercase tracking-[0.2em] text-[var(--fg-muted)] max-w-3xl leading-relaxed"
+                        className="font-mono text-[10px] md:text-xs uppercase tracking-[0.22em] text-[var(--fg-muted)] max-w-3xl leading-relaxed"
                     >
                         Web Developer · Designer · Software Engineer · AI Integration
                     </p>
@@ -204,7 +197,7 @@ export default function SequenceScroll() {
                     style={{ opacity: scrollIndicatorOpacity }}
                     className="absolute bottom-10 left-1/2 -translate-x-1/2 flex flex-col items-center gap-2 pointer-events-none"
                 >
-                    <span className="font-mono text-[10px] uppercase tracking-[0.3em] text-[var(--fg-dim)]">
+                    <span className="font-mono text-[10px] uppercase tracking-[0.3em] text-[var(--brass)] font-semibold">
                         Scroll
                     </span>
                     <motion.div
@@ -222,21 +215,20 @@ export default function SequenceScroll() {
                     style={{ opacity: opacity2, y: translateY2 }}
                     className="absolute inset-0 flex flex-col items-start justify-center text-left px-8 md:px-24 max-w-4xl pointer-events-none"
                 >
-                    <h2 className="font-heading font-bold text-2xl md:text-4xl tracking-tight mb-6">
+                    <h2 className="font-heading font-bold text-2xl md:text-4xl tracking-tight mb-6 text-white">
                         I design and build<br />web applications.
                     </h2>
                     <p className="font-mono text-[10px] md:text-xs uppercase tracking-[0.24em] text-[var(--fg-dim)] leading-loose">
                         Next.js · React · TypeScript · Python
                         <br />
-                        Based in Indonesia
+                        <span className="text-[var(--brass)]">Based in Indonesia</span>
                     </p>
 
-                    {/* Label swap on hover: the word leaves upward while its twin
-                        arrives from below. Nothing scales, nothing bounces. */}
+                    {/* Handcrafted Tailored CTA Button */}
                     <motion.a
                         href="#works"
                         style={{ opacity: buttonOpacity2, y: buttonY2 }}
-                        className={`hoverable group relative mt-8 overflow-hidden px-6 py-3 bg-white text-black font-medium font-mono uppercase tracking-[0.2em] text-[11px] ${
+                        className={`hoverable group relative mt-8 overflow-hidden px-7 py-3.5 bg-white text-black font-medium font-mono uppercase tracking-[0.2em] text-[11px] transition-all duration-500 hover:bg-[var(--brass)] hover:text-black shadow-lg ${
                             isCtaVisible ? "pointer-events-auto" : "pointer-events-none"
                         }`}
                     >

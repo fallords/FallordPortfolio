@@ -25,11 +25,16 @@ export default function SectionLabel({
     return (
         <span className={`block ${className}`}>
             <Reveal>
-                <span className="inline-flex items-baseline gap-2 font-mono text-[10px] uppercase tracking-[0.3em] text-[var(--fg-dim)]">
-                    <span className="text-[var(--fg-faint)]">[</span>
-                    {index && <span className="tabular-nums text-[var(--fg-faint)]">{index}</span>}
-                    <span>{children}</span>
-                    <span className="text-[var(--fg-faint)]">]</span>
+                <span className="inline-flex items-center gap-2 font-mono text-[10px] uppercase tracking-[0.26em] text-[var(--fg-muted)]">
+                    <span className="text-[var(--fg-dim)]/60">[</span>
+                    {index && (
+                        <>
+                            <span className="tabular-nums font-semibold text-[var(--brass)]">{index}</span>
+                            <span className="text-[var(--fg-dim)]/40 font-mono text-[10px]">·</span>
+                        </>
+                    )}
+                    <span className="text-[var(--fg-soft)] font-medium tracking-[0.22em]">{children}</span>
+                    <span className="text-[var(--fg-dim)]/60">]</span>
                 </span>
             </Reveal>
         </span>

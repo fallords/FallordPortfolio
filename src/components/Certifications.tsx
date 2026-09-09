@@ -300,7 +300,7 @@ export default function Certifications() {
                 </h3>
 
                 <div className="flex shrink-0 items-center gap-3">
-                    <span className="font-mono text-[10px] uppercase tracking-[0.2em] text-[var(--fg-dim)] tabular-nums">
+                    <span className="font-mono text-[10px] uppercase tracking-[0.2em] text-[var(--brass)] font-semibold tabular-nums">
                         {String(certifications.length).padStart(2, "0")}
                     </span>
                     {/* No disabled state: the track loops, so there is no end to
@@ -313,11 +313,7 @@ export default function Certifications() {
                                 type="button"
                                 onClick={() => scrollByCard(forward ? 1 : -1)}
                                 aria-label={forward ? "Sertifikat berikutnya" : "Sertifikat sebelumnya"}
-                                /* 44px on phones, back to 32 once there is a
-                                   pointer. At 32 these were the only non-swipe
-                                   way to move the track and too small to hit
-                                   reliably with a thumb. */
-                                className="hoverable flex h-11 w-11 items-center justify-center border border-[var(--rule)] text-[var(--fg-muted)] transition-colors duration-300 hover:border-[var(--rule-strong)] hover:text-[var(--fg)] sm:h-8 sm:w-8"
+                                className="hoverable flex h-11 w-11 items-center justify-center border border-[var(--rule)] bg-[var(--surface-card)] text-[var(--fg-muted)] transition-all duration-300 hover:border-[var(--rule-strong)] hover:text-white sm:h-8 sm:w-8"
                             >
                                 <span aria-hidden="true" className="text-sm leading-none">
                                     {forward ? "→" : "←"}
@@ -354,15 +350,6 @@ export default function Certifications() {
                 onPointerDown={markInput}
                 onWheel={markInput}
                 onTouchStart={markInput}
-                /*
-                 * pb-6 is not decoration. A horizontal scroll container also
-                 * clips vertically, and the cards enter on a 20px upward
-                 * translate — without room to travel into, the last caption
-                 * line is cut off for the length of the animation.
-                 *
-                 * No scroll snapping: it fought the drift, and the arrows
-                 * already land on exact card edges without it.
-                 */
                 className="cert-track mt-8 flex gap-6 overflow-x-auto pb-6"
             >
                 {loop.map((cert, i) => {
@@ -384,14 +371,7 @@ export default function Certifications() {
                                 aria-label={`Lihat sertifikat ${cert.name}`}
                                 className="hoverable group block w-full cursor-pointer text-left"
                             >
-                                {/*
-                                 * One frame ratio for every card, portrait scans
-                                 * letterboxed inside it. Sizing each frame to its own
-                                 * scan made the row heights jump and threw the captions
-                                 * out of line — a tidy shared baseline is worth more
-                                 * than a few extra pixels of document.
-                                 */}
-                                <span className="relative block aspect-[1600/1132] w-full overflow-hidden rounded-lg border border-[var(--rule)] bg-white transition-colors duration-500 group-hover:border-[var(--rule-strong)]">
+                                <span className="relative block aspect-[1600/1132] w-full overflow-hidden rounded-lg border border-[var(--rule)] bg-white transition-all duration-500 group-hover:border-[var(--rule-strong)]">
                                     {cert.image && (
                                         <Image
                                             src={cert.image}
@@ -403,17 +383,17 @@ export default function Certifications() {
                                     )}
                                 </span>
 
-                                <span className="mt-4 block font-sans text-sm leading-snug text-[var(--fg-muted)] transition-colors duration-300 group-hover:text-[var(--fg)]">
+                                <span className="mt-4 block font-sans text-sm leading-snug text-[var(--fg-muted)] transition-colors duration-300 group-hover:text-white">
                                     {cert.name}
                                 </span>
                                 <span className="mt-1.5 flex items-center gap-2 font-mono text-[10px] uppercase tracking-[0.16em] text-[var(--fg-dim)]">
-                                    {cert.issuer}
+                                    <span className="text-[var(--brass)]">{cert.issuer}</span>
                                     <span className="text-[var(--fg-faint)]">·</span>
-                                    {cert.year}
+                                    <span>{cert.year}</span>
                                     {cert.field && (
                                         <>
                                             <span className="text-[var(--fg-faint)]">·</span>
-                                            {cert.field}
+                                            <span className="text-[var(--fg-muted)]">{cert.field}</span>
                                         </>
                                     )}
                                 </span>
@@ -424,17 +404,14 @@ export default function Certifications() {
             </motion.ul>
 
             {/*
-             * The rail. A hairline that reports how much of the track is on
-             * screen and where — the same job the native scrollbar does, drawn
-             * at a weight that belongs to the rest of the page. Hidden when
-             * everything already fits.
+             * The rail. Handcrafted hairline rail with brass indicator.
              */}
             <div
                 aria-hidden="true"
                 className="h-px w-full bg-[var(--rule)]"
                 style={{ visibility: railVisible ? "visible" : "hidden" }}
             >
-                <div ref={railRef} className="h-full bg-[var(--fg-dim)]" />
+                <div ref={railRef} className="h-full bg-[var(--brass)]" />
             </div>
 
             <CertificateLightbox

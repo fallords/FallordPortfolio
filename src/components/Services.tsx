@@ -85,10 +85,10 @@ export default function Services() {
                                 viewport={VIEWPORT}
                                 className="group relative border-t border-[var(--rule)] last:border-b"
                             >
-                                {/* Accent line that draws itself in when active */}
+                                {/* Accent line that draws itself in when active with brass flare */}
                                 <span
                                     aria-hidden="true"
-                                    className={`absolute -top-px left-0 h-px bg-gradient-to-r from-white via-white/50 to-transparent transition-all duration-700 ${
+                                    className={`absolute -top-px left-0 h-px bg-gradient-to-r from-[var(--brass)] via-[var(--steel)] to-transparent transition-all duration-700 ${
                                         isOpen ? "w-full" : "w-0 group-hover:w-full"
                                     }`}
                                 />
@@ -101,8 +101,8 @@ export default function Services() {
                                     className="hoverable w-full cursor-pointer py-5 md:py-6 text-left flex items-center gap-4 md:gap-8"
                                 >
                                     <span
-                                        className={`font-mono text-[10px] tracking-[0.2em] tabular-nums transition-colors duration-300 ${
-                                            isOpen ? "text-white" : "text-[var(--fg-faint)] group-hover:text-white"
+                                        className={`font-mono text-[10px] tracking-[0.2em] tabular-nums transition-colors duration-300 font-semibold ${
+                                            isOpen ? "text-[var(--brass)]" : "text-[var(--fg-faint)] group-hover:text-[var(--brass)]"
                                         }`}
                                     >
                                         {srv.num}
@@ -121,8 +121,8 @@ export default function Services() {
                                         aria-hidden="true"
                                         className={`relative flex h-7 w-7 shrink-0 items-center justify-center border transition-all duration-300 ${
                                             isOpen
-                                                ? "border-white/50 bg-white/10"
-                                                : "border-[var(--rule)] group-hover:border-white/50"
+                                                ? "border-[var(--brass)] bg-[var(--brass)]/10 text-[var(--brass)]"
+                                                : "border-[var(--rule)] group-hover:border-[var(--steel)]/50 text-[var(--fg-muted)] group-hover:text-[var(--steel-bright)]"
                                         }`}
                                     >
                                         <span className="absolute h-px w-2.5 bg-current" />
@@ -151,7 +151,7 @@ export default function Services() {
 
                                                 <a
                                                     href="#contact"
-                                                    className="hoverable group/cta inline-flex w-fit items-center gap-3 font-mono text-[10px] uppercase tracking-[0.24em] text-[var(--fg-muted)] transition-colors hover:text-white"
+                                                    className="hoverable group/cta inline-flex w-fit items-center gap-3 font-mono text-[10px] uppercase tracking-[0.24em] text-[var(--brass)] transition-colors hover:text-[var(--steel-bright)]"
                                                 >
                                                     Discuss a {srv.title.toLowerCase()} project
                                                     <span className="transition-transform duration-300 group-hover/cta:translate-x-1">

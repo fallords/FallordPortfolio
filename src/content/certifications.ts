@@ -73,6 +73,13 @@ export const certifications: Certification[] = [
         field: "Programming",
         image: "/certificates/kaggle-programming.jpg",
     },
+    {
+        name: "Fundamentals of Remote Sensing",
+        issuer: "NASA Applied Remote Sensing Training (ARSET)",
+        year: "2026",
+        field: "Remote Sensing",
+        image: "/certificates/nasa-remote-sensing.jpg",
+    },
 
     /* ------------------------------ Di luar itu --------------------------- */
     {

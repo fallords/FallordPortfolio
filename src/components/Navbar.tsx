@@ -47,33 +47,33 @@ export default function Navbar() {
 
     return (
         <>
-            {/* Logo — always visible */}
+            {/* Logo — confident editorial mark */}
             <div className="fixed top-6 left-6 lg:top-8 lg:left-8 z-[50] pointer-events-auto">
-                <Link href="/" className="font-heading font-bold text-base text-white uppercase tracking-[0.2em] cursor-pointer hoverable">
+                <Link href="/" className="font-heading font-bold text-base text-white uppercase tracking-[0.22em] cursor-pointer hoverable transition-colors hover:text-[var(--fg-soft)]">
                     Fallord
                 </Link>
             </div>
 
-            {/* Floating pill menu button */}
+            {/* Handcrafted circular menu button */}
             <button
-                className="hoverable fixed top-5 right-5 lg:top-7 lg:right-7 z-[70] w-14 h-14 rounded-full bg-white flex items-center justify-center transition-transform hover:scale-110 active:scale-95 pointer-events-auto"
+                className="hoverable fixed top-5 right-5 lg:top-7 lg:right-7 z-[70] w-14 h-14 rounded-full bg-[#131a16] border border-[var(--rule-strong)] flex items-center justify-center transition-all duration-300 hover:scale-105 hover:border-[var(--steel)] active:scale-95 pointer-events-auto shadow-xl"
                 onClick={() => setIsOpen(!isOpen)}
                 aria-label={isOpen ? "Close menu" : "Open menu"}
             >
                 <div className="flex flex-col items-center justify-center gap-[5px] w-5">
                     <motion.span
-                        className="block w-full h-[2px] bg-black origin-center"
-                        animate={isOpen ? { rotate: 45, y: 7 } : { rotate: 0, y: 0 }}
+                        className="block w-full h-[1.5px] bg-white origin-center"
+                        animate={isOpen ? { rotate: 45, y: 6.5 } : { rotate: 0, y: 0 }}
                         transition={{ duration: 0.3, ease: "easeInOut" }}
                     />
                     <motion.span
-                        className="block w-full h-[2px] bg-black origin-center"
+                        className="block w-full h-[1.5px] bg-[var(--brass)] origin-center"
                         animate={isOpen ? { opacity: 0, scaleX: 0 } : { opacity: 1, scaleX: 1 }}
                         transition={{ duration: 0.2 }}
                     />
                     <motion.span
-                        className="block w-full h-[2px] bg-black origin-center"
-                        animate={isOpen ? { rotate: -45, y: -7 } : { rotate: 0, y: 0 }}
+                        className="block w-full h-[1.5px] bg-white origin-center"
+                        animate={isOpen ? { rotate: -45, y: -6.5 } : { rotate: 0, y: 0 }}
                         transition={{ duration: 0.3, ease: "easeInOut" }}
                     />
                 </div>
@@ -87,13 +87,15 @@ export default function Navbar() {
                         animate="open"
                         exit="closed"
                         variants={menuVariants}
-                        className="fixed inset-0 z-[60] bg-[#111] text-white flex flex-col"
+                        className="fixed inset-0 z-[60] bg-[#0c120f] text-white flex flex-col"
                     >
                         {/* Overlay content */}
                         <div className="flex flex-col lg:flex-row h-full overflow-y-auto lg:overflow-y-visible">
                             {/* Left: Nav links */}
                             <div className="flex-1 flex flex-col justify-center px-8 md:px-16 lg:px-24 py-20">
-                                <span className="text-[var(--fg-dim)] uppercase tracking-widest text-xs font-semibold mb-8">Navigation</span>
+                                <span className="font-mono text-[10px] uppercase tracking-[0.28em] text-[var(--fg-dim)] mb-8">
+                                    [ Index ]
+                                </span>
                                 <div className="flex flex-col gap-2">
                                     {navLinks.map((link, i) => (
                                         <div key={i} className="overflow-hidden">
@@ -104,13 +106,13 @@ export default function Navbar() {
                                                 className="group flex items-center gap-6 py-3 hoverable"
                                                 onClick={() => setIsOpen(false)}
                                             >
-                                                <span className="font-mono text-[10px] tracking-[0.2em] text-[var(--fg-faint)] w-8 tabular-nums">
+                                                <span className="font-mono text-[10px] tracking-[0.2em] text-[var(--brass)] w-8 tabular-nums font-semibold">
                                                     0{i + 1}
                                                 </span>
-                                                <span className="text-2xl lg:text-4xl font-heading font-bold tracking-tight group-hover:text-[var(--fg-muted)] transition-colors duration-300">
+                                                <span className="text-2xl lg:text-4xl font-heading font-bold tracking-tight text-[var(--fg-soft)] group-hover:text-white transition-colors duration-300">
                                                     {link.title}
                                                 </span>
-                                                <span className="hidden lg:block w-0 group-hover:w-16 h-[2px] bg-white transition-all duration-500" />
+                                                <span className="hidden lg:block w-0 group-hover:w-16 h-[1.5px] bg-[var(--brass)] transition-all duration-500" />
                                             </MotionLink>
                                         </div>
                                     ))}
@@ -118,14 +120,14 @@ export default function Navbar() {
                             </div>
 
                             {/* Right: Info panel */}
-                            <div className="lg:w-[380px] flex flex-col justify-end gap-10 px-8 md:px-16 lg:px-12 pb-12 lg:pb-16 border-t lg:border-t-0 lg:border-l border-[var(--rule)]">
+                            <div className="lg:w-[380px] flex flex-col justify-end gap-10 px-8 md:px-16 lg:px-12 pb-12 lg:pb-16 border-t lg:border-t-0 lg:border-l border-[var(--rule)] bg-[#0f1612]">
                                 <motion.div
                                     initial={{ opacity: 0, y: 20 }}
                                     animate={{ opacity: 1, y: 0 }}
                                     transition={{ delay: 0.5, duration: 0.6 }}
                                     className="flex flex-col items-start gap-3"
                                 >
-                                    <span className="font-mono text-[10px] uppercase tracking-[0.3em] text-[var(--fg-faint)]">About</span>
+                                    <span className="font-mono text-[10px] uppercase tracking-[0.25em] text-[var(--brass)]">About</span>
                                     <p className="text-sm leading-relaxed text-[var(--fg-soft)]">
                                         Developer and designer. I build web applications with Next.js,
                                         React, and TypeScript. Based in Indonesia.
@@ -138,8 +140,8 @@ export default function Navbar() {
                                     transition={{ delay: 0.6, duration: 0.6 }}
                                     className="flex flex-col gap-3"
                                 >
-                                    <span className="font-mono text-[10px] uppercase tracking-[0.3em] text-[var(--fg-faint)]">Get in Touch</span>
-                                    <a href="mailto:fadhlanbanin@gmail.com" className="text-sm font-sans hoverable hover:text-[var(--fg-muted)] transition-colors break-all">
+                                    <span className="font-mono text-[10px] uppercase tracking-[0.25em] text-[var(--brass)]">Get in Touch</span>
+                                    <a href="mailto:fadhlanbanin@gmail.com" className="text-sm font-sans hoverable hover:text-white transition-colors break-all">
                                         fadhlanbanin@gmail.com
                                     </a>
                                 </motion.div>
@@ -148,7 +150,7 @@ export default function Navbar() {
                                     initial={{ opacity: 0 }}
                                     animate={{ opacity: 1 }}
                                     transition={{ delay: 0.7, duration: 0.6 }}
-                                    className="flex gap-6 font-sans font-semibold uppercase tracking-widest text-xs text-[var(--fg-dim)]"
+                                    className="flex gap-6 font-mono font-semibold uppercase tracking-[0.2em] text-[11px] text-[var(--fg-dim)]"
                                 >
                                     <a href="https://www.linkedin.com/in/fadhlan-bani-nugraha" target="_blank" rel="noopener noreferrer" className="hoverable hover:text-white transition-colors">LinkedIn</a>
                                     <a href="https://www.instagram.com/fadhlanbani/" target="_blank" rel="noopener noreferrer" className="hoverable hover:text-white transition-colors">Instagram</a>

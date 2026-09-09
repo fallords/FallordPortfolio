@@ -21,7 +21,7 @@ export default function ReadingProgress() {
         <motion.div
             aria-hidden="true"
             style={{ scaleX }}
-            className="fixed top-0 left-0 right-0 h-px z-[80] origin-left pointer-events-none bg-white/70"
+            className="fixed top-0 left-0 right-0 h-[2px] z-[80] origin-left pointer-events-none bg-gradient-to-r from-[var(--brass)] via-[var(--steel)] to-[var(--brass)]"
         />
     );
 }
