@@ -43,7 +43,7 @@ export default function Hero() {
                 </Portrait>
             </ErrorBoundary>
 
-            <div className="shell grid-12 relative -mt-28 pb-9 md:mt-0 md:content-end md:py-16">
+            <div className="shell grid-12 relative -mt-28 pb-12 md:mt-0 md:content-end md:py-16">
                 <div className="col-span-4 md:col-span-8">
                     <p className="rise text-sm text-[var(--fg-muted)]">Web developer &amp; designer from Indonesia</p>
 
