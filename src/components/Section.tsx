@@ -15,8 +15,10 @@ import Reveal from "./Reveal";
  *
  * On a phone the chrome is kept tight (title, gaps): each section is meant
  * to fit on one screen there, and every pixel of chrome is a pixel the
- * content doesn't get. The padding is the exception: 48px either side, so
- * one section doesn't run straight into the next.
+ * content doesn't get. The padding is the exception: 64px either side, so
+ * one section doesn't run straight into the next. It stays 64px on a
+ * tablet, and grows only to 80px from lg: any more and a section floats off
+ * on its own.
  */
 export default function Section({
     id,
@@ -43,7 +45,7 @@ export default function Section({
 }) {
     return (
         <section id={id} className={`border-t border-[var(--rule)] ${className}`}>
-            <div className="shell grid-12 py-12 md:py-32">
+            <div className="shell grid-12 py-16 lg:py-20">
                 {/*
                  * On a phone the index shares the title's line, just ahead of it: both
                  * sit in the first row, and the title's left padding keeps clear of it.
