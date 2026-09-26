@@ -1,163 +1,285 @@
 "use client";
 
-import { useRef } from "react";
-import { motion, useScroll, useTransform, type MotionValue } from "framer-motion";
-import SectionLabel from "./SectionLabel";
-import Certifications from "./Certifications";
-import { VIEWPORT, fadeUp, stagger } from "@/lib/motion";
+import { useEffect, useRef, useState } from "react";
+import Section from "./Section";
+import useScrollFade from "@/lib/useScrollFade";
+import SwipeHint from "./SwipeHint";
+import Reveal from "./Reveal";
+import ErrorBoundary from "./ErrorBoundary";
+import FallbackNotice from "./FallbackNotice";
+import CodeDemo from "./demos/CodeDemo";
+import WireframeDemo from "./demos/WireframeDemo";
+import TraceDemo from "./demos/TraceDemo";
+import StreamDemo from "./demos/StreamDemo";
+import SensorDemo from "./demos/SensorDemo";
 
-/* ------------------------------------------------------------------------- *
- * Kalimat lugas, tanpa superlatif. Segment ber-`accent: true` tetap putih
- * penuh sepanjang animasi sebagai penekanan.
- *
- * Tanda baca harus menempel di akhir segment sebelumnya. Paragraf ini dipecah
- * per kata ke dalam flex ber-gap, jadi titik yang berdiri sendiri akan tampil
- * terpisah dari kata terakhirnya — "code behind it ." bukan "code behind it."
- * ------------------------------------------------------------------------- */
-const lead: { text: string; accent?: boolean }[] = [
-    { text: "I'm Fadhlan. I design and build web applications — I handle both the" },
-    { text: "interface", accent: true },
-    { text: "and the" },
-    { text: "code behind it.", accent: true },
+const services = [
     {
-        text: "I work mainly with Next.js, React, and TypeScript, and I build AI features into products where they're useful. I'm based in Indonesia.",
+        title: "Web development",
+        desc: "I build websites and web apps with Next.js, React and TypeScript. Anything from a single landing page to an app with its own backend.",
+        file: "Portrait.tsx",
+        meta: "code from this site",
+        hint: "watch it, then rerun",
+        Demo: CodeDemo,
+    },
+    {
+        title: "Interface design",
+        desc: "Before I write any code, I work out the layout, the screens, and what happens between them. Usually in Figma.",
+        file: "home / hero",
+        meta: "wireframe → design",
+        hint: "drag the slider",
+        Demo: WireframeDemo,
+    },
+    {
+        title: "Software engineering",
+        desc: "The parts people don't see. I plan APIs and databases (with DFDs and ERDs), set up Linux servers, and test things properly before they go live.",
+        file: "trace",
+        meta: "POST /api/analyze",
+        hint: "send the request again",
+        Demo: TraceDemo,
+    },
+    {
+        title: "AI integration",
+        desc: "Adding AI to a product: chat, text generation, reading images, and connecting to LLM APIs like Gemini.",
+        file: "chat",
+        meta: "streaming",
+        hint: "pick a question",
+        Demo: StreamDemo,
+    },
+    {
+        title: "IoT & embedded systems",
+        desc: "I program ESP32 boards in C++, wire up sensors, and send their data over LoRa to a server and a web dashboard. I've put this together and tested it on real hardware.",
+        file: "sensor → server",
+        meta: "live",
+        hint: "tap the chart",
+        Demo: SensorDemo,
     },
 ];
 
-// Empat peran ini diambil persis dari tagline Fadhlan sendiri di hero.
-const disciplines = [
-    "Web Developer",
-    "Designer",
-    "Software Engineer",
-    "AI Integration Developer",
+const tools = [
+    { group: "Web", items: ["Next.js", "React", "TypeScript", "Tailwind CSS", "PHP", "MySQL"] },
+    { group: "AI", items: ["Python", "LLM APIs", "Google Gemini"] },
+    { group: "Hardware", items: ["ESP32", "Arduino (C++)", "LoRa", "MPU6050"] },
+    { group: "Ops & design", items: ["Linux (Ubuntu, Apache)", "Vercel", "Figma"] },
 ];
 
-const leadWords = lead.flatMap((segment) =>
-    segment.text
-        .split(" ")
-        .filter(Boolean)
-        .map((word) => ({ word, accent: segment.accent ?? false }))
-);
-
 /**
- * One word of the lead paragraph. Its brightness is tied to scroll position
- * rather than a one-shot entrance, so the sentence lights up under the reader
- * as they move down the page — and dims again if they scroll back.
+ * Four capabilities, each shown rather than described. Selecting one swaps
+ * the window on the right; the demo is keyed on the selection, so it plays
+ * from the start every time you come back to it.
  */
-function LeadWord({
-    word,
-    accent,
-    progress,
-    range,
-}: {
-    word: string;
-    accent: boolean;
-    progress: MotionValue<number>;
-    range: [number, number];
-}) {
-    const opacity = useTransform(progress, range, [0.34, 1]);
-
-    return (
-        <motion.span
-            style={{ opacity }}
-            className={`inline-block ${accent ? "text-[var(--brass)] font-medium" : ""}`}
-        >
-            {word}
-        </motion.span>
-    );
-}
-
 export default function About() {
-    const paragraphRef = useRef<HTMLParagraphElement>(null);
+    const [active, setActive] = useState(0);
+    const { Demo, file, meta, hint } = services[active];
+    /*
+     * Until someone actually uses the demo on screen, its header carries a
+     * pulsing "try this" hint instead of the plain label. Switching to
+     * another demo brings the hint back for that one.
+     */
+    const [tried, setTried] = useState(false);
+    // A phone keeps the tools list folded, so the section fits one screen.
+    const [toolsOpen, setToolsOpen] = useState(false);
+    const choose = (i: number) => {
+        if (i === active) return;
+        setActive(i);
+        setTried(false);
+    };
 
-    // Map the paragraph's travel through the middle of the viewport onto 0–1.
-    const { scrollYProgress } = useScroll({
-        target: paragraphRef,
-        offset: ["start 0.85", "end 0.55"],
-    });
+    /*
+     * Below lg the tabs are a row of chips wider than the screen. Bring the
+     * chosen one to the middle of the row, so the next one along is always
+     * in sight. Scrolls the row only, never the page.
+     */
+    const tabsRef = useRef<HTMLOListElement>(null);
+    const tabEdges = useScrollFade(tabsRef);
+    useEffect(() => {
+        const row = tabsRef.current;
+        const chip = row?.children[active] as HTMLElement | undefined;
+        if (!row || !chip || row.scrollWidth <= row.clientWidth) return;
+        const box = chip.getBoundingClientRect();
+        const left = box.left - row.getBoundingClientRect().left + row.scrollLeft - (row.clientWidth - box.width) / 2;
+        const smooth = !window.matchMedia("(prefers-reduced-motion: reduce)").matches;
+        row.scrollTo({ left, behavior: smooth ? "smooth" : "auto" });
+    }, [active]);
 
-    const total = leadWords.length;
+    // ARIA tabs pattern: arrows move between tabs, Home/End jump to the ends,
+    // and only the selected tab sits in the Tab order.
+    const onTabKey = (e: React.KeyboardEvent) => {
+        const last = services.length - 1;
+        const next =
+            e.key === "ArrowDown" || e.key === "ArrowRight"
+                ? (active + 1) % services.length
+                : e.key === "ArrowUp" || e.key === "ArrowLeft"
+                  ? (active - 1 + services.length) % services.length
+                  : e.key === "Home"
+                    ? 0
+                    : e.key === "End"
+                      ? last
+                      : null;
+        if (next === null) return;
+        e.preventDefault();
+        choose(next);
+        document.getElementById(`skill-tab-${next}`)?.focus();
+    };
 
     return (
-        <section
+        <Section
             id="about"
-            className="relative py-20 md:py-28 px-6 md:px-12 lg:px-24 bg-[var(--surface)] text-[var(--fg)]"
+            index="02"
+            title="What I do"
+            intro="Five things I work on. Most projects need more than one. Pick one and try it."
+            // A phone goes straight to the chips; their hint and the demo's say the same thing.
+            introClassName="hidden md:block"
+            wide
         >
-            <div className="max-w-7xl mx-auto">
-                <h2>
-                    <SectionLabel index="02">About</SectionLabel>
-                </h2>
-
-                <p
-                    ref={paragraphRef}
-                    className="mt-14 md:mt-20 max-w-3xl flex flex-wrap gap-x-[0.26em] gap-y-1 text-lg leading-[1.5] md:text-2xl md:leading-[1.45] lg:text-[1.75rem] lg:leading-[1.4] font-heading font-normal tracking-tight text-[var(--fg-muted)]"
-                >
-                    {leadWords.map(({ word, accent }, i) => (
-                        <LeadWord
-                            key={`${word}-${i}`}
-                            word={word}
-                            accent={accent}
-                            progress={scrollYProgress}
-                            // Overlap each word's range slightly so the sweep reads
-                            // as a wave rather than a row of switches flipping.
-                            range={[i / total, (i + 2) / total]}
-                        />
-                    ))}
-                </p>
-
-                {/* What I do */}
-                <div className="mt-20 md:mt-28">
-                    <h3>
-                        <SectionLabel>What I do</SectionLabel>
-                    </h3>
-
-                    <motion.ul
-                        variants={stagger}
-                        initial="hidden"
-                        whileInView="visible"
-                        viewport={VIEWPORT}
-                        className="mt-6 grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-px overflow-hidden border border-[var(--rule)] bg-[var(--rule)]"
+            {/*
+             * Separate grid items so a narrow screen gets tabs → demo →
+             * description → tools: the demo sits right under the chip you just
+             * tapped, and the description follows it as a caption, instead of
+             * pushing it most of a screen further down. Below lg the tabs are a
+             * swipeable row of chips. From lg the tabs become a list in the
+             * margin (columns 1–3), with the description inside the list, and
+             * the demo and tools take columns 4–12, under the section title.
+             */}
+            <div className="grid grid-cols-1 gap-x-6 gap-y-3 sm:gap-y-4 md:grid-cols-12 lg:gap-y-8">
+                <div className="md:col-span-9 md:col-start-4 lg:col-span-3 lg:col-start-1 lg:row-start-1">
+                    <ol
+                        ref={tabsRef}
+                        role="tablist"
+                        aria-label="Capabilities"
+                        onKeyDown={onTabKey}
+                        className="scroll-fade -mx-5 flex gap-2 overflow-x-auto px-5 pb-1 [scrollbar-width:none] md:mx-0 md:px-0 lg:block lg:overflow-visible lg:border-b lg:border-[var(--rule)] lg:pb-0 [&::-webkit-scrollbar]:hidden"
                     >
-                        {disciplines.map((discipline, i) => (
-                            <motion.li key={discipline} variants={fadeUp} className="bg-[var(--surface-card)]">
-                                <a
-                                    href="#expertise"
-                                    className="hoverable group relative flex h-full flex-col justify-between gap-6 overflow-hidden p-4 md:p-5"
-                                >
-                                    {/* Tactile wipe on hover */}
-                                    <span
-                                        aria-hidden="true"
-                                        className="absolute inset-0 bg-white/[0.04] translate-y-full transition-transform duration-500 ease-[cubic-bezier(0.22,1,0.36,1)] group-hover:translate-y-0"
-                                    />
-
-                                    <span className="relative font-mono text-[10px] tabular-nums tracking-[0.18em] text-[var(--brass)] font-semibold transition-colors duration-300">
-                                        {String(i + 1).padStart(2, "0")}
-                                    </span>
-
-                                    <span className="relative flex items-end justify-between gap-3">
-                                        <span className="font-heading text-sm md:text-base font-bold leading-tight tracking-tight text-[var(--fg-muted)] transition-colors duration-300 group-hover:text-white">
-                                            {discipline}
+                        {services.map((service, i) => {
+                            const selected = i === active;
+                            return (
+                                <li key={service.title} className="shrink-0 lg:border-t lg:border-[var(--rule)]">
+                                    <button
+                                        type="button"
+                                        role="tab"
+                                        id={`skill-tab-${i}`}
+                                        aria-selected={selected}
+                                        aria-controls="skill-panel"
+                                        tabIndex={selected ? 0 : -1}
+                                        onClick={() => choose(i)}
+                                        onMouseEnter={() => choose(i)}
+                                        className={`group flex h-9 items-center gap-2 whitespace-nowrap border px-3 sm:h-10 text-left transition-colors lg:grid lg:h-auto lg:w-full lg:grid-cols-[2.25rem_1fr] lg:items-baseline lg:gap-0 lg:whitespace-normal lg:border-0 lg:px-0 lg:py-4 ${
+                                            selected ? "border-[var(--gold)]" : "border-[var(--rule-strong)]"
+                                        }`}
+                                    >
+                                        <span
+                                            className={`font-mono text-xs transition-colors ${
+                                                selected ? "text-[var(--gold)]" : "text-[var(--fg-dim)]"
+                                            }`}
+                                        >
+                                            {String(i + 1).padStart(2, "0")}
                                         </span>
                                         <span
-                                            aria-hidden="true"
-                                            className="shrink-0 text-[var(--brass)] opacity-0 -translate-x-2 transition-all duration-300 group-hover:opacity-100 group-hover:translate-x-0"
+                                            className={`text-sm transition-colors lg:text-xl ${
+                                                selected ? "text-[var(--fg)]" : "text-[var(--fg-dim)] group-hover:text-[var(--fg-muted)]"
+                                            }`}
                                         >
-                                            →
+                                            {service.title}
                                         </span>
-                                    </span>
-                                </a>
-                            </motion.li>
-                        ))}
-                    </motion.ul>
+                                        {/* 0fr → 1fr: the only honest way to animate to "auto" height in CSS. */}
+                                        <span
+                                            className={`col-start-2 hidden transition-[grid-template-rows] duration-500 ease-[cubic-bezier(0.22,1,0.36,1)] lg:grid ${
+                                                selected ? "grid-rows-[1fr]" : "grid-rows-[0fr]"
+                                            }`}
+                                        >
+                                            <span className="overflow-hidden">
+                                                <span className="block pt-2 pr-2 text-sm leading-relaxed text-[var(--fg-muted)]">
+                                                    {service.desc}
+                                                </span>
+                                            </span>
+                                        </span>
+                                    </button>
+                                </li>
+                            );
+                        })}
+                    </ol>
+                    <SwipeHint edges={tabEdges} className="mt-1.5 text-right lg:hidden" />
                 </div>
 
+                <Reveal className="md:col-span-9 md:col-start-4 lg:row-start-1">
+                    <div
+                        id="skill-panel"
+                        role="tabpanel"
+                        onPointerDownCapture={() => setTried(true)}
+                        onKeyDownCapture={() => setTried(true)}
+                        aria-labelledby={`skill-tab-${active}`}
+                        // A phone: as tall as the demo inside needs, so a short one leaves no
+                        // empty box. From md: one fixed height, so switching never moves the page.
+                        className="flex flex-col border border-[var(--rule-strong)] bg-[var(--surface-card)] md:h-[30rem]"
+                    >
+                        {/* A narrow phone may wrap the hint to two lines; the bar grows rather than clipping it. */}
+                        <div className="flex min-h-9 shrink-0 items-center justify-between gap-4 border-b border-[var(--rule)] px-4 py-1.5 font-mono text-xs sm:min-h-10 sm:py-2">
+                            <span className="shrink-0 text-[var(--fg-soft)]">{file}</span>
+                            {tried ? (
+                                <span className="text-right text-[var(--fg-dim)]">{meta}</span>
+                            ) : (
+                                // The dot is inline, so if the hint ever wraps it stays with the first line.
+                                <span className="text-right text-[var(--gold)]">
+                                    <span aria-hidden="true" className="pulse-dot mr-2 inline-block h-1.5 w-1.5 rounded-full bg-[var(--gold)] align-middle" />
+                                    <span className="sr-only">Interactive demo: </span>
+                                    {hint}
+                                </span>
+                            )}
+                        </div>
+                        <div className="md:min-h-0 md:flex-1">
+                            {/* A demo that breaks is replaced by a notice, in its own panel only. */}
+                            <ErrorBoundary
+                                key={active}
+                                fallback={(retry) => (
+                                    <FallbackNotice
+                                        message="This demo stopped working. Starting it again usually fixes it."
+                                        onRetry={retry}
+                                        className="h-full min-h-[16rem] justify-center p-6"
+                                    />
+                                )}
+                            >
+                                <Demo />
+                            </ErrorBoundary>
+                        </div>
+                    </div>
+                </Reveal>
+
+                {/* Below lg: the chosen capability's description, as a caption under its demo. */}
+                <p className="max-w-[40rem] text-[13px] leading-[1.55] text-[var(--fg-muted)] sm:text-base md:col-span-9 md:col-start-4 lg:hidden">
+                    {services[active].desc}
+                </p>
+
                 {/*
-                 * Certifications sit last and quietest on purpose. They are a
-                 * footnote to the work, not a headline. The component renders
-                 * nothing at all until the list is filled in.
+                 * Below md the list folds behind a toggle; from md it is always open.
+                 * Label beside value on a phone; from sm, one column per group.
                  */}
-                <Certifications />
+                <div className="md:col-span-9 md:col-start-4 md:mt-6 lg:row-start-2 lg:mt-0">
+                    <button
+                        type="button"
+                        aria-expanded={toolsOpen}
+                        aria-controls="tools-list"
+                        onClick={() => setToolsOpen((o) => !o)}
+                        className="flex h-10 w-full items-center justify-between border-y border-[var(--rule)] text-sm text-[var(--fg-soft)] md:hidden"
+                    >
+                        <span>
+                            Tools I use <span className="font-mono text-xs text-[var(--fg-dim)]">· {tools.reduce((n, t) => n + t.items.length, 0)}</span>
+                        </span>
+                        <span className="font-mono text-xs text-[var(--gold)]">{toolsOpen ? "hide ↑" : "show ↓"}</span>
+                    </button>
+                    <p className="hidden text-sm text-[var(--fg-dim)] md:block">Tools I use</p>
+                    <dl
+                        id="tools-list"
+                        className={`${toolsOpen ? "grid" : "hidden"} mt-3 grid-cols-[6.5rem_1fr] gap-x-4 gap-y-2 text-sm sm:grid-cols-2 sm:gap-x-6 sm:gap-y-5 md:grid lg:grid-cols-4`}
+                    >
+                        {tools.map((t) => (
+                            <div key={t.group} className="contents sm:block">
+                                <dt className="font-mono text-xs leading-5 text-[var(--fg-dim)]">{t.group}</dt>
+                                <dd className="text-[var(--fg-soft)] sm:mt-1">{t.items.join(" · ")}</dd>
+                            </div>
+                        ))}
+                    </dl>
+                </div>
             </div>
-        </section>
+        </Section>
     );
 }

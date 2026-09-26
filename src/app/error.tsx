@@ -4,11 +4,7 @@ import Link from "next/link";
 import { useEffect } from "react";
 
 /*
- * Error boundary.
- *
- * Without one, anything that throws during render in production shows Next's
- * generic error screen — no styling and, more to the point, no link back into
- * the site. This gives the reader both a retry and a way home.
+ * Error boundary: a retry and a way home, instead of Next's unstyled screen.
  */
 export default function Error({
     error,
@@ -18,55 +14,32 @@ export default function Error({
     reset: () => void;
 }) {
     useEffect(() => {
-        // Nothing is wired to a reporting service, so at least leave a trace in
-        // the console rather than swallowing the failure entirely.
+        // Nothing is wired to a reporting service; at least leave a trace.
         console.error(error);
     }, [error]);
 
     return (
-        <main className="flex min-h-[100svh] flex-col justify-center bg-[var(--surface)] px-6 py-32 text-[var(--fg)] selection:bg-white/20 md:px-12 lg:px-24">
-            <div className="mx-auto w-full max-w-7xl">
-                <span className="inline-flex items-baseline gap-2 font-mono text-[10px] uppercase tracking-[0.3em] text-[var(--fg-dim)]">
-                    <span className="text-[var(--fg-ghost)]">[</span>
-                    <span>Something broke</span>
-                    <span className="text-[var(--fg-ghost)]">]</span>
-                </span>
-
-                <h1 className="mt-10 max-w-2xl font-heading text-2xl font-bold leading-[1.2] tracking-tight text-balance md:text-4xl">
-                    This page didn&apos;t load properly.
+        <main className="shell grid-12 min-h-[70svh] content-center py-24">
+            <div className="col-span-4 md:col-span-8 md:col-start-4">
+                <p className="font-mono text-xs text-[var(--fg-dim)]">Error</p>
+                <h1 className="mt-4 font-serif text-5xl font-medium leading-none md:text-6xl">
+                    Something went wrong.
                 </h1>
-
-                <p className="mt-6 max-w-md font-sans text-sm leading-relaxed text-[var(--fg-muted)]">
-                    Trying again often clears it. If it doesn&apos;t, the homepage still works.
+                <p className="mt-6 max-w-md text-[var(--fg-muted)]">
+                    Try loading it again. If that doesn&apos;t work, the homepage should.
                 </p>
-
                 {error.digest && (
-                    <p className="mt-4 font-mono text-[10px] uppercase tracking-[0.18em] text-[var(--fg-faint)]">
-                        Reference {error.digest}
-                    </p>
+                    <p className="mt-3 font-mono text-xs text-[var(--fg-dim)]">Reference {error.digest}</p>
                 )}
-
-                <div className="mt-12 flex flex-wrap items-center gap-x-10 gap-y-4">
+                <div className="mt-10 flex flex-wrap items-center gap-6 text-sm">
                     <button
                         type="button"
                         onClick={reset}
-                        className="hoverable border border-[var(--rule)] px-5 py-3 font-mono text-[10px] font-semibold uppercase tracking-[0.2em] text-[var(--fg-muted)] transition-colors hover:border-[var(--rule-strong)] hover:text-white"
+                        className="inline-flex h-10 items-center bg-[var(--fg)] px-4 font-medium text-[var(--surface)] transition-colors hover:bg-[var(--gold)]"
                     >
                         Try again
                     </button>
-
-                    <Link
-                        href="/"
-                        className="hoverable group inline-flex items-center gap-3 font-sans text-xs font-semibold uppercase tracking-[0.18em] text-[var(--fg-muted)] transition-colors hover:text-white"
-                    >
-                        <span
-                            aria-hidden="true"
-                            className="transition-transform duration-500 ease-[cubic-bezier(0.22,1,0.36,1)] group-hover:-translate-x-1.5"
-                        >
-                            ←
-                        </span>
-                        Home
-                    </Link>
+                    <Link href="/" className="link text-[var(--fg-soft)]">← Home</Link>
                 </div>
             </div>
         </main>

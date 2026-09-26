@@ -11,8 +11,8 @@ const nextConfig: NextConfig = {
   async headers() {
     return [
       {
-        // Sequence images — immutable, cache for 1 year
-        source: "/sequence/:path*",
+        // Portrait frames — immutable, cache for 1 year
+        source: "/frames/:path*",
         headers: [
           {
             key: "Cache-Control",

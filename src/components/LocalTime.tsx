@@ -23,22 +23,14 @@ const formatter = new Intl.DateTimeFormat("en-GB", {
     hour12: false,
 });
 
-export default function LocalTime({
-    // Ganti ke kota Anda, mis. "Bandung, ID" atau "Jakarta, ID"
-    location = "Indonesia",
-    className = "",
-}: {
-    location?: string;
-    className?: string;
-}) {
+/** Current time in Indonesia (WIB). */
+export default function LocalTime({ className = "" }: { className?: string }) {
     const tick = useSyncExternalStore(subscribe, getSnapshot, getServerSnapshot);
     const time = tick === 0 ? "--:--" : formatter.format(new Date());
 
     return (
-        <span className={`inline-flex items-center gap-2 tabular-nums ${className}`}>
-            <span className="text-[var(--fg-faint)]">{location}</span>
-            <span className="text-[var(--fg-ghost)]">/</span>
-            <time suppressHydrationWarning>{time} WIB</time>
-        </span>
+        <time suppressHydrationWarning className={`tabular-nums ${className}`}>
+            {time} WIB
+        </time>
     );
 }

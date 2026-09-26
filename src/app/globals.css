@@ -1,145 +1,438 @@
 @import "tailwindcss";
 
+/*
+ * Three materials, each with one job.
+ *   Iron   — every surface and all text.
+ *   Cloak  — the portrait, selection, and hover fills. Nothing else.
+ *   Gold   — interactive state only: a link you are pointing at.
+ */
 :root {
-  --background: #080c0a;
-  --foreground: #edf1f3;
+  --surface: #0d1011;
+  --surface-card: #13171a;
+  --surface-raised: #1a1f22;
 
-  /* Width of the gutter between the viewport edge and the content panel. */
-  --frame: 0.75rem;
+  --fg: #e7ebed;
+  --fg-soft: #c2c9cc;
+  --fg-muted: #8f999d;
+  --fg-dim: #78838a;
+  --fg-faint: #3f474b;
 
-  /* Handcrafted Doctor Doom Palette: Tailored Forest Slate, Surgical Steel & Antique Brass */
-  --surface: #0c120f;
-  --surface-card: #121a16;
-  --surface-raised: #17221d;
-  
-  /* Text Ramp */
-  --fg: #edf1f3;
-  --fg-soft: #c5d0d8;
-  --fg-muted: #8c9ba5;
-  --fg-dim: #5c6c76;
-  --fg-faint: #3d4a52;
-  --fg-ghost: #263137;
+  --rule: rgba(214, 226, 232, 0.09);
+  --rule-strong: rgba(214, 226, 232, 0.18);
 
-  /* Hairlines: fine, tactile, archival */
-  --rule: rgba(255, 255, 255, 0.08);
-  --rule-strong: rgba(255, 255, 255, 0.18);
-  --rule-brass: rgba(197, 160, 89, 0.28);
-
-  /* Material Accents */
-  --pine: #23533e;
-  --pine-deep: #132b20;
-  --brass: #c5a059;
-  --brass-dim: #8e733d;
-  --steel: #a8b6c1;
-  --steel-bright: #d9e3ea;
-
-  /* Certificate scans */
-  --thumb-rest: 0.65;
-}
-
-@media (min-width: 768px) {
-  :root {
-    --frame: 1.25rem;
-  }
+  --cloak: #14261c;
+  --cloak-bright: #2f5a44;
+  --gold: #bf9d5f;
 }
 
 @theme inline {
-  --color-background: var(--background);
-  --color-foreground: var(--foreground);
-  --font-sans: var(--font-manrope);
-  --font-heading: var(--font-newsreader);
-  --font-mono: var(--font-jetbrains);
+  --font-sans: var(--font-geist);
+  --font-mono: var(--font-geist-mono);
+  --font-serif: var(--font-cormorant);
+}
+
+html {
+  scroll-behavior: smooth;
+  /* Anchored sections land below the sticky header, not under it. */
+  scroll-padding-top: 4.5rem;
+  /*
+   * A tap on a phone flashes the thing tapped. The default flash is a grey-blue
+   * box from the browser's own palette; this is the site's gold, faint.
+   */
+  -webkit-tap-highlight-color: rgba(191, 157, 95, 0.14);
 }
 
 /*
- * The surround: an organic, textured dark paper field with a quiet forest vignette.
+ * Narrow phones (360px and below) get the same page a notch smaller: rem is
+ * 15px instead of 16, so type, spacing and every rem-sized box shrink
+ * together and each section still fits on one screen. A percentage, so a
+ * visitor's own larger-text setting still scales it.
  */
+@media (max-width: 379px) {
+  html {
+    font-size: 93.75%;
+  }
+}
+
 body {
-  background-color: #080c0a;
-  color: var(--foreground);
+  background: var(--surface);
+  color: var(--fg);
+  font-family: var(--font-geist), ui-sans-serif, system-ui, sans-serif;
   overflow-x: clip;
 }
 
-body::before {
-  content: "";
-  position: fixed;
-  inset: 0;
-  z-index: -1;
-  pointer-events: none;
-  background-image:
-    radial-gradient(circle at 20% 20%, rgba(35, 83, 62, 0.1), transparent 60%),
-    radial-gradient(circle at 80% 80%, rgba(197, 160, 89, 0.04), transparent 50%),
-    radial-gradient(rgba(255, 255, 255, 0.1) 0.5px, transparent 0.5px);
-  background-size: 100% 100%, 100% 100%, 5px 5px;
+/*
+ * Tailwind v4 gives buttons the default arrow cursor. Here every button is
+ * something to press, so it should look like it.
+ */
+button:not(:disabled),
+[role="button"],
+[role="tab"] {
+  cursor: pointer;
+}
+
+::selection {
+  background: var(--cloak-bright);
+  color: #fff;
+}
+
+:focus-visible {
+  outline: 1px solid var(--gold);
+  outline-offset: 3px;
 }
 
 /*
- * Typography defaults must live inside @layer base.
+ * The one link style. Underline sits low and thin in the rule colour and turns
+ * gold on hover — no sliding bars, no pseudo-element choreography.
  */
-@layer base {
-  body {
-    font-family: var(--font-manrope), ui-sans-serif, system-ui, sans-serif;
-  }
-
-  h1,
-  h2,
-  h3,
-  h4,
-  h5,
-  h6 {
-    font-family: var(--font-newsreader), ui-serif, Georgia, serif;
-  }
+.link {
+  /*
+   * Most .link elements are inline, where vertical padding grows the tap area
+   * without moving the text — standalone links reach the 24px minimum
+   * (WCAG 2.5.8) instead of the ~18px of their line.
+   */
+  padding-block: 0.25rem;
+  text-decoration-line: underline;
+  text-decoration-thickness: 1px;
+  text-underline-offset: 0.3em;
+  text-decoration-color: var(--rule-strong);
+  transition: color 150ms, text-decoration-color 150ms;
 }
 
-/* The inset panel that carries all page content. */
-.frame {
-  padding: var(--frame);
-}
-
-.frame-inner {
-  overflow: clip;
-  background: var(--surface);
-  border: 1px solid rgba(255, 255, 255, 0.08);
-  box-shadow: 0 0 50px -15px rgba(10, 24, 18, 0.6) inset;
+.link:hover {
+  color: var(--fg);
+  text-decoration-color: var(--gold);
 }
 
 /*
- * Certificate track
+ * On a touch screen a finger needs more than 24px. Grow the hit area to about
+ * 40px without moving anything: extra padding on an inline link doesn't
+ * change the line, and on a block one the negative margin gives it back.
  */
-.cert-track {
-  scrollbar-width: none;
-  -ms-overflow-style: none;
+@media (pointer: coarse) {
+  .link {
+    padding-block: 0.625rem;
+    margin-block: -0.375rem;
+  }
 }
 
-.cert-track::-webkit-scrollbar {
+/*
+ * Page container and the 12-column grid every section sits on. The page runs
+ * edge to edge (viewport-fit=cover), so on a phone held sideways the padding
+ * also clears the notch and the rounded corners.
+ */
+.shell {
+  --gutter: 1.25rem;
+  width: 100%;
+  max-width: 1280px;
+  margin-inline: auto;
+  padding-left: max(var(--gutter), env(safe-area-inset-left));
+  padding-right: max(var(--gutter), env(safe-area-inset-right));
+}
+
+@media (min-width: 768px) {
+  .shell {
+    --gutter: 2.5rem;
+  }
+}
+
+/*
+ * The wireframe demo draws its picture twice, wide and nearly square, and the
+ * panel's own shape picks one: no measuring, no flash of the wrong one.
+ */
+.wf-tall {
   display: none;
 }
 
-/* Custom Selection: Tailored Pine Wash */
-::selection {
-  background: rgba(35, 83, 62, 0.45);
-  color: #f3f6f8;
+@container (max-aspect-ratio: 6 / 5) {
+  .wf-wide {
+    display: none;
+  }
+
+  .wf-tall {
+    display: block;
+  }
 }
 
 /*
- * Focus ring: Clean surgical steel outline
+ * The first-visit intro (IntroScreen). It exists only while the script in
+ * layout.tsx has set data-intro to "show", and fades out on "leaving": with
+ * JavaScript off, on a repeat visit or under reduced motion there is nothing
+ * to see and nothing to wait for.
  */
-:focus-visible {
-  outline: 2px solid var(--steel);
-  outline-offset: 3px;
-  border-radius: 1px;
+.intro {
+  position: fixed;
+  inset: 0;
+  z-index: 100;
+  display: none;
+  align-items: center;
+  background: var(--surface);
+  transition:
+    opacity 500ms cubic-bezier(0.22, 1, 0.36, 1),
+    visibility 500ms;
+}
+
+html[data-intro="show"] .intro,
+html[data-intro="leaving"] .intro {
+  display: flex;
+}
+
+html[data-intro="leaving"] .intro {
+  opacity: 0;
+  visibility: hidden;
+}
+
+.intro-name {
+  transition: transform 500ms cubic-bezier(0.22, 1, 0.36, 1);
+}
+
+html[data-intro="leaving"] .intro-name {
+  transform: translateY(-10px);
+}
+
+/* Moves the intro's line before the app can report real progress. */
+@keyframes intro-creep {
+  from {
+    transform: scaleX(0);
+  }
+  to {
+    transform: scaleX(0.85);
+  }
+}
+
+.intro-creep {
+  animation: intro-creep 1500ms cubic-bezier(0.1, 0.7, 0.3, 1) both;
+}
+
+/* The hero's entrance waits under the intro and plays as it lifts. */
+html[data-intro="show"] .rise {
+  animation-play-state: paused;
+}
+
+/* Between pages (PageLoading): fills the view under the sticky header. */
+.page-loading {
+  position: fixed;
+  inset: 3rem 0 0;
+  z-index: 30;
+  display: flex;
+  align-items: center;
+  background: var(--surface);
+}
+
+@media (min-width: 768px) {
+  .page-loading {
+    top: 3.5rem;
+  }
+}
+
+/* PageLoading's line: a short gold segment running along a rule. */
+@keyframes loading-slide {
+  from {
+    transform: translateX(-100%);
+  }
+  to {
+    transform: translateX(300%);
+  }
+}
+
+.loading-bar {
+  animation: loading-slide 1.1s cubic-bezier(0.65, 0, 0.35, 1) infinite;
+}
+
+/* Rows that scroll sideways fade at whichever edge has more (see useScrollFade). */
+.scroll-fade {
+  --fade-left: 0px;
+  --fade-right: 0px;
+  mask-image: linear-gradient(
+    to right,
+    transparent,
+    #000 var(--fade-left),
+    #000 calc(100% - var(--fade-right)),
+    transparent
+  );
+  /* Reaching the end of the row must not turn into a swipe back a page. */
+  overscroll-behavior-x: contain;
+}
+
+.scroll-fade[data-more-left] {
+  --fade-left: 2.5rem;
+}
+
+.scroll-fade[data-more-right] {
+  --fade-right: 2.5rem;
+}
+
+.grid-12 {
+  display: grid;
+  grid-template-columns: repeat(4, minmax(0, 1fr));
+  column-gap: 1rem;
+}
+
+@media (min-width: 768px) {
+  .grid-12 {
+    grid-template-columns: repeat(12, minmax(0, 1fr));
+    column-gap: 1.5rem;
+  }
 }
 
 /*
- * Respect the OS "reduce motion" setting. Transitions collapse to a
- * near-instant change so the site stays usable (and doesn't make anyone
- * motion-sick) without losing any content.
+ * Scroll reveal. Used on section headings and a few feature blocks only —
+ * if everything rises on scroll, nothing is being pointed at.
  */
+.reveal {
+  transition:
+    opacity 900ms cubic-bezier(0.22, 1, 0.36, 1),
+    transform 900ms cubic-bezier(0.22, 1, 0.36, 1);
+  transition-delay: var(--delay, 0ms);
+}
+
+/*
+ * Hidden, ready to rise, only while JavaScript is running the page (the boot
+ * script's data-js): without it, or if the app never starts, nothing would
+ * ever reveal them, so they simply show.
+ */
+html[data-js] .reveal:not([data-shown]) {
+  opacity: 0;
+  transform: translateY(14px);
+}
+
+/* Strokes that draw themselves: give the element pathLength="1". */
+@keyframes draw {
+  to {
+    stroke-dashoffset: 0;
+  }
+}
+
+.draw {
+  stroke-dasharray: 1;
+  stroke-dashoffset: 1;
+  animation: draw 900ms cubic-bezier(0.65, 0, 0.35, 1) forwards;
+  animation-delay: var(--delay, 0ms);
+}
+
+@keyframes fade-in {
+  from {
+    opacity: 0;
+  }
+}
+
+.fade-in {
+  animation: fade-in 500ms ease-out both;
+  animation-delay: var(--delay, 0ms);
+}
+
+@keyframes grow-x {
+  from {
+    transform: scaleX(0);
+  }
+}
+
+.grow-x {
+  transform-origin: left;
+  animation: grow-x 700ms cubic-bezier(0.22, 1, 0.36, 1) both;
+  animation-delay: var(--delay, 0ms);
+}
+
+/* A bar filling once, left to right; drives timed auto-advance via animationend. */
+@keyframes progress {
+  from {
+    transform: scaleX(0);
+  }
+  to {
+    transform: scaleX(1);
+  }
+}
+
+/* Carousel slides: in from one side, out to the other. */
+@keyframes slide-in-right {
+  from {
+    transform: translateX(100%);
+  }
+}
+
+@keyframes slide-in-left {
+  from {
+    transform: translateX(-100%);
+  }
+}
+
+@keyframes slide-out-left {
+  to {
+    transform: translateX(-100%);
+  }
+}
+
+@keyframes slide-out-right {
+  to {
+    transform: translateX(100%);
+  }
+}
+
+/* "Try this": a small beacon on things you can interact with. */
+@keyframes pulse-dot {
+  50% {
+    opacity: 0.3;
+    transform: scale(0.6);
+  }
+}
+
+.pulse-dot {
+  animation: pulse-dot 1.4s ease-in-out infinite;
+}
+
+/* "There's more this way": an arrow that leans in the direction to swipe. */
+@keyframes nudge-x {
+  50% {
+    transform: translateX(3px);
+  }
+}
+
+.nudge-x {
+  display: inline-block;
+  animation: nudge-x 1.2s ease-in-out infinite;
+}
+
+@keyframes blink {
+  50% {
+    opacity: 0;
+  }
+}
+
+.caret {
+  animation: blink 1s steps(1) infinite;
+}
+
+@keyframes rise {
+  from {
+    opacity: 0;
+    transform: translateY(8px);
+  }
+}
+
+.rise {
+  animation: rise 700ms cubic-bezier(0.22, 1, 0.36, 1) both;
+}
+
 @media (prefers-reduced-motion: reduce) {
+  html {
+    scroll-behavior: auto;
+  }
+
+  /*
+   * Iteration count matters as much as duration: an infinite animation at
+   * 0.01ms (the blinking caret) would flicker at frame rate — worse than the
+   * motion it replaces. Run everything once, instantly.
+   */
   *,
   *::before,
   *::after {
+    animation-duration: 0.01ms !important;
+    animation-iteration-count: 1 !important;
     transition-duration: 0.01ms !important;
-    scroll-behavior: auto !important;
+  }
+
+  /* Run once, it would end off the rule; hold it still at the start instead. */
+  .loading-bar {
+    animation-name: none !important;
   }
 }

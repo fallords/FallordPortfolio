@@ -1,57 +1,31 @@
-"use client";
-
-import { motion, useScroll, useTransform } from "framer-motion";
-import { useRef } from "react";
-import LocalTime from "./LocalTime";
+import GridToggle from "./GridToggle";
 
 export default function Footer() {
-    const containerRef = useRef<HTMLDivElement>(null);
-
-    const { scrollYProgress } = useScroll({
-        target: containerRef,
-        offset: ["start end", "end end"]
-    });
-
-    const y = useTransform(scrollYProgress, [0, 1], ["-20%", "0%"]);
-    const opacity = useTransform(scrollYProgress, [0, 0.5, 1], [0, 0.5, 1]);
-
     return (
-        <footer
-            ref={containerRef}
-            className="relative bg-[var(--surface)] text-white overflow-hidden h-[42svh] md:h-[58svh] flex flex-col justify-end"
-        >
-            <motion.div
-                style={{ y, opacity }}
-                className="w-full flex justify-center items-center pb-20 px-4"
+        <footer className="overflow-hidden border-t border-[var(--rule)] bg-[var(--cloak)]">
+            {/*
+             * The name, cut into the cloth: one shade off the background, with
+             * a hairline of shadow above and light below each stroke. No
+             * gradient, no glow. Decorative — the hero already says it.
+             */}
+            <p
+                aria-hidden="true"
+                className="shell select-none whitespace-nowrap pt-12 font-serif text-[min(18vw,15rem)] font-medium leading-[0.8] tracking-[-0.02em] text-[#1c3426] [text-shadow:0_-1px_0_rgba(0,0,0,0.45),0_1px_0_rgba(255,255,255,0.045)] md:pt-20"
             >
-                {/*
-                 * A wordmark, not a heading. It was an <h1>, which gave the page
-                 * a second top-level heading and told a screen reader the footer
-                 * was where the document begins. It carries no information the
-                 * hero has not already given, so it is marked decorative.
-                 */}
-                <p
-                    aria-hidden="true"
-                    className="text-[6.5vw] font-heading font-extrabold uppercase tracking-tight leading-none text-center bg-clip-text text-transparent bg-gradient-to-b from-white via-[var(--steel)] to-[var(--steel)]/20 drop-shadow-[0_4px_24px_rgba(0,0,0,0.7)]"
-                >
-                    Fadhlan Bani
+                Fadhlan Bani
+            </p>
+
+            {/* The last row clears the home indicator on phones that have one. */}
+            <div className="shell grid-12 gap-y-3 pb-[max(2rem,env(safe-area-inset-bottom))] pt-8 text-xs text-[var(--fg-muted)]">
+                <p className="col-span-4 md:col-span-3">© {new Date().getFullYear()} Fadhlan Bani</p>
+                <p className="col-span-4 md:col-span-6">
+                    Designed and coded by me with Next.js. Fonts: Cormorant Garamond and Geist.
                 </p>
-            </motion.div>
-
-            {/* pb-9 clears the fixed HUD strip pinned to the bottom of the viewport */}
-            <div className="flex flex-col sm:flex-row justify-between items-center gap-3 px-6 py-5 lg:px-12 border-t border-[var(--rule)] font-mono text-[10px] uppercase tracking-[0.22em] text-[var(--fg-faint)] relative z-10 bg-[var(--surface)]">
-                <p>© {new Date().getFullYear()} — All rights reserved</p>
-
-                <LocalTime className="text-[10px] tracking-[0.22em] text-[var(--fg-faint)]" />
-
-                <div className="flex gap-6">
-                    <button
-                        type="button"
-                        className="hoverable uppercase tracking-[0.22em] transition-colors hover:text-[var(--brass)] cursor-pointer"
-                        onClick={() => window.scrollTo({ top: 0, behavior: "smooth" })}
-                    >
+                <div className="col-span-4 flex gap-5 md:col-span-3 md:justify-end">
+                    <GridToggle />
+                    <a href="#top" className="link">
                         Back to top ↑
-                    </button>
+                    </a>
                 </div>
             </div>
         </footer>

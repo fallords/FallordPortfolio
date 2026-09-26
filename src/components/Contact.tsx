@@ -1,85 +1,38 @@
-"use client";
-
-import { motion } from "framer-motion";
-import SectionLabel from "./SectionLabel";
-import { VIEWPORT, fadeUp } from "@/lib/motion";
-
-const socials = [
-    { label: "LinkedIn", href: "https://www.linkedin.com/in/fadhlan-bani-nugraha" },
-    { label: "Instagram", href: "https://www.instagram.com/fadhlanbani/" },
-];
+import Section from "./Section";
+import CopyEmail from "./CopyEmail";
+import { EMAIL, SOCIALS } from "@/lib/site";
 
 export default function Contact() {
     return (
-        <section
+        <Section
             id="contact"
-            className="py-20 md:py-28 px-6 md:px-12 lg:px-24 bg-[var(--surface)] text-[var(--fg)] min-h-[70svh] flex flex-col justify-center relative overflow-hidden"
+            index="06"
+            title="Contact"
+            intro={<>Want to work together, or just ask something? Send me an email.</>}
+            className="bg-[var(--cloak)]"
         >
-            <div className="max-w-7xl mx-auto w-full relative z-10 grid grid-cols-1 md:grid-cols-2 gap-16">
-                <motion.div initial="hidden" whileInView="visible" viewport={VIEWPORT}>
-                    <h2>
-                        <SectionLabel index="05">Contact</SectionLabel>
-                    </h2>
+            <a
+                href={`mailto:${EMAIL}`}
+                // Sized to the screen so the address fits on one line down to
+                // ~340px; below that it may break, but only after the "@".
+                className="inline-block font-serif text-[clamp(1.75rem,8.2vw,3.75rem)] font-medium leading-tight text-[var(--fg)] underline decoration-[var(--rule-strong)] decoration-1 underline-offset-[0.2em] transition-colors hover:decoration-[var(--gold)]"
+            >
+                {EMAIL.split("@")[0]}@<wbr />
+                {EMAIL.split("@")[1]}
+            </a>
 
-                    {/*
-                     * Tidak ada badge status di sini. Penanda "tersedia untuk
-                     * kerja" hanya berguna kalau selalu diperbarui, dan begitu
-                     * basi ia justru salah memberi informasi.
-                     */}
-                    <motion.p
-                        variants={fadeUp}
-                        custom={2}
-                        className="text-[var(--fg-muted)] font-sans mt-8 md:mt-10 max-w-sm text-sm leading-relaxed"
-                    >
-                        Have a project in mind? Send me the details and I&apos;ll get back to you.
-                    </motion.p>
-                </motion.div>
-
-                <div className="flex flex-col justify-end gap-12 md:pb-8">
-                    <motion.div
-                        variants={fadeUp}
-                        initial="hidden"
-                        whileInView="visible"
-                        viewport={VIEWPORT}
-                        className="flex flex-col gap-8"
-                    >
-                        <a
-                            href="mailto:fadhlanbanin@gmail.com"
-                            className="group hoverable flex items-center gap-4 border-b border-[var(--rule-strong)] pb-5 transition-all duration-300 hover:border-[var(--brass)] w-fit"
-                        >
-                            <span className="font-sans text-base md:text-xl font-bold tracking-tight break-all text-white group-hover:text-[var(--steel-bright)] transition-colors duration-300">
-                                fadhlanbanin@gmail.com
-                            </span>
-                            <span className="shrink-0 text-xl text-[var(--brass)] transition-transform duration-300 group-hover:translate-x-1 group-hover:text-[var(--steel-bright)]">
-                                →
-                            </span>
+            <ul className="mt-10 flex flex-wrap items-baseline gap-x-6 gap-y-2 text-sm">
+                <li>
+                    <CopyEmail />
+                </li>
+                {SOCIALS.map((s) => (
+                    <li key={s.label}>
+                        <a href={s.href} target="_blank" rel="noopener noreferrer" className="link text-[var(--fg-muted)]">
+                            {s.label} ↗
                         </a>
-
-                        {/* Nomor telepon dihapus atas permintaan. Email dan
-                            LinkedIn sudah cukup untuk memulai percakapan, dan
-                            nomor pribadi di halaman publik akan dipanen bot. */}
-                    </motion.div>
-
-                    <div className="flex flex-col gap-4 mt-4">
-                        <span className="font-mono text-[10px] uppercase tracking-[0.3em] text-[var(--brass)] font-semibold">
-                            Elsewhere
-                        </span>
-                        <div className="flex flex-wrap gap-6 md:gap-8 font-mono text-[11px] uppercase tracking-[0.2em]">
-                            {socials.map((social) => (
-                                <a
-                                    key={social.label}
-                                    href={social.href}
-                                    target="_blank"
-                                    rel="noopener noreferrer"
-                                    className="hoverable relative text-[var(--fg-soft)] hover:text-white transition-colors after:absolute after:-bottom-1 after:left-0 after:h-px after:w-0 after:bg-[var(--brass)] hover:after:w-full after:transition-all after:duration-300"
-                                >
-                                    {social.label}
-                                </a>
-                            ))}
-                        </div>
-                    </div>
-                </div>
-            </div>
-        </section>
+                    </li>
+                ))}
+            </ul>
+        </Section>
     );
 }

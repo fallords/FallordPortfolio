@@ -22,13 +22,26 @@ export async function generateMetadata({
 
     if (!essay) return {};
 
+    const path = `/writing/${essay.slug}`;
+    // Setting openGraph here replaces the root's, image included; restate it.
+    const image = { url: "/opengraph-image", width: 1200, height: 630, alt: "Fadhlan Bani" };
     return {
-        title: `${essay.title} — Fadhlan Bani`,
+        title: `${essay.title} · Fadhlan Bani`,
         description: essay.summary,
+        alternates: { canonical: path },
         openGraph: {
             title: essay.title,
             description: essay.summary,
+            url: path,
+            siteName: "Fadhlan Bani",
             type: "article",
+            images: [image],
+        },
+        twitter: {
+            card: "summary_large_image",
+            title: essay.title,
+            description: essay.summary,
+            images: [image],
         },
     };
 }
@@ -48,41 +61,29 @@ export default async function EssayPage({
     const older = essaysByYear[index + 1];
 
     return (
-        <main className="bg-[var(--surface)] text-white selection:bg-[var(--pine)] selection:text-[var(--steel-bright)]">
+        <main>
             <ReadingProgress />
 
-            <article className="px-6 md:px-12 lg:px-24 pt-36 pb-24 md:pt-44 md:pb-32">
+            <article className="shell pt-16 pb-24 md:pt-24 md:pb-32">
                 {/* Header shares the body's measure so the whole thing reads as one column */}
                 <header className="mx-auto max-w-[68ch]">
                     <Link
                         href="/#writing"
-                        className="hoverable group mb-10 inline-flex items-center gap-3 font-mono text-[10px] uppercase tracking-[0.24em] text-[var(--brass)] transition-colors hover:text-[var(--steel-bright)]"
+                        className="link mb-10 inline-block text-sm text-[var(--fg-muted)]"
                     >
-                        <span
-                            aria-hidden="true"
-                            className="transition-transform duration-500 ease-[cubic-bezier(0.22,1,0.36,1)] group-hover:-translate-x-1"
-                        >
-                            ←
-                        </span>
-                        All writing
+                        ← All writing
                     </Link>
 
-                    <div className="flex flex-wrap items-center gap-x-3 gap-y-2 font-mono text-[10px] uppercase tracking-[0.24em] text-[var(--fg-faint)]">
-                        <span className="text-[var(--rule-strong)]">[</span>
-                        <span className="text-[var(--brass)] font-semibold">{essay.field}</span>
-                        <span className="text-[var(--rule-strong)]">·</span>
-                        <span className="tabular-nums text-[var(--steel)]">{essay.year}</span>
-                        <span className="text-[var(--rule-strong)]">·</span>
-                        <span className="text-[var(--fg-dim)]">{essay.readingTime} read</span>
-                        <span className="text-[var(--rule-strong)]">]</span>
-                    </div>
+                    <p className="text-sm text-[var(--fg-dim)]">
+                        {essay.field} · <span className="font-mono">{essay.year}</span> · {essay.readingTime} read
+                    </p>
 
-                    <h1 className="mt-7 font-heading text-2xl md:text-4xl font-bold leading-[1.15] tracking-tight text-balance">
+                    <h1 className="mt-5 font-serif text-4xl md:text-5xl font-medium leading-[1.05] text-balance">
                         {essay.title}
                     </h1>
 
                     {essay.subtitle && (
-                        <p className="mt-4 font-heading text-base md:text-lg italic leading-snug text-[var(--fg-muted)]">
+                        <p className="mt-4 font-serif text-xl md:text-2xl italic leading-snug text-[var(--fg-muted)]">
                             {essay.subtitle}
                         </p>
                     )}
@@ -93,22 +94,22 @@ export default async function EssayPage({
 
                     {/* Publication status and identifiers, the way a preprint carries them */}
                     {(essay.publishedIn || essay.orcid) && (
-                        <div className="mt-5 flex flex-col gap-1.5 font-mono text-[10px] uppercase tracking-[0.18em] text-[var(--fg-faint)]">
+                        <div className="mt-5 flex flex-col gap-1 text-xs text-[var(--fg-dim)]">
                             {essay.publishedIn && <span>{essay.publishedIn}</span>}
                             {essay.orcid && (
                                 <a
                                     href={`https://orcid.org/${essay.orcid}`}
                                     target="_blank"
                                     rel="noopener noreferrer"
-                                    className="hoverable w-fit transition-colors hover:text-white"
+                                    className="link w-fit"
                                 >
-                                    ORCID {essay.orcid}
+                                    ORCID <span className="font-mono">{essay.orcid}</span>
                                 </a>
                             )}
                         </div>
                     )}
 
-                    <div className="mt-12 h-px w-full bg-white/10" />
+                    <div className="mt-12 h-px w-full bg-[var(--rule)]" />
                 </header>
 
                 {/*
@@ -124,7 +125,7 @@ export default async function EssayPage({
                             return (
                                 <h2
                                     key={i}
-                                    className="mt-12 mb-5 font-heading text-lg md:text-xl font-bold tracking-tight text-white first:mt-0"
+                                    className="mt-12 mb-5 font-serif text-2xl md:text-3xl font-medium text-[var(--fg)] first:mt-0"
                                 >
                                     {block.slice(3)}
                                 </h2>
@@ -137,7 +138,7 @@ export default async function EssayPage({
                                     key={i}
                                     className="my-12 border-l border-[var(--rule-strong)] pl-6 md:pl-8"
                                 >
-                                    <p className="font-heading text-base md:text-lg font-medium leading-[1.5] tracking-tight text-white">
+                                    <p className="font-serif text-xl md:text-2xl font-medium leading-[1.4] text-[var(--fg)]">
                                         {block.slice(2)}
                                     </p>
                                 </blockquote>
@@ -160,14 +161,14 @@ export default async function EssayPage({
                     <div className="mx-auto mt-14 max-w-[68ch] border-t border-[var(--rule)] pt-10">
                         {essay.keywords && essay.keywords.length > 0 && (
                             <>
-                                <h2 className="font-mono text-[10px] uppercase tracking-[0.25em] text-[var(--brass)] font-semibold">
+                                <h2 className="text-sm font-medium text-[var(--fg)]">
                                     Keywords
                                 </h2>
                                 <ul className="mt-4 flex flex-wrap gap-2">
                                     {essay.keywords.map((word) => (
                                         <li
                                             key={word}
-                                            className="border border-[var(--rule)] bg-[var(--surface-card)] px-3 py-1.5 font-mono text-[10px] uppercase tracking-[0.14em] text-[var(--fg-dim)] hover:border-[var(--steel)]/60 hover:text-[var(--steel-bright)] transition-colors"
+                                            className="border border-[var(--rule)] px-2.5 py-1 text-xs text-[var(--fg-muted)]"
                                         >
                                             {word}
                                         </li>
@@ -181,12 +182,9 @@ export default async function EssayPage({
                                 href={essay.pdfUrl}
                                 target="_blank"
                                 rel="noopener noreferrer"
-                                className="hoverable group mt-10 inline-flex items-center gap-3 border border-[var(--rule-brass)] bg-[var(--surface-card)] px-5 py-3 font-mono text-[10px] font-semibold uppercase tracking-[0.2em] text-[var(--brass)] transition-all hover:bg-[var(--brass)] hover:text-black"
+                                className="mt-10 inline-flex h-10 items-center bg-[var(--fg)] px-4 text-sm font-medium text-[var(--surface)] transition-colors hover:bg-[var(--gold)]"
                             >
-                                Read the full preprint
-                                <span className="transition-transform duration-500 ease-[cubic-bezier(0.22,1,0.36,1)] group-hover:translate-x-1 text-current">
-                                    ↗
-                                </span>
+                                Download the PDF ↗
                             </a>
                         )}
                     </div>
@@ -196,16 +194,13 @@ export default async function EssayPage({
                 <div className="mx-auto mt-16 max-w-[68ch] border-t border-[var(--rule)] pt-10">
                     <Link
                         href="/#writing"
-                        className="hoverable group inline-flex items-center gap-3 font-sans text-xs font-semibold uppercase tracking-[0.18em] text-[var(--fg-muted)] transition-colors hover:text-white"
+                        className="link text-sm text-[var(--fg-muted)]"
                     >
-                        <span className="transition-transform duration-500 ease-[cubic-bezier(0.22,1,0.36,1)] group-hover:-translate-x-1.5">
-                            ←
-                        </span>
-                        All writing
+                        ← All writing
                     </Link>
 
                     {(newer || older) && (
-                        <nav className="mt-12 grid grid-cols-1 gap-px overflow-hidden rounded-xl border border-[var(--rule)] bg-white/10 sm:grid-cols-2">
+                        <nav className="mt-12 grid grid-cols-1 gap-px border border-[var(--rule)] bg-[var(--rule)] sm:grid-cols-2">
                             {[
                                 { essay: newer, label: "Newer" },
                                 { essay: older, label: "Older" },
@@ -214,12 +209,12 @@ export default async function EssayPage({
                                     <Link
                                         key={label}
                                         href={`/writing/${sibling.slug}`}
-                                        className="hoverable group flex flex-col gap-2 bg-[var(--surface)] p-6 transition-colors duration-500 hover:bg-white/[0.03]"
+                                        className="flex flex-col gap-2 bg-[var(--surface)] p-6 transition-colors hover:bg-[var(--cloak)]"
                                     >
-                                        <span className="font-sans text-[11px] uppercase tracking-[0.18em] text-[var(--fg-faint)]">
+                                        <span className="text-xs text-[var(--fg-dim)]">
                                             {label}
                                         </span>
-                                        <span className="font-heading text-lg font-bold leading-tight tracking-tight text-[var(--fg-soft)] transition-colors duration-300 group-hover:text-white">
+                                        <span className="font-serif text-xl font-medium leading-tight text-[var(--fg-soft)]">
                                             {sibling.title}
                                         </span>
                                     </Link>

@@ -1,426 +1,335 @@
 "use client";
 
-import { useCallback, useEffect, useRef, useState } from "react";
+import { useCallback, useEffect, useRef, useState, useSyncExternalStore } from "react";
 import Image from "next/image";
-import { motion } from "framer-motion";
-import SectionLabel from "./SectionLabel";
+import Section from "./Section";
 import CertificateLightbox from "./CertificateLightbox";
-import { VIEWPORT, fadeUp, stagger } from "@/lib/motion";
-import { certifications } from "@/content/certifications";
+import { certifications, type Certification } from "@/content/certifications";
+import useSwipe from "@/lib/useSwipe";
+import useScrollFade from "@/lib/useScrollFade";
+import SwipeHint from "./SwipeHint";
 
-/** Pixels per second the track drifts on its own. Slow enough to read. */
-const DRIFT_SPEED = 26;
-/** How long after a manual interaction before the drift picks up again. */
-const RESUME_AFTER = 1600;
+/** How long each certificate is on show before the next one slides in. */
+const ADVANCE_MS = 5000;
+const SLIDE_MS = 700;
+const SLIDE = `${SLIDE_MS}ms cubic-bezier(0.65, 0, 0.35, 1) both`;
+
+/*
+ * Fields grouped into the four areas they actually cover. Anything with a
+ * field not listed here still shows up, under "Other", so adding a
+ * certificate never makes one silently disappear.
+ */
+const GROUPS = [
+    { label: "Cloud & AI", fields: ["Generative AI", "Artificial Intelligence", "Cloud Infrastructure"] },
+    { label: "Computer science", fields: ["Computer Science", "Programming"] },
+    { label: "Earth observation", fields: ["Remote Sensing"] },
+    { label: "Psychology & society", fields: ["Psychology", "Political Science", "Safeguarding"] },
+];
+
+const grouped = (() => {
+    const known = new Set(GROUPS.flatMap((g) => g.fields));
+    const all = [
+        ...GROUPS.map((g) => ({ label: g.label, items: certifications.filter((c) => g.fields.includes(c.field ?? "")) })),
+        { label: "Other", items: certifications.filter((c) => !known.has(c.field ?? "")) },
+    ].filter((g) => g.items.length > 0);
+    // One running index across groups: the order they are listed is the order they play.
+    let i = 0;
+    return all.map((g) => ({ ...g, items: g.items.map((cert) => ({ cert, index: i++ })) }));
+})();
+
+const ORDERED: Certification[] = grouped.flatMap((g) => g.items.map((x) => x.cert));
+const TOTAL = ORDERED.length;
+const ISSUERS = new Set(ORDERED.map((c) => c.issuer)).size;
+const YEARS = ORDERED.map((c) => Number(c.year)).filter(Boolean);
+const SPAN = YEARS.length ? `${Math.min(...YEARS)} to ${Math.max(...YEARS)}` : "";
+
+const motionQuery = "(prefers-reduced-motion: reduce)";
+const subscribeMotion = (cb: () => void) => {
+    const mq = window.matchMedia(motionQuery);
+    mq.addEventListener("change", cb);
+    return () => mq.removeEventListener("change", cb);
+};
 
 /**
- * Certificates, shown large enough to actually read.
+ * An exhibit rather than a grid: one certificate large enough to read, the
+ * full index beside it grouped by field, sliding on to the next by itself.
  *
- * The earlier version was a ruled list with 64px thumbnails — tidy, but the
- * scans were too small to make out, which defeats the point of showing a
- * document rather than a badge. This is a scrolling track instead: each scan
- * gets a real card, and clicking one opens it full-size.
+ * The advance is driven by the progress bar's own CSS animation — when it
+ * finishes, the next certificate slides in. Pausing is then just
+ * `animation-play-state: paused`: by the Pause button (moving content must
+ * be stoppable — WCAG 2.2.2), while the full-size view is open, while the
+ * section is off screen, and always under reduced motion.
  *
- * The track drifts on its own. Two things make that bearable rather than
- * irritating:
- *
- *   - It is slow. 26px/sec is well under reading speed, so a card you are
- *     looking at does not escape while you look at it.
- *   - It stops at every sign of attention: pointer over the track, keyboard
- *     focus inside it, the lightbox open, the section scrolled out of view, or
- *     `prefers-reduced-motion`. After you use the arrows it stays out of the
- *     way for a moment before resuming.
- *
- * The list is rendered twice so the wrap is seamless. Scrolling past the
- * halfway mark subtracts exactly one set's width, which lands on an identical
- * frame — there is no jump to see. The second copy is `aria-hidden` and out of
- * the tab order, so assistive tech and keyboard users still meet nine
- * certificates rather than eighteen.
+ * It deliberately does not pause on hover or focus. It used to, and clicking
+ * an arrow left focus inside, which stopped it until you clicked elsewhere —
+ * so it looked like it never moved at all.
  */
 export default function Certifications() {
-    const trackRef = useRef<HTMLUListElement>(null);
-    const sectionRef = useRef<HTMLDivElement>(null);
-    const [openIndex, setOpenIndex] = useState<number | null>(null);
-    const railRef = useRef<HTMLDivElement>(null);
-    /** Only whether the rail is needed at all — its position is not state. */
-    const [railVisible, setRailVisible] = useState(false);
-
-    const active = openIndex === null ? null : certifications[openIndex];
-
-    const close = useCallback(() => setOpenIndex(null), []);
-
-    const step = useCallback((direction: 1 | -1) => {
-        setOpenIndex((current) =>
-            current === null
-                ? current
-                : (current + direction + certifications.length) % certifications.length
-        );
-    }, []);
-
-    // --- drift state, all in refs: none of it should cause a re-render ------
-    const pausedRef = useRef(false);
-    const inViewRef = useRef(false);
-    const lastInputRef = useRef(0);
-    const tween = useRef<number | null>(null);
-    /** Width of exactly one pass through the list. See measurePeriod below. */
-    const periodRef = useRef(0);
-
-    /** Anything the reader does that the drift should get out of the way for. */
-    const markInput = useCallback(() => {
-        lastInputRef.current = performance.now();
-    }, []);
-
-    // The lightbox covers the page; drifting behind it is pointless work.
-    useEffect(() => {
-        pausedRef.current = openIndex !== null;
-    }, [openIndex]);
-
-    /**
-     * Scroll animation, done by hand.
-     *
-     * The browser's own `behavior: "smooth"` does not work on this element —
-     * measured on this page, `scrollTo` with `smooth` moved it 0px while the
-     * identical call with `auto` moved it the full 424px. Lenis is driving the
-     * page scroll and appears to starve the native animation. Rather than ship
-     * arrows that work on some machines and silently do nothing on others, this
-     * steps `scrollLeft` itself. Setting `scrollLeft` frame by frame also emits
-     * real scroll events, so the arrows and the rail stay in agreement.
+    const rootRef = useRef<HTMLDivElement>(null);
+    const stripRef = useRef<HTMLUListElement>(null);
+    /*
+     * `prev` and `dir` describe the slide in progress: `active` comes in from
+     * the `dir` side, `prev` leaves to the other. Everything else is hidden,
+     * so jumping several places at once never sweeps other certificates
+     * across the viewer.
      */
-    const animateScroll = useCallback((to: number) => {
-        const track = trackRef.current;
-        if (!track) return;
-        if (tween.current) cancelAnimationFrame(tween.current);
-
-        const from = track.scrollLeft;
-        const distance = to - from;
-        if (Math.abs(distance) < 1) return;
-
-        if (window.matchMedia("(prefers-reduced-motion: reduce)").matches) {
-            track.scrollLeft = to;
-            return;
-        }
-
-        const DURATION = 480;
-        const startedAt = performance.now();
-        // Cubic out — quick to leave, slow to arrive.
-        const ease = (t: number) => 1 - Math.pow(1 - t, 3);
-
-        const frame = (now: number) => {
-            const t = Math.min(1, (now - startedAt) / DURATION);
-            track.scrollLeft = from + distance * ease(t);
-            tween.current = t < 1 ? requestAnimationFrame(frame) : null;
-        };
-        tween.current = requestAnimationFrame(frame);
-    }, []);
-
-    /** Arrows move to the next card's own edge, never by a guessed distance. */
-    const scrollByCard = (direction: 1 | -1) => {
-        const track = trackRef.current;
-        if (!track) return;
-        markInput();
-
-        const cards = Array.from(track.querySelectorAll("li"));
-        if (cards.length === 0) return;
-
-        const origin = track.getBoundingClientRect().left - track.scrollLeft;
-        const offsets = cards.map((card) => card.getBoundingClientRect().left - origin);
-
-        // A pixel of tolerance so a card already flush with the edge counts as
-        // "here" rather than "next".
-        const current = track.scrollLeft;
-        const target =
-            direction === 1
-                ? offsets.find((offset) => offset > current + 1)
-                : offsets.filter((offset) => offset < current - 1).pop();
-
-        animateScroll(target ?? (direction === 1 ? track.scrollWidth : 0));
+    const [slide, setSlide] = useState({ active: 0, prev: -1, dir: 1 as 1 | -1, instant: false });
+    const { active, prev, dir, instant } = slide;
+    /*
+     * A change that lands while the previous slide is still moving switches
+     * instantly. Otherwise the slide that was halfway in would restart its
+     * exit from the centre — a visible jump when the arrows are clicked fast.
+     */
+    const lastChange = useRef(0);
+    const isMidSlide = () => {
+        const now = performance.now();
+        const mid = now - lastChange.current < SLIDE_MS;
+        lastChange.current = now;
+        return mid;
     };
+    const [userPaused, setUserPaused] = useState(false);
+    const [visible, setVisible] = useState(false);
+    const [open, setOpen] = useState(false);
+    const reduced = useSyncExternalStore(subscribeMotion, () => window.matchMedia(motionQuery).matches, () => true);
 
-    /**
-     * Distance from one card to the same card in the duplicate set.
-     *
-     * Read from the DOM rather than derived from `scrollWidth`. Halving
-     * scrollWidth looks right and is not: doubling nine cards produces
-     * seventeen gaps, not eighteen, so half the width falls one gap short of a
-     * full pass. Measured here that was 3804 against a true period of 3816 —
-     * a 12px lurch of the entire row at every wrap. Reading the offset of the
-     * first duplicate sidesteps the arithmetic and survives responsive card
-     * widths and gaps changing at breakpoints.
-     */
-    const measurePeriod = useCallback(() => {
-        const track = trackRef.current;
-        if (!track) return 0;
-        const cards = track.children;
-        const first = cards[0] as HTMLElement | undefined;
-        const clone = cards[certifications.length] as HTMLElement | undefined;
-        if (!first || !clone) return 0;
-        return clone.offsetLeft - first.offsetLeft;
+    const paused = userPaused || !visible || open || reduced || TOTAL < 2;
+    const cert = ORDERED[active];
+
+    const step = useCallback((d: 1 | -1) => {
+        if (TOTAL < 2) return;
+        const quick = isMidSlide();
+        setSlide((s) => ({ active: (s.active + d + TOTAL) % TOTAL, prev: s.active, dir: d, instant: quick }));
     }, []);
+    const select = (i: number) => {
+        if (i === active) return;
+        const quick = isMidSlide();
+        setSlide((s) => ({ active: i, prev: s.active, dir: i > s.active ? 1 : -1, instant: quick }));
+    };
+    const onClose = useCallback(() => setOpen(false), []);
+    // On a phone the viewer swipes like a photo gallery.
+    const swipe = useSwipe({ onLeft: () => step(1), onRight: () => step(-1) });
+    const stripEdges = useScrollFade(stripRef);
 
-    /**
-     * Keep the rail in step with the track.
-     *
-     * The rail is written straight to the DOM rather than held in state. It was
-     * state, and the drift loop writes `scrollLeft` on every frame, which fires
-     * a scroll event, which set a fresh `{width, offset}` object — re-rendering
-     * this section and all eighteen cards sixty times a second for the whole
-     * time the carousel was moving. Nothing about a one-pixel hairline is worth
-     * a render; `visible` only flips when the track starts or stops
-     * overflowing, which is rare.
-     */
     useEffect(() => {
-        const track = trackRef.current;
-        if (!track) return;
-
-        const update = () => {
-            const { scrollLeft, clientWidth } = track;
-            const period = measurePeriod();
-            periodRef.current = period;
-            if (period <= 0) return;
-
-            const width = Math.min(1, clientWidth / period);
-            const offset = (scrollLeft % period) / period;
-
-            const bar = railRef.current;
-            if (bar) {
-                bar.style.width = `${width * 100}%`;
-                bar.style.transform = `translateX(${(offset / width) * 100}%)`;
-            }
-
-            setRailVisible((prev) => (prev === width < 1 ? prev : width < 1));
-        };
-        update();
-
-        track.addEventListener("scroll", update, { passive: true });
-        window.addEventListener("resize", update);
-        // Cards are sized from images that arrive after mount, so the first
-        // measurement is taken before the track has its final width.
-        const observer = new ResizeObserver(update);
-        observer.observe(track);
-
-        return () => {
-            track.removeEventListener("scroll", update);
-            window.removeEventListener("resize", update);
-            observer.disconnect();
-        };
-    }, [measurePeriod]);
-
-    // Only drift while the section is actually on screen.
-    useEffect(() => {
-        const el = sectionRef.current;
+        const el = rootRef.current;
         if (!el) return;
-        const io = new IntersectionObserver(
-            ([entry]) => {
-                inViewRef.current = entry.isIntersecting;
-            },
-            { threshold: 0.15 }
-        );
+        const io = new IntersectionObserver(([entry]) => setVisible(entry.isIntersecting), { threshold: 0.25 });
         io.observe(el);
         return () => io.disconnect();
     }, []);
 
-    // The drift itself.
+    // Keep the active thumbnail in view on the phone strip. Scrolls the strip
+    // only — scrollIntoView could drag the whole page along with it.
     useEffect(() => {
-        const track = trackRef.current;
-        if (!track) return;
-        if (window.matchMedia("(prefers-reduced-motion: reduce)").matches) return;
+        const strip = stripRef.current;
+        const thumb = strip?.children[active] as HTMLElement | undefined;
+        if (!strip || !thumb || !visible) return;
+        // Measured against the strip itself, not offsetLeft — that is relative
+        // to whichever ancestor happens to be positioned, so it only lined up
+        // by coincidence of the current layout.
+        const left = thumb.getBoundingClientRect().left - strip.getBoundingClientRect().left + strip.scrollLeft - 20;
+        strip.scrollTo({ left, behavior: reduced ? "auto" : "smooth" });
+    }, [active, visible, reduced]);
 
-        let previous = performance.now();
-        let raf = 0;
-        /**
-         * The drift position, kept as a float.
-         *
-         * Reading `scrollLeft` back each frame and adding to it does not work
-         * at this speed. 26px/sec is about 0.43px per frame, and the browser
-         * quantises `scrollLeft`, so the fraction is thrown away every time:
-         * some frames advance a whole pixel, some advance none. The result is a
-         * visible limp — worse the slower the drift, which is the opposite of
-         * what you want. Accumulating here and writing out keeps the motion
-         * even.
-         */
-        let position = track.scrollLeft;
+    if (TOTAL === 0) return null;
 
-        const frame = (now: number) => {
-            // Clamp: a backgrounded tab can hand back a delta of many seconds,
-            // which would fling the track across several cards in one step.
-            const dt = Math.min(now - previous, 64) / 1000;
-            previous = now;
-
-            const period = periodRef.current || measurePeriod();
-            const idle = now - lastInputRef.current > RESUME_AFTER;
-            /*
-             * The duplicate set has to be wide enough to cover the viewport
-             * after a wrap, or the seam shows empty track. Nine 400px cards
-             * give a 3816px period, so this only bites on a display wider than
-             * roughly 3800px of track — but there it would be plainly broken
-             * rather than subtly off, so it is worth the one comparison.
-             */
-            const hasRunway = period > 0 && track.clientWidth <= period;
-            const running =
-                hasRunway && idle && inViewRef.current && !pausedRef.current && !tween.current;
-
-            // Anything else that moved the track — a swipe, the arrows, a
-            // wheel — wins. Resync rather than fight it.
-            if (Math.abs(track.scrollLeft - position) > 1.5) {
-                position = track.scrollLeft;
-            }
-
-            if (running) {
-                position += DRIFT_SPEED * dt;
-                if (position >= period) position -= period;
-                track.scrollLeft = position;
-            } else if (!tween.current && period > 0 && track.scrollLeft >= period) {
-                // Wrap a manual scroll too, but never mid-tween: the tween holds
-                // a start position that subtracting a period would invalidate.
-                position = track.scrollLeft - period;
-                track.scrollLeft = position;
-            }
-
-            raf = requestAnimationFrame(frame);
-        };
-
-        raf = requestAnimationFrame(frame);
-        return () => {
-            cancelAnimationFrame(raf);
-            if (tween.current) cancelAnimationFrame(tween.current);
-        };
-    }, [measurePeriod]);
-
-    if (certifications.length === 0) return null;
-
-    // Rendered twice: the first set is the real one, the second exists only so
-    // the wrap has somewhere to land.
-    const loop = [...certifications, ...certifications];
+    const arrow =
+        "flex h-10 w-10 items-center justify-center border border-[var(--rule-strong)] text-[var(--fg-soft)] transition-colors hover:border-[var(--gold)] hover:text-[var(--fg)]";
 
     return (
-        <div ref={sectionRef} className="mt-20 md:mt-28">
-            <div className="flex items-end justify-between gap-6">
-                <h3>
-                    <SectionLabel>Certifications</SectionLabel>
-                </h3>
-
-                <div className="flex shrink-0 items-center gap-3">
-                    <span className="font-mono text-[10px] uppercase tracking-[0.2em] text-[var(--brass)] font-semibold tabular-nums">
-                        {String(certifications.length).padStart(2, "0")}
-                    </span>
-                    {/* No disabled state: the track loops, so there is no end to
-                        arrive at in either direction. */}
-                    {(["-1", "1"] as const).map((dir) => {
-                        const forward = dir === "1";
-                        return (
-                            <button
-                                key={dir}
-                                type="button"
-                                onClick={() => scrollByCard(forward ? 1 : -1)}
-                                aria-label={forward ? "Sertifikat berikutnya" : "Sertifikat sebelumnya"}
-                                className="hoverable flex h-11 w-11 items-center justify-center border border-[var(--rule)] bg-[var(--surface-card)] text-[var(--fg-muted)] transition-all duration-300 hover:border-[var(--rule-strong)] hover:text-white sm:h-8 sm:w-8"
-                            >
-                                <span aria-hidden="true" className="text-sm leading-none">
-                                    {forward ? "→" : "←"}
-                                </span>
-                            </button>
-                        );
-                    })}
-                </div>
-            </div>
-
+        <Section id="certificates" index="03" title="Certificates" count={TOTAL} wide>
             {/*
-             * Cards are a fixed width rather than a fraction of the container, so
-             * the next one always peeks in at the right edge — that sliver is what
-             * tells the reader the track continues.
+             * lg and up: the index sits in the margin (columns 1–3), the viewer
+             * takes columns 4–12 under the section title. Below lg the margin is
+             * too narrow for a list, so it is one column with a thumbnail strip.
              */}
-            <motion.ul
-                ref={trackRef}
-                variants={stagger}
-                initial="hidden"
-                whileInView="visible"
-                viewport={VIEWPORT}
-                onMouseEnter={() => {
-                    pausedRef.current = true;
-                }}
-                onMouseLeave={() => {
-                    pausedRef.current = false;
-                }}
-                onFocusCapture={() => {
-                    pausedRef.current = true;
-                }}
-                onBlurCapture={() => {
-                    pausedRef.current = false;
-                }}
-                onPointerDown={markInput}
-                onWheel={markInput}
-                onTouchStart={markInput}
-                className="cert-track mt-8 flex gap-6 overflow-x-auto pb-6"
-            >
-                {loop.map((cert, i) => {
-                    const index = i % certifications.length;
-                    const isClone = i >= certifications.length;
+            <div ref={rootRef} className="grid grid-cols-1 gap-x-6 gap-y-8 md:grid-cols-12">
+                <p className="font-mono text-xs text-[var(--fg-dim)] md:col-span-9 md:col-start-4 lg:row-start-1">
+                    {TOTAL} certificates · {ISSUERS} institutions · {SPAN}
+                </p>
 
-                    return (
-                        <motion.li
-                            key={`${cert.name}-${i}`}
-                            variants={fadeUp}
-                            aria-hidden={isClone || undefined}
-                            className="w-[280px] shrink-0 sm:w-[340px] lg:w-[400px]"
-                        >
-                            <button
-                                type="button"
-                                onClick={() => setOpenIndex(index)}
-                                tabIndex={isClone ? -1 : undefined}
-                                data-cursor-label="Open"
-                                aria-label={`Lihat sertifikat ${cert.name}`}
-                                className="hoverable group block w-full cursor-pointer text-left"
-                            >
-                                <span className="relative block aspect-[1600/1132] w-full overflow-hidden rounded-lg border border-[var(--rule)] bg-white transition-all duration-500 group-hover:border-[var(--rule-strong)]">
-                                    {cert.image && (
+                {/* Viewer */}
+                <div className="md:col-span-9 md:col-start-4 lg:row-start-2">
+                    <button
+                        type="button"
+                        {...swipe.handlers}
+                        onClick={() => !swipe.swiped() && setOpen(true)}
+                        aria-label={`View ${cert.name} full size`}
+                        style={{ touchAction: "pan-y" }}
+                        className="group relative block aspect-[3/2] w-full overflow-hidden sm:aspect-[4/3] border border-[var(--rule)] bg-[var(--surface-raised)] transition-colors hover:border-[var(--rule-strong)] lg:aspect-[16/10]"
+                    >
+                        {ORDERED.map((c, i) => {
+                            const role = i === active ? "in" : i === prev ? "out" : "idle";
+                            const animation = instant
+                                ? "none"
+                                : role === "in" && prev !== -1
+                                    ? `slide-in-${dir > 0 ? "right" : "left"} ${SLIDE}`
+                                    : role === "out"
+                                      ? `slide-out-${dir > 0 ? "left" : "right"} ${SLIDE}`
+                                      : "none";
+                            return (
+                                <span
+                                    key={c.name}
+                                    aria-hidden={role !== "in"}
+                                    className="absolute inset-0"
+                                    style={{
+                                        animation,
+                                        // With no slide to play, the outgoing one would sit on top at centre.
+                                        visibility: role === "idle" || (instant && role === "out") ? "hidden" : "visible",
+                                    }}
+                                >
+                                    {c.image && (
                                         <Image
-                                            src={cert.image}
-                                            alt={`Sertifikat ${cert.name} dari ${cert.issuer}`}
+                                            src={c.image}
+                                            alt={role === "in" ? `Certificate: ${c.name}, ${c.issuer}` : ""}
                                             fill
-                                            sizes="(max-width: 640px) 280px, (max-width: 1024px) 340px, 400px"
-                                            className="object-contain transition-transform duration-700 ease-out group-hover:scale-[1.02]"
+                                            sizes="(max-width: 768px) 92vw, 700px"
+                                            className="object-contain p-3 drop-shadow-[0_14px_28px_rgba(0,0,0,0.6)] sm:p-5 md:p-10"
                                         />
                                     )}
                                 </span>
+                            );
+                        })}
+                        {/* Revealed on hover with a mouse; always there on a touch screen, which also gets the swipe. */}
+                        <span className="absolute bottom-3 right-4 border border-[var(--rule-strong)] bg-[var(--surface)]/80 px-1.5 py-0.5 font-mono text-xs text-[var(--fg-muted)] transition-opacity [@media(hover:hover)]:opacity-0 [@media(hover:hover)]:group-hover:opacity-100">
+                            <span className="[@media(hover:none)]:hidden">Open full size ↗</span>
+                            <span className="[@media(hover:hover)]:hidden">← swipe → · tap to enlarge</span>
+                        </span>
+                    </button>
 
-                                <span className="mt-4 block font-sans text-sm leading-snug text-[var(--fg-muted)] transition-colors duration-300 group-hover:text-white">
-                                    {cert.name}
-                                </span>
-                                <span className="mt-1.5 flex items-center gap-2 font-mono text-[10px] uppercase tracking-[0.16em] text-[var(--fg-dim)]">
-                                    <span className="text-[var(--brass)]">{cert.issuer}</span>
-                                    <span className="text-[var(--fg-faint)]">·</span>
-                                    <span>{cert.year}</span>
-                                    {cert.field && (
-                                        <>
-                                            <span className="text-[var(--fg-faint)]">·</span>
-                                            <span className="text-[var(--fg-muted)]">{cert.field}</span>
-                                        </>
-                                    )}
-                                </span>
+                    {/* Progress — its animationend is the timer. */}
+                    <div className="relative h-px overflow-hidden bg-[var(--rule)]">
+                        {!reduced && (
+                            <span
+                                key={active}
+                                className="absolute inset-0 origin-left bg-[var(--gold)]"
+                                style={{
+                                    animation: `progress ${ADVANCE_MS}ms linear forwards`,
+                                    animationPlayState: paused ? "paused" : "running",
+                                }}
+                                onAnimationEnd={() => step(1)}
+                            />
+                        )}
+                    </div>
+
+                    {/*
+                     * Phone: the controls get their own row above the name, so
+                     * the name has the full width instead of wrapping to four
+                     * lines beside three buttons. From sm up they sit side by side.
+                     */}
+                    <div className="mt-4 flex flex-col gap-4 sm:mt-5 sm:flex-row sm:items-start sm:justify-between sm:gap-6">
+                        <div className="min-w-0" aria-live="polite">
+                            <p className="text-base leading-snug text-[var(--fg)] sm:text-lg">{cert.name}</p>
+                            <p className="mt-1 text-sm text-[var(--fg-dim)]">
+                                {cert.issuer} · <span className="font-mono">{cert.year}</span>
+                                {cert.field && <> · {cert.field}</>}
+                                {cert.url && (
+                                    <>
+                                        {" · "}
+                                        <a href={cert.url} target="_blank" rel="noopener noreferrer" className="link text-[var(--fg-muted)]">
+                                            Verify ↗
+                                        </a>
+                                    </>
+                                )}
+                            </p>
+                        </div>
+                        <div className="order-first flex shrink-0 items-center justify-between gap-3 sm:order-none sm:justify-start">
+                            <span className="font-mono text-xs tabular-nums text-[var(--fg-dim)]">
+                                {String(active + 1).padStart(2, "0")} / {String(TOTAL).padStart(2, "0")}
+                            </span>
+                            <span className="flex gap-2 sm:gap-3">
+                            {!reduced && (
+                                <button
+                                    type="button"
+                                    onClick={() => setUserPaused((p) => !p)}
+                                    aria-label={userPaused ? "Resume slideshow" : "Pause slideshow"}
+                                    aria-pressed={userPaused}
+                                    className={`${arrow} font-mono text-xs`}
+                                >
+                                    {userPaused ? "▶" : "❚❚"}
+                                </button>
+                            )}
+                            <button type="button" onClick={() => step(-1)} aria-label="Previous certificate" className={arrow}>
+                                ←
                             </button>
-                        </motion.li>
-                    );
-                })}
-            </motion.ul>
+                            <button type="button" onClick={() => step(1)} aria-label="Next certificate" className={arrow}>
+                                →
+                            </button>
+                            </span>
+                        </div>
+                    </div>
 
-            {/*
-             * The rail. Handcrafted hairline rail with brass indicator.
-             */}
-            <div
-                aria-hidden="true"
-                className="h-px w-full bg-[var(--rule)]"
-                style={{ visibility: railVisible ? "visible" : "hidden" }}
-            >
-                <div ref={railRef} className="h-full bg-[var(--brass)]" />
+                    {/* Phone: a strip of thumbnails in place of the index. */}
+                    <div className="mt-6 flex items-baseline justify-between gap-4 lg:hidden">
+                        <p className="text-xs text-[var(--fg-dim)]">All {TOTAL} · tap one to show it</p>
+                        <SwipeHint edges={stripEdges} />
+                    </div>
+                    <ul ref={stripRef} className="scroll-fade -mx-5 mt-3 flex gap-3 overflow-x-auto px-5 pb-1 [scrollbar-width:none] md:mx-0 md:px-0 lg:hidden [&::-webkit-scrollbar]:hidden">
+                        {ORDERED.map((c, i) => (
+                            <li key={c.name} className="shrink-0">
+                                <button
+                                    type="button"
+                                    onClick={() => select(i)}
+                                    aria-label={c.name}
+                                    aria-current={i === active}
+                                    className={`relative block aspect-[4/3] w-24 border bg-[var(--surface-raised)] transition-colors ${
+                                        i === active ? "border-[var(--gold)]" : "border-[var(--rule)]"
+                                    }`}
+                                >
+                                    {c.image && <Image src={c.image} alt="" fill sizes="96px" className="object-contain p-1.5" />}
+                                </button>
+                            </li>
+                        ))}
+                    </ul>
+                </div>
+
+                {/* Index, grouped by field */}
+                <nav aria-label="Certificate index" className="hidden lg:col-span-3 lg:col-start-1 lg:row-span-2 lg:row-start-1 lg:block">
+                    {grouped.map((group) => (
+                        <div key={group.label} className="mb-6 last:mb-0">
+                            <p className="flex justify-between text-xs text-[var(--fg-dim)]">
+                                <span>{group.label}</span>
+                                <span className="font-mono">{String(group.items.length).padStart(2, "0")}</span>
+                            </p>
+                            <ul className="mt-2 border-t border-[var(--rule)]">
+                                {group.items.map(({ cert: c, index }) => {
+                                    const isActive = index === active;
+                                    return (
+                                        <li key={c.name} className="border-b border-[var(--rule)]">
+                                            <button
+                                                type="button"
+                                                onClick={() => select(index)}
+                                                aria-current={isActive}
+                                                className={`relative grid w-full grid-cols-[1fr_auto] gap-3 py-2 pl-3.5 text-left text-[13px] transition-colors ${
+                                                    isActive ? "text-[var(--fg)]" : "text-[var(--fg-muted)] hover:text-[var(--fg-soft)]"
+                                                }`}
+                                            >
+                                                <span
+                                                    aria-hidden="true"
+                                                    className={`absolute inset-y-2 left-0 w-0.5 transition-colors ${
+                                                        isActive ? "bg-[var(--gold)]" : "bg-transparent"
+                                                    }`}
+                                                />
+                                                <span className="leading-snug">{c.name}</span>
+                                                <span className="font-mono text-xs leading-5 text-[var(--fg-dim)]">{c.year}</span>
+                                            </button>
+                                        </li>
+                                    );
+                                })}
+                            </ul>
+                        </div>
+                    ))}
+                </nav>
             </div>
 
             <CertificateLightbox
-                cert={active}
-                index={openIndex}
-                total={certifications.length}
-                onClose={close}
+                cert={cert}
+                open={open}
+                index={active}
+                total={TOTAL}
+                onClose={onClose}
                 onStep={step}
             />
-        </div>
+        </Section>
     );
 }

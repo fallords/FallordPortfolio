@@ -1,69 +1,58 @@
-import type { Metadata } from "next";
-import { Newsreader, Manrope, JetBrains_Mono } from "next/font/google";
+import type { Metadata, Viewport } from "next";
+import { Cormorant_Garamond, Geist, Geist_Mono } from "next/font/google";
 import "./globals.css";
 import { SITE_URL } from "@/lib/site";
-import Cursor from "@/components/Cursor";
-import SmoothScroll from "@/components/SmoothScroll";
-import Navbar from "@/components/Navbar";
-import Intro from "@/components/Intro";
+import Header from "@/components/Header";
+import GridOverlay from "@/components/GridOverlay";
+import CommandPalette from "@/components/CommandPalette";
+import IntroScreen from "@/components/IntroScreen";
+import PageLoading from "@/components/PageLoading";
+import ErrorBoundary from "@/components/ErrorBoundary";
+import { BOOT_SCRIPT } from "@/lib/intro";
 
-import ViewportFix from "@/components/ViewportFix";
-
-// Display face. An editorial serif set wide and light, played against the tiny
-// monospace labels — that pairing is what reads as an archive or an institution
-// rather than as a tech product.
-const newsreader = Newsreader({
-  variable: "--font-newsreader",
-  subsets: ["latin"],
-  weight: ["300", "400", "500"],
-  style: ["normal", "italic"],
-});
-
-const manrope = Manrope({
-  variable: "--font-manrope",
+// Interface and body text.
+const geist = Geist({
+  variable: "--font-geist",
   subsets: ["latin"],
 });
 
-// Carries every label, index and readout on the site. A monospace face is the
-// single strongest signal of a technical interface — it says the text is data
-// rather than prose, before a word of it is read.
-const jetbrainsMono = JetBrains_Mono({
-  variable: "--font-jetbrains",
+// Data only: years, stacks, the clock, the frame counter.
+const geistMono = Geist_Mono({
+  variable: "--font-geist-mono",
   subsets: ["latin"],
   weight: ["400", "500"],
 });
 
-/*
- * No `maximumScale` and no `userScalable: false`.
- *
- * Both were set, which disables pinch-to-zoom on the whole site. It is a common
- * default and it fails WCAG 1.4.4: anyone who needs to magnify a certificate
- * scan or a line of body text simply cannot. Locking zoom buys a little
- * protection against iOS input auto-zoom, which this site does not have —
- * there are no form fields anywhere on it.
- */
-export const viewport: import("next").Viewport = {
+// Display only, and only at sizes where its contrast holds up (32px and over).
+const cormorant = Cormorant_Garamond({
+  variable: "--font-cormorant",
+  subsets: ["latin"],
+  weight: ["500", "600"],
+  style: ["normal", "italic"],
+});
+
+// Pinch-zoom stays enabled (WCAG 1.4.4) — no maximumScale, no userScalable.
+export const viewport: Viewport = {
   width: "device-width",
   initialScale: 1,
   viewportFit: "cover",
+  themeColor: "#0d1011",
 };
 
-// Written once and reused. Three copies of the same sentence drift the moment
-// one of them is edited, and the two that get missed are the ones search
-// results and link previews actually show.
-const TITLE = "Fadhlan Bani | Creative Developer";
+const TITLE = "Fadhlan Bani · Web developer & designer";
 const DESCRIPTION =
-  "Fadhlan Bani — web developer and designer. I build web applications with Next.js, React, and TypeScript. Based in Indonesia.";
+  "Fadhlan Bani is a web developer and designer in Indonesia. He designs and builds web apps, and works on AI and IoT projects.";
 
 export const metadata: Metadata = {
   metadataBase: new URL(SITE_URL),
   title: TITLE,
   description: DESCRIPTION,
+  alternates: { canonical: "/" },
   openGraph: {
     title: TITLE,
     description: DESCRIPTION,
     url: SITE_URL,
-    siteName: "Fadhlan Bani Portfolio",
+    siteName: "Fadhlan Bani",
     type: "website",
   },
   twitter: {
@@ -83,30 +72,27 @@ export default function RootLayout({
   children: React.ReactNode;
 }>) {
   return (
-    <html lang="en">
+    // The boot script sets data-* on <html> before React hydrates it.
+    <html lang="en" suppressHydrationWarning>
       <head>
-        <script
-          dangerouslySetInnerHTML={{
-            __html: `if ('scrollRestoration' in history) history.scrollRestoration = 'manual'; window.scrollTo(0, 0);`,
-          }}
-        />
+        <script dangerouslySetInnerHTML={{ __html: BOOT_SCRIPT }} />
       </head>
       <body
-        className={`${newsreader.variable} ${manrope.variable} ${jetbrainsMono.variable} font-sans antialiased text-white`}
+        className={`${geist.variable} ${geistMono.variable} ${cormorant.variable} font-sans antialiased`}
       >
-        <ViewportFix />
-        <Intro />
-        <Cursor />
-        <SmoothScroll>
-          {/* The halftone field lives on <body>; this gutter is what lets a band
-              of it stay visible around the content on all four sides. */}
-          <div className="frame">
-            <div className="frame-inner">
-              <Navbar />
-              {children}
-            </div>
-          </div>
-        </SmoothScroll>
+        <IntroScreen />
+        <Header />
+        <ErrorBoundary>
+          <PageLoading />
+        </ErrorBoundary>
+        {children}
+        {/* Extras: if one of them breaks, the page goes on without it. */}
+        <ErrorBoundary>
+          <GridOverlay />
+        </ErrorBoundary>
+        <ErrorBoundary>
+          <CommandPalette />
+        </ErrorBoundary>
       </body>
     </html>
   );
