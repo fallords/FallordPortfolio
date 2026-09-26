@@ -3,7 +3,6 @@ import Works from "@/components/Works";
 import About from "@/components/About";
 import Certifications from "@/components/Certifications";
 import Writing from "@/components/Writing";
-import Testimonials from "@/components/Testimonials";
 import Contact from "@/components/Contact";
 import Footer from "@/components/Footer";
 import Section from "@/components/Section";
@@ -36,7 +35,6 @@ export default function Home() {
                     <Certifications />
                 </ErrorBoundary>
                 <Writing />
-                <Testimonials />
                 <Contact />
             </main>
             <Footer />

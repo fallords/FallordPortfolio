@@ -6,7 +6,7 @@ export default function Contact() {
     return (
         <Section
             id="contact"
-            index="06"
+            index="05"
             title="Contact"
             intro={<>Want to work together, or just ask something? Send me an email.</>}
             className="bg-[var(--cloak)]"
