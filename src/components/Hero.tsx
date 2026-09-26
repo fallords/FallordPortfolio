@@ -19,7 +19,7 @@ const fades = (
 
 const facts = [
     { label: "Based in", value: <>Indonesia · <LocalTime /></> },
-    { label: "Focus", value: "Web apps, UI design, AI, IoT" },
+    { label: "Focus", value: "Software, AI, IoT, UI design" },
     { label: "Stack", value: "Next.js, React, TypeScript, Python, C++" },
 ];
 
@@ -45,7 +45,7 @@ export default function Hero() {
 
             <div className="shell grid-12 relative -mt-28 pb-16 md:mt-0 md:content-end md:py-16">
                 <div className="col-span-4 md:col-span-8">
-                    <p className="rise text-sm text-[var(--fg-muted)]">Web developer &amp; designer from Indonesia</p>
+                    <p className="rise text-sm text-[var(--fg-muted)]">Developer &amp; designer from Indonesia</p>
 
                     <h1
                         className="rise mt-4 font-serif text-[4rem] font-medium leading-[0.85] tracking-[-0.02em] text-[var(--fg)] md:text-[min(9.5vw,9rem)]"

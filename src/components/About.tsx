@@ -15,15 +15,15 @@ import SensorDemo from "./demos/SensorDemo";
 
 const services = [
     {
-        title: "Web development",
-        desc: "I build websites and web apps with Next.js, React and TypeScript. Anything from a single landing page to an app with its own backend.",
+        title: "Code",
+        desc: "I write software in TypeScript, Python and C++: web apps and the servers behind them, tools built on AI models, and firmware for small boards.",
         file: "Portrait.tsx",
         meta: "code from this site",
         hint: "watch it, then rerun",
         Demo: CodeDemo,
     },
     {
-        title: "Interface design",
+        title: "Design",
         desc: "Before I write any code, I work out the layout, the screens, and what happens between them. Usually in Figma.",
         file: "home / hero",
         meta: "wireframe → design",
@@ -31,7 +31,7 @@ const services = [
         Demo: WireframeDemo,
     },
     {
-        title: "Software engineering",
+        title: "Systems",
         desc: "The parts people don't see. I plan APIs and databases (with DFDs and ERDs), set up Linux servers, and test things properly before they go live.",
         file: "trace",
         meta: "POST /api/analyze",
@@ -39,7 +39,7 @@ const services = [
         Demo: TraceDemo,
     },
     {
-        title: "AI integration",
+        title: "AI",
         desc: "Adding AI to a product: chat, text generation, reading images, and connecting to LLM APIs like Gemini.",
         file: "chat",
         meta: "streaming",
@@ -47,7 +47,7 @@ const services = [
         Demo: StreamDemo,
     },
     {
-        title: "IoT & embedded systems",
+        title: "Hardware",
         desc: "I program ESP32 boards in C++, wire up sensors, and send their data over LoRa to a server and a web dashboard. I've put this together and tested it on real hardware.",
         file: "sensor → server",
         meta: "live",

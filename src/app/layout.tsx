@@ -39,9 +39,9 @@ export const viewport: Viewport = {
   themeColor: "#0d1011",
 };
 
-const TITLE = "Fadhlan Bani · Web developer & designer";
+const TITLE = "Fadhlan Bani · Developer & designer";
 const DESCRIPTION =
-  "Fadhlan Bani is a web developer and designer in Indonesia. He designs and builds web apps, and works on AI and IoT projects.";
+  "Fadhlan Bani is a developer and designer in Indonesia. He builds software for the web, AI and small hardware, and designs what he builds.";
 
 export const metadata: Metadata = {
   metadataBase: new URL(SITE_URL),

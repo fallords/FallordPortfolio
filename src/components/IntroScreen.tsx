@@ -87,7 +87,7 @@ export default function IntroScreen() {
                     <p className="intro-name mt-3 font-serif text-5xl font-medium leading-none tracking-[-0.02em] text-[var(--fg)] md:text-7xl">
                         Fadhlan Bani
                     </p>
-                    <p className="mt-4 text-sm text-[var(--fg-muted)]">Web developer &amp; designer from Indonesia</p>
+                    <p className="mt-4 text-sm text-[var(--fg-muted)]">Developer &amp; designer from Indonesia</p>
 
                     {/* Two lines on one rule: a steady creep, and the real progress over it. */}
                     <div className="relative mt-10 h-px w-full overflow-hidden bg-[var(--rule)]">

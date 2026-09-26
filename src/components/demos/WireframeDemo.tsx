@@ -64,7 +64,7 @@ function Wireframe() {
             <path className="draw" style={d(500)} pathLength={1} d={r(PX, 48, 640 - PX, 262)} {...stroke} />
             <path className="draw" style={d(800)} pathLength={1} d={`M${PX} 48L640 310M640 48L${PX} 310`} {...stroke} strokeOpacity={0.4} />
 
-            <rect className="fade-in" style={d(880)} x={X0} y={171} width={120} height={6} {...block} />
+            <rect className="fade-in" style={d(880)} x={X0} y={171} width={108} height={6} {...block} />
             <rect className="fade-in" style={d(900)} x={X0} y={186} width={272} height={34} fill="var(--fg-soft)" />
             <rect className="fade-in" style={d(1000)} x={X0} y={236} width={92} height={7} {...block} />
             <path className="draw" style={d(1050)} pathLength={1} d={r(X0, 256, 62, 18)} {...stroke} />
@@ -125,7 +125,7 @@ function Design({ id }: { id: string }) {
 
             {/* Text */}
             <text x={X0} y={177} fontSize={7} fill="var(--fg-muted)" style={sans}>
-                Web developer &amp; designer from Indonesia
+                Developer &amp; designer from Indonesia
             </text>
             <text x={X0} y={219} fontSize={52} fontWeight={500} fill="var(--fg)" style={serif}>
                 Fadhlan Bani
@@ -145,7 +145,7 @@ function Design({ id }: { id: string }) {
             <line x1={X0} x2={X0 + 7 * (COL + GUTTER) - GUTTER} y1={292} y2={292} stroke="var(--rule-strong)" />
             {[
                 ["Based in", "Indonesia"],
-                ["Focus", "Web apps, UI, AI, IoT"],
+                ["Focus", "Software, AI, IoT, UI"],
                 ["Stack", "Next.js, React, TS"],
             ].map(([label, value], i) => (
                 <g key={label} style={sans}>
@@ -189,7 +189,7 @@ const MLINKS = [
 const MLINE = { text: "A learner and a builder.", w: 124 };
 const MFACTS = [
     { label: "Based in", value: "Indonesia", lw: 29, vw: 41 },
-    { label: "Focus", value: "Web apps, UI design, AI, IoT", lw: 19, vw: 128 },
+    { label: "Focus", value: "Software, AI, IoT, UI design", lw: 19, vw: 128 },
 ];
 const PORTRAIT_SQUARE = `/_next/image?url=${encodeURIComponent("/frames/still-square.jpg")}&w=640&q=75`;
 
@@ -213,7 +213,7 @@ function WireframeTall() {
             <path className="draw" style={d(500)} pathLength={1} d={r(0, 32, 360, 150)} {...stroke} />
             <path className="draw" style={d(800)} pathLength={1} d="M0 32L360 182M360 32L0 182" {...stroke} strokeOpacity={0.4} />
 
-            <rect className="fade-in" style={d(880)} x={MX0} y={166} width={165} height={6} {...block} />
+            <rect className="fade-in" style={d(880)} x={MX0} y={166} width={148} height={6} {...block} />
             <rect className="fade-in" style={d(900)} x={MX0} y={182} width={192} height={30} fill="var(--fg-soft)" />
             <rect className="fade-in" style={d(1000)} x={MX0} y={223} width={MLINE.w} height={6} {...block} />
             <path className="draw" style={d(1200)} pathLength={1} d={r(MX0, 243, 70, 22)} {...stroke} />
@@ -282,7 +282,7 @@ function DesignTall({ id }: { id: string }) {
 
             {/* Text, riding up over the portrait's faded edge */}
             <text x={MX0} y={172} fontSize={8.5} fill="var(--fg-muted)" style={sans}>
-                Web developer &amp; designer from Indonesia
+                Developer &amp; designer from Indonesia
             </text>
             <text x={MX0} y={210} fontSize={38} fontWeight={500} fill="var(--fg)" style={serif}>
                 Fadhlan Bani

@@ -5,12 +5,12 @@ import { SITE_HOST } from "@/lib/site";
  * The preview card shown when a link to the site is shared (WhatsApp,
  * LinkedIn, X…). Generated once at build time in the site's own palette.
  */
-export const alt = "Fadhlan Bani, web developer and designer from Indonesia";
+export const alt = "Fadhlan Bani, developer and designer from Indonesia";
 export const size = { width: 1200, height: 630 };
 export const contentType = "image/png";
 
 const NAME = "Fadhlan Bani";
-const LINE = "Web developer & designer from Indonesia";
+const LINE = "Developer & designer from Indonesia";
 const URL_TEXT = SITE_HOST;
 
 /**
