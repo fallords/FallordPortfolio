@@ -6,14 +6,15 @@
  * sitemap and OG tags pointing at a host you no longer own — the kind of break
  * nothing in the build will catch.
  *
- * The site is on Vercel without a domain of its own, so the address isn't
- * written here at all: VERCEL_PROJECT_PRODUCTION_URL, which Vercel sets at
- * build time, is the project's production domain (a custom one if it ever
- * gets one, otherwise the .vercel.app one). Rename it in the dashboard and
- * the canonical URL, the sitemap and the share image follow on the next
- * deploy. A build anywhere else uses the current address.
+ * The site lives at fadhlanbani.vercel.app; the project's original
+ * fallord-portfolio.vercel.app now only redirects there. With two .vercel.app
+ * names, Vercel's own VERCEL_PROJECT_PRODUCTION_URL could name either, so the
+ * .vercel.app one is pinned here. Should the project ever get a domain of its
+ * own, Vercel reports that one at build time and it takes over by itself.
  */
-export const SITE_HOST = process.env.VERCEL_PROJECT_PRODUCTION_URL || "fallord-portfolio.vercel.app";
+const productionDomain = process.env.VERCEL_PROJECT_PRODUCTION_URL;
+export const SITE_HOST =
+    productionDomain && !productionDomain.endsWith(".vercel.app") ? productionDomain : "fadhlanbani.vercel.app";
 export const SITE_URL = `https://${SITE_HOST}`;
 
 export const EMAIL = "fadhlanbanin@gmail.com";
