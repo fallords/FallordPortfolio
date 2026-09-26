@@ -16,12 +16,24 @@ const labelFor = (pathname: string) => (pathname.startsWith("/writing/") ? "Writ
  * and a page served that way is blank without JavaScript.) It fades in after
  * a beat, and pages are static and prefetched, so on most clicks it is
  * never seen at all.
+ *
+ * Any change of address ends it, not only the one clicked for: going Back
+ * (the edge swipe on an iPhone) after a page has arrived must not bring the
+ * screen back over the page it returns to.
  */
 export default function PageLoading() {
     const pathname = usePathname();
-    // The page a click is waiting for. It is done once the address shows it.
+    // The page a click is waiting for; null when nothing is on its way.
     const [target, setTarget] = useState<string | null>(null);
-    const pending = target !== null && target !== pathname;
+    // The address changed: the page arrived, or the visitor went somewhere
+    // else. Either way nothing is pending. (Reset during render: React's
+    // pattern for state that follows a changing value.)
+    const [shownPath, setShownPath] = useState(pathname);
+    if (pathname !== shownPath) {
+        setShownPath(pathname);
+        setTarget(null);
+    }
+    const pending = target !== null;
 
     useEffect(() => {
         const onClick = (e: MouseEvent) => {
@@ -34,10 +46,29 @@ export default function PageLoading() {
             if (url.origin !== window.location.origin || url.pathname === window.location.pathname) return;
             setTarget(url.pathname);
         };
+        // Back or Forward before the page arrived, or a page brought back from
+        // the browser's back-forward cache: whatever was on its way is not.
+        const clear = () => setTarget(null);
+        const onPageShow = (e: PageTransitionEvent) => {
+            if (e.persisted) clear();
+        };
         // Capture: Next's <Link> handles the click (and prevents its default) on the way up.
         document.addEventListener("click", onClick, true);
-        return () => document.removeEventListener("click", onClick, true);
+        window.addEventListener("popstate", clear);
+        window.addEventListener("pageshow", onPageShow);
+        return () => {
+            document.removeEventListener("click", onClick, true);
+            window.removeEventListener("popstate", clear);
+            window.removeEventListener("pageshow", onPageShow);
+        };
     }, []);
+
+    // A navigation that never lands (the connection dropped) must not cover the page for good.
+    useEffect(() => {
+        if (target === null) return;
+        const id = setTimeout(() => setTarget(null), 10_000);
+        return () => clearTimeout(id);
+    }, [target]);
 
     if (!pending) return null;
 
