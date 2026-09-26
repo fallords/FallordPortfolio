@@ -1,9 +1,26 @@
 import type { Metadata } from "next";
 import Link from "next/link";
 import { notFound } from "next/navigation";
-import { essaysByYear } from "@/content/writing";
+import { essaysByYear, type Essay } from "@/content/writing";
 import ReadingProgress from "@/components/ReadingProgress";
 import Footer from "@/components/Footer";
+
+/**
+ * What the page shows of a piece: the paragraphs under its "## Abstract", or
+ * for a piece without one (the case study) the paragraphs it opens with,
+ * before its first heading. Both are the piece's own words.
+ */
+function summaryOf(essay: Essay) {
+    const abstract = essay.body.indexOf("## Abstract");
+    const paragraphs: string[] = [];
+    for (let i = abstract >= 0 ? abstract + 1 : 0; i < essay.body.length && !essay.body[i].startsWith("## "); i++) {
+        if (!essay.body[i].startsWith("> ")) paragraphs.push(essay.body[i]);
+    }
+    return {
+        label: abstract >= 0 ? "Abstract" : "Summary",
+        paragraphs: paragraphs.length > 0 ? paragraphs : [essay.summary],
+    };
+}
 
 // Only the slugs that exist get built; anything else is a genuine 404.
 export function generateStaticParams() {
@@ -59,6 +76,7 @@ export default async function EssayPage({
 
     const newer = essaysByYear[index - 1];
     const older = essaysByYear[index + 1];
+    const summary = summaryOf(essay);
 
     return (
         <main>
@@ -75,7 +93,7 @@ export default async function EssayPage({
                     </Link>
 
                     <p className="text-sm text-[var(--fg-dim)]">
-                        {essay.field} · <span className="font-mono">{essay.year}</span> · {essay.readingTime} read
+                        {essay.field} · <span className="font-mono">{essay.year}</span>
                     </p>
 
                     <h1 className="mt-5 font-serif text-4xl md:text-5xl font-medium leading-[1.05] text-balance">
@@ -88,13 +106,24 @@ export default async function EssayPage({
                         </p>
                     )}
 
-                    <p className="mt-6 font-sans text-base md:text-lg leading-relaxed text-[var(--fg-muted)]">
-                        {essay.summary}
-                    </p>
+                    {/* The full text lives in the PDF, so it sits right under the title. */}
+                    {essay.pdfUrl && (
+                        <div className="mt-8 flex flex-wrap items-center gap-x-5 gap-y-3">
+                            <a
+                                href={essay.pdfUrl}
+                                target="_blank"
+                                rel="noopener noreferrer"
+                                className="inline-flex h-11 items-center bg-[var(--fg)] px-4 text-sm font-medium text-[var(--surface)] transition-colors hover:bg-[var(--gold)] md:h-10"
+                            >
+                                Download the PDF ↗
+                            </a>
+                            <span className="font-mono text-xs text-[var(--fg-dim)]">Full text · {essay.readingTime} read</span>
+                        </div>
+                    )}
 
                     {/* Publication status and identifiers, the way a preprint carries them */}
                     {(essay.publishedIn || essay.orcid) && (
-                        <div className="mt-5 flex flex-col gap-1 text-xs text-[var(--fg-dim)]">
+                        <div className="mt-6 flex flex-col gap-1 text-xs text-[var(--fg-dim)]">
                             {essay.publishedIn && <span>{essay.publishedIn}</span>}
                             {essay.orcid && (
                                 <a
@@ -113,80 +142,42 @@ export default async function EssayPage({
                 </header>
 
                 {/*
-                 * Body. The measure is capped at 68 characters because that is
-                 * roughly where the eye stops tracking reliably from the end of one
-                 * line to the start of the next. Line-height is loose (1.8) and the
-                 * text sits at --fg-soft rather than pure white — full-contrast body
-                 * text on black is harsh over more than a few paragraphs.
+                 * Only the summary: the paper's own abstract, or for a case study
+                 * the opening it starts with. The rest is in the PDF above. The
+                 * measure is capped at 68 characters, roughly where the eye stops
+                 * tracking reliably from the end of one line to the start of the
+                 * next; line-height is loose and the text sits at --fg-soft rather
+                 * than pure white, which is harsh over more than a few lines.
                  */}
-                <div className="mx-auto mt-12 max-w-[68ch]">
-                    {essay.body.map((block, i) => {
-                        if (block.startsWith("## ")) {
-                            return (
-                                <h2
-                                    key={i}
-                                    className="mt-12 mb-5 font-serif text-2xl md:text-3xl font-medium text-[var(--fg)] first:mt-0"
+                <section className="mx-auto mt-12 max-w-[68ch]" aria-labelledby="summary-heading">
+                    <h2 id="summary-heading" className="mb-5 font-serif text-2xl md:text-3xl font-medium text-[var(--fg)]">
+                        {summary.label}
+                    </h2>
+                    {summary.paragraphs.map((paragraph, i) => (
+                        <p
+                            key={i}
+                            className="mb-7 font-sans text-[1.0625rem] md:text-[1.125rem] leading-[1.8] text-[var(--fg-soft)]"
+                        >
+                            {paragraph}
+                        </p>
+                    ))}
+                </section>
+
+                {essay.keywords && essay.keywords.length > 0 && (
+                    <div className="mx-auto mt-10 max-w-[68ch] border-t border-[var(--rule)] pt-10">
+                        <h2 className="text-sm font-medium text-[var(--fg)]">
+                            Keywords
+                        </h2>
+                        <ul className="mt-4 flex flex-wrap gap-2">
+                            {essay.keywords.map((word) => (
+                                <li
+                                    key={word}
+                                    className="border border-[var(--rule)] px-2.5 py-1 text-xs text-[var(--fg-muted)]"
                                 >
-                                    {block.slice(3)}
-                                </h2>
-                            );
-                        }
-
-                        if (block.startsWith("> ")) {
-                            return (
-                                <blockquote
-                                    key={i}
-                                    className="my-12 border-l border-[var(--rule-strong)] pl-6 md:pl-8"
-                                >
-                                    <p className="font-serif text-xl md:text-2xl font-medium leading-[1.4] text-[var(--fg)]">
-                                        {block.slice(2)}
-                                    </p>
-                                </blockquote>
-                            );
-                        }
-
-                        return (
-                            <p
-                                key={i}
-                                className="mb-7 font-sans text-[1.0625rem] md:text-[1.125rem] leading-[1.8] text-[var(--fg-soft)]"
-                            >
-                                {block}
-                            </p>
-                        );
-                    })}
-                </div>
-
-                {/* Keywords and the full paper */}
-                {(essay.keywords?.length || essay.pdfUrl) && (
-                    <div className="mx-auto mt-14 max-w-[68ch] border-t border-[var(--rule)] pt-10">
-                        {essay.keywords && essay.keywords.length > 0 && (
-                            <>
-                                <h2 className="text-sm font-medium text-[var(--fg)]">
-                                    Keywords
-                                </h2>
-                                <ul className="mt-4 flex flex-wrap gap-2">
-                                    {essay.keywords.map((word) => (
-                                        <li
-                                            key={word}
-                                            className="border border-[var(--rule)] px-2.5 py-1 text-xs text-[var(--fg-muted)]"
-                                        >
-                                            {word}
-                                        </li>
-                                    ))}
-                                </ul>
-                            </>
-                        )}
-
-                        {essay.pdfUrl && (
-                            <a
-                                href={essay.pdfUrl}
-                                target="_blank"
-                                rel="noopener noreferrer"
-                                className="mt-10 inline-flex h-10 items-center bg-[var(--fg)] px-4 text-sm font-medium text-[var(--surface)] transition-colors hover:bg-[var(--gold)]"
-                            >
-                                Download the PDF ↗
-                            </a>
-                        )}
+                                    {word}
+                                </li>
+                            ))}
+                        </ul>
                     </div>
                 )}
 

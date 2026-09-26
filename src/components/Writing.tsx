@@ -86,7 +86,7 @@ function Piece({ essay }: { essay: Essay }) {
                 <p className="text-[13px] leading-5 text-[var(--fg-muted)] md:hidden">{essay.summary}</p>
 
                 <div className="hidden md:block">
-                    <p className="mt-8 text-xs text-[var(--fg-dim)]">{essay.body.includes("## Abstract") ? "Abstract" : "Overview"}</p>
+                    <p className="mt-8 text-xs text-[var(--fg-dim)]">{essay.body.includes("## Abstract") ? "Abstract" : "Summary"}</p>
                     <p className="mt-2 line-clamp-6 leading-relaxed text-[var(--fg-muted)]">{abstractOf(essay)}</p>
 
                     {essay.keywords && essay.keywords.length > 0 && (
