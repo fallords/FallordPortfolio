@@ -44,7 +44,7 @@ export default function CommandPalette() {
             { group: "Go to", label: "What I do", hint: "02", run: go("about") },
             { group: "Go to", label: "Certificates", hint: "03", run: go("certificates") },
             ...(hasEssays ? [{ group: "Go to", label: "Writing", hint: "04", run: go("writing") }] : []),
-            { group: "Go to", label: "Contact", hint: "06", run: go("contact") },
+            { group: "Go to", label: "Contact", hint: "05", run: go("contact") },
             {
                 group: "Contact",
                 label: copied ? "Copied to clipboard" : "Copy email address",

@@ -1,5 +1,9 @@
+import type { Metadata } from "next";
 import Link from "next/link";
 import Footer from "@/components/Footer";
+
+// Otherwise the tab carries the home page's title over a page that isn't it.
+export const metadata: Metadata = { title: "Page not found · Fadhlan Bani" };
 
 /*
  * Essay routes are built with `dynamicParams = false`, so every slug not in

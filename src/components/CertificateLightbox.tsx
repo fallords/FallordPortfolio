@@ -85,10 +85,13 @@ export default function CertificateLightbox({
             onClick={onClose}
             // Inline, not utility classes: whether this layer swallows clicks
             // must not depend on Tailwind's content scan having seen the file.
+            // Opening, it turns visible at once, or focusing the Close button
+            // in the same frame fails and focus stays behind the dialog.
+            // Closing, it stays visible until the fade has finished.
             style={{
                 opacity: open ? 1 : 0,
                 visibility: open ? "visible" : "hidden",
-                transition: "opacity 200ms ease-out, visibility 200ms ease-out",
+                transition: open ? "opacity 200ms ease-out" : "opacity 200ms ease-out, visibility 0s linear 200ms",
             }}
             className="fixed inset-0 z-[60] flex flex-col bg-[var(--surface)]/95 pb-[env(safe-area-inset-bottom)] pt-[env(safe-area-inset-top)] backdrop-blur-sm"
         >
