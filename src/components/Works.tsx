@@ -16,7 +16,7 @@ const projects = [
         subtitle: "Smart Emotional Relationship Adviser",
         description:
             "A web app for reading relationship chats. You paste in a conversation or upload screenshots of it, and it writes up the patterns it sees. After that you can keep asking it questions about the result. The app is in Indonesian.",
-        image: "/sera-preview.png",
+        image: "/sera-screen.png",
         href: "https://s-e-r-a-smart-emotional-relationshi.vercel.app/",
         host: "s-e-r-a-smart-emotional-relationshi.vercel.app",
         year: "2026",
