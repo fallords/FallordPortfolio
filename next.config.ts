@@ -3,29 +3,34 @@ import type { NextConfig } from "next";
 const isProduction = process.env.NODE_ENV === "production";
 
 /*
- * What a page on this site may load: only its own files. Fonts are
- * self-hosted by next/font, images and frames live in /public, and nothing
- * talks to another server from the browser.
+ * What a page on this site may load. Everything is refused by default, then
+ * each kind of resource the pages actually use is allowed from the site
+ * itself only: fonts are self-hosted by next/font, images and frames live in
+ * /public, and nothing talks to another server from the browser. There are
+ * no plugins, frames, workers, media or forms, so those stay refused.
  *
  * Scripts keep 'unsafe-inline' because every page is prerendered and carries
  * inline scripts (the boot script in layout.tsx, and Next's own page data).
  * Nonces would need a server render per request. With no user input anywhere
  * on the site there is nothing to inject into those scripts, and the policy
- * still stops scripts from any other origin, plugins, framing and form posts.
+ * still stops scripts from any other origin. Inline event handlers
+ * (onclick="…" in markup), a common way in for injected code, are refused
+ * outright: React attaches its handlers from JavaScript.
  *
  * `next dev` needs eval and a websocket for hot reload, so the policy is only
  * sent in production.
  */
 const contentSecurityPolicy = [
-  "default-src 'self'",
+  "default-src 'none'",
   "script-src 'self' 'unsafe-inline'",
+  "script-src-attr 'none'",
   "style-src 'self' 'unsafe-inline'",
-  "img-src 'self' data: blob:",
+  "img-src 'self'",
   "font-src 'self'",
   "connect-src 'self'",
-  "object-src 'none'",
-  "base-uri 'self'",
-  "form-action 'self'",
+  "manifest-src 'self'",
+  "base-uri 'none'",
+  "form-action 'none'",
   "frame-ancestors 'none'",
   "upgrade-insecure-requests",
 ].join("; ");
@@ -63,6 +68,12 @@ const nextConfig: NextConfig = {
       {
         source: "/:path*",
         headers: securityHeaders,
+      },
+      {
+        // Other sites can't embed these files (images, fonts, PDFs) in their own
+        // pages. The share image is left out: link previews fetch it from elsewhere.
+        source: "/((?!opengraph-image).*)",
+        headers: [{ key: "Cross-Origin-Resource-Policy", value: "same-origin" }],
       },
       ...(isProduction
         ? [
