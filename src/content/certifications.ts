@@ -35,6 +35,14 @@ export interface Certification {
 export const certifications: Certification[] = [
     /* ---------------------------- Cloud, AI, rekayasa --------------------- */
     {
+        name: "Microsoft Certified: Azure AI Apps and Agents Developer Associate",
+        issuer: "Microsoft",
+        year: "2026",
+        field: "AI Engineering",
+        image: "/certificates/microsoft-azure-ai-apps-agents-developer.jpg",
+        url: "https://learn.microsoft.com/en-us/users/fadhlanbani-9048/credentials/8d148421dafe000a",
+    },
+    {
         name: "Oracle Cloud Infrastructure 2025 Certified Generative AI Professional",
         issuer: "Oracle University",
         year: "2025",

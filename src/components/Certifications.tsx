@@ -20,7 +20,7 @@ const SLIDE = `${SLIDE_MS}ms cubic-bezier(0.65, 0, 0.35, 1) both`;
  * certificate never makes one silently disappear.
  */
 const GROUPS = [
-    { label: "Cloud & AI", fields: ["Generative AI", "Artificial Intelligence", "Cloud Infrastructure"] },
+    { label: "Cloud & AI", fields: ["AI Engineering", "Generative AI", "Artificial Intelligence", "Cloud Infrastructure"] },
     { label: "Computer science", fields: ["Computer Science", "Programming"] },
     { label: "Earth observation", fields: ["Remote Sensing"] },
     { label: "Psychology & society", fields: ["Psychology", "Political Science", "Safeguarding"] },
