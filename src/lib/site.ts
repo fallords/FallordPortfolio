@@ -20,6 +20,6 @@ export const SITE_URL = `https://${SITE_HOST}`;
 export const EMAIL = "fadhlanbanin@gmail.com";
 
 export const SOCIALS = [
-    { label: "LinkedIn", href: "https://www.linkedin.com/in/fadhlan-bani-nugraha" },
+    { label: "LinkedIn", href: "https://www.linkedin.com/in/fadhlan-bani" },
     { label: "Instagram", href: "https://www.instagram.com/fadhlanbani/" },
 ];
