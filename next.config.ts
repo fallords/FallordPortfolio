@@ -61,6 +61,7 @@ const nextConfig: NextConfig = {
       { pathname: "/frames/**", search: "" },
       { pathname: "/certificates/**", search: "" },
       { pathname: "/sera-screen.png", search: "" },
+      { pathname: "/cv-maker-screen.png", search: "" },
     ],
   },
   async headers() {
