@@ -20,7 +20,7 @@ const projects = [
         title: "Free AI CV Maker",
         subtitle: "A CV builder that runs in the browser",
         description:
-            "You fill in a form, and the preview lays your CV out on A4 pages as you type. When it looks right, you save it as a PDF from the print dialog, with selectable text and no watermark. It's free and needs no account. The app is in English and Indonesian.",
+            "You fill in a form, and the preview lays your CV out on A4 pages as you type. Then you save it as a PDF from the print dialog, with selectable text and no watermark. It's free and needs no account. The app is in English and Indonesian.",
         image: "/cv-maker-phone.png",
         href: "https://fallord-cv-maker.vercel.app/",
         host: "fallord-cv-maker.vercel.app",
@@ -42,7 +42,7 @@ const projects = [
             },
             {
                 title: "Optional AI",
-                desc: "A summary rewrite, off by default. When it's on, it asks before sending any text, and its prompts forbid inventing jobs, dates or numbers.",
+                desc: "A summary rewrite, off by default. It asks before sending any text, and its prompts forbid inventing jobs, dates or numbers.",
             },
         ],
     },
@@ -72,7 +72,7 @@ const projects = [
             },
             {
                 title: "Model fallback",
-                desc: "If one Gemini model fails, it tries the next one on the list instead of showing an error.",
+                desc: "If one Gemini model fails, it tries the next one instead of showing an error.",
                 chain: ["2.5-flash", "2.0-flash", "2.5-pro", "2.0-flash-lite"],
             },
         ],
@@ -82,8 +82,12 @@ const projects = [
 export default function Works() {
     return (
         <Section id="work" index="01" title="Work" count={projects.length} wide>
-            <ul className="flex flex-col gap-24">
-                {projects.map((project) => (
+            {/*
+             * Projects are separated by a rule, as pieces are in Writing. Blank
+             * space alone took 96px, the widest gap in the section on a phone.
+             */}
+            <ul className="flex flex-col gap-6 md:gap-12">
+                {projects.map((project, index) => (
                     /*
                      * Three grid items so the order can differ by width. A phone
                      * reads name → screenshot → features, so you know what you
@@ -91,7 +95,10 @@ export default function Works() {
                      * From md up the screenshot hangs in the margin (columns 1–3)
                      * and the rest starts at column 4, under the section title.
                      */
-                    <li key={project.title} className="grid grid-cols-1 items-start gap-x-6 gap-y-5 md:grid-cols-12 md:gap-y-10">
+                    <li
+                        key={project.title}
+                        className={`grid grid-cols-1 items-start gap-x-6 gap-y-5 md:grid-cols-12 md:gap-y-10 ${index > 0 ? "border-t border-[var(--rule)] pt-6 md:pt-12" : ""}`}
+                    >
                         <div className="md:col-span-9 md:col-start-4 md:row-start-1">
                             <p className="flex flex-wrap items-center gap-x-3 gap-y-1 font-mono text-xs text-[var(--fg-dim)]">
                                 <span>{project.year}</span>
@@ -106,7 +113,7 @@ export default function Works() {
                             </h3>
                             <p className="mt-1.5 text-sm text-[var(--fg-dim)] md:mt-2">{project.subtitle}</p>
                             {/* A phone has this beside the screenshot instead. */}
-                            <p className="mt-6 hidden max-w-[40rem] leading-relaxed text-[var(--fg-muted)] md:block">{project.description}</p>
+                            <p className="mt-6 hidden max-w-[40rem] text-pretty leading-relaxed text-[var(--fg-muted)] md:block">{project.description}</p>
                         </div>
 
                         {/*
@@ -139,7 +146,7 @@ export default function Works() {
                             </a>
 
                             <div className="flex min-w-0 flex-1 flex-col md:hidden">
-                                <p className="pb-3 text-[13px] leading-[1.55] text-[var(--fg-muted)]">{project.description}</p>
+                                <p className="text-pretty pb-3 text-[13px] leading-[1.55] text-[var(--fg-muted)]">{project.description}</p>
                                 <a
                                     href={project.href}
                                     target="_blank"
@@ -167,13 +174,15 @@ export default function Works() {
                                             <span className="font-mono text-xs text-[var(--gold)]">{String(i + 1).padStart(2, "0")}</span>
                                             <span className="font-medium text-[var(--fg)]">{f.title}</span>
                                         </p>
-                                        <p className="mt-1.5 text-sm leading-relaxed text-[var(--fg-muted)] sm:mt-2">{f.desc}</p>
+                                        {/* text-pretty moves a word down so a card doesn't end on one lone word. It never adds a line. */}
+                                        <p className="mt-1.5 text-pretty text-sm leading-relaxed text-[var(--fg-muted)] sm:mt-2">{f.desc}</p>
                                         {f.chain && (
                                             <p className="mt-2.5 flex flex-wrap items-center gap-x-1 gap-y-1.5 font-mono text-[10.5px] text-[var(--fg-soft)] sm:mt-3 sm:gap-x-1.5 sm:gap-y-2 sm:text-[11px]">
+                                                {/* The arrow trails its model, so a wrapped line ends on → instead of starting with one. */}
                                                 {f.chain.map((model, j) => (
                                                     <span key={model} className="flex items-center gap-1 sm:gap-1.5">
-                                                        {j > 0 && <span aria-hidden="true" className="text-[var(--fg-faint)]">→</span>}
                                                         <span className="border border-[var(--rule-strong)] px-1 sm:px-1.5 sm:py-0.5">{model}</span>
+                                                        {j < f.chain.length - 1 && <span aria-hidden="true" className="text-[var(--fg-faint)]">→</span>}
                                                     </span>
                                                 ))}
                                             </p>
@@ -183,17 +192,26 @@ export default function Works() {
                                 {/* A phone: the stack is the last card, rather than a line of its own below. */}
                                 <li className="w-[84%] shrink-0 snap-start border border-[var(--rule)] bg-[var(--surface)] p-4 sm:hidden">
                                     <p className="font-medium text-[var(--fg)]">Built with</p>
-                                    <p className="mt-1.5 text-sm leading-relaxed text-[var(--fg-muted)]">{project.stack.join(" · ")}</p>
+                                    {/*
+                                     * Non-breaking spaces keep each tool's name whole ("Tailwind
+                                     * CSS") and tie each dot to the name before it, so a line
+                                     * never starts with one.
+                                     */}
+                                    <p className="mt-1.5 text-pretty text-sm leading-relaxed text-[var(--fg-muted)]">
+                                        {project.stack.map((tool) => tool.replaceAll(" ", " ")).join(" · ")}
+                                    </p>
                                 </li>
                             </SwipeRow>
 
                             {/*
                              * The stack from sm, where the features are a grid and its
                              * swipe card is gone; the button from md, where it no longer
-                             * sits beside the screenshot.
+                             * sits beside the screenshot. Below lg the stack takes the whole
+                             * line, so the button always sits under it, rather than under
+                             * it or beside it depending on how long each project's stack is.
                              */}
                             <div className="mt-6 hidden flex-wrap items-center justify-between gap-6 sm:flex md:mt-8">
-                                <ul className="flex flex-wrap gap-x-4 gap-y-1 text-sm text-[var(--fg-soft)]">
+                                <ul className="flex flex-wrap gap-x-4 gap-y-1 text-sm text-[var(--fg-soft)] md:w-full lg:w-auto">
                                     {project.stack.map((tool) => (
                                         <li key={tool}>{tool}</li>
                                     ))}
