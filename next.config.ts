@@ -60,7 +60,7 @@ const nextConfig: NextConfig = {
     localPatterns: [
       { pathname: "/frames/**", search: "" },
       { pathname: "/certificates/**", search: "" },
-      { pathname: "/sera-screen.png", search: "" },
+      { pathname: "/sera-phone.png", search: "" },
       { pathname: "/cv-maker-phone.png", search: "" },
     ],
   },

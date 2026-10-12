@@ -13,14 +13,18 @@ import SwipeRow from "./SwipeRow";
  * off by default are what its lib/ and components/ do.
  *
  * Each screenshot is the live app at phone width (390px, at 2x), cut to the
- * frame's 625:985, so every project's frame is the same size.
+ * frame's 625:985, so every project's frame is the same size. S.E.R.A.'s ends
+ * on its chat box's divider, not a sliver of the box below it.
+ *
+ * A description's last two words are joined by a non-breaking space: on a
+ * phone, text-pretty would otherwise still leave "Indonesian." on its own.
  */
 const projects = [
     {
         title: "Free AI CV Maker",
         subtitle: "A CV builder that runs in the browser",
         description:
-            "You fill in a form, and the preview lays your CV out on A4 pages as you type. Then you save it as a PDF from the print dialog, with selectable text and no watermark. It's free and needs no account. The app is in English and Indonesian.",
+            "You fill in a form, and the preview lays your CV out on A4 pages as you type. Then you save it as a PDF from the print dialog, with selectable text and no watermark. It's free and needs no account. The app is in English and Indonesian.",
         image: "/cv-maker-phone.png",
         href: "https://fallord-cv-maker.vercel.app/",
         host: "fallord-cv-maker.vercel.app",
@@ -50,8 +54,8 @@ const projects = [
         title: "S.E.R.A.",
         subtitle: "Smart Emotional Relationship Adviser",
         description:
-            "A web app for reading relationship chats. You paste in a conversation or upload screenshots of it, and it writes up the patterns it sees. After that you can keep asking it questions about the result. The app is in Indonesian.",
-        image: "/sera-screen.png",
+            "A web app for reading relationship chats. You paste in a conversation or upload screenshots of it, and it writes up the patterns it sees. After that you can keep asking it questions about the result. The app is in Indonesian.",
+        image: "/sera-phone.png",
         href: "https://s-e-r-a-smart-emotional-relationshi.vercel.app/",
         host: "s-e-r-a-smart-emotional-relationshi.vercel.app",
         year: "2026",
@@ -120,7 +124,10 @@ export default function Works() {
                          * The live app in a slim browser frame, at the screenshot's own
                          * proportions. On a phone the frame takes a third of the width
                          * and the description, with the button to open the app, sits
-                         * beside it, so the whole project fits on one screen.
+                         * beside it, so the whole project fits on one screen. Below
+                         * 480px the button's bottom lines up with the frame's; wider,
+                         * the frame outgrows the text, so the button follows the text
+                         * instead of floating up to 300px below it.
                          */}
                         <div className="flex gap-4 md:col-span-3 md:col-start-1 md:row-span-2 md:row-start-1 md:block">
                             <a
@@ -130,7 +137,8 @@ export default function Works() {
                                 aria-label={`Open ${project.title}`}
                                 className="group block w-[36%] max-w-[15rem] shrink-0 self-start border border-[var(--rule-strong)] bg-[var(--surface-card)] transition-colors hover:border-[var(--gold)] md:w-auto md:max-w-none"
                             >
-                                <span className="flex h-8 items-center gap-2 border-b border-[var(--rule)] px-3 font-mono text-[10px] text-[var(--fg-dim)] md:h-9 md:text-[11px]">
+                                {/* gap-1.5, not 2: at 1024px the CV maker's address otherwise misses fitting by 0.2px. */}
+                                <span className="flex h-8 items-center gap-1.5 border-b border-[var(--rule)] px-3 font-mono text-[10px] text-[var(--fg-dim)] md:h-9 md:text-[11px]">
                                     <span aria-hidden="true" className="h-1.5 w-1.5 shrink-0 rounded-full bg-[#5fbf8a]" />
                                     <span className="truncate">{project.host}</span>
                                 </span>
@@ -151,7 +159,7 @@ export default function Works() {
                                     href={project.href}
                                     target="_blank"
                                     rel="noopener noreferrer"
-                                    className="mt-auto inline-flex h-10 w-full shrink-0 items-center justify-center bg-[var(--fg)] px-3 text-sm font-medium text-[var(--surface)] transition-colors hover:bg-[var(--gold)]"
+                                    className="mt-auto inline-flex h-10 w-full shrink-0 items-center min-[480px]:mt-0 justify-center bg-[var(--fg)] px-3 text-sm font-medium text-[var(--surface)] transition-colors hover:bg-[var(--gold)]"
                                 >
                                     Open the app ↗
                                 </a>
