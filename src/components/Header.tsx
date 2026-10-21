@@ -3,13 +3,13 @@
 import { useEffect, useState, useSyncExternalStore } from "react";
 import Link from "next/link";
 import { usePathname } from "next/navigation";
-import { hasEssays } from "@/content/writing";
 import { OPEN_PALETTE_EVENT } from "./CommandPalette";
 
+// Nothing from content/: this runs in the browser, and importing writing.ts would ship every essay with it.
 const links = [
     { label: "Work", id: "work" },
     { label: "About", id: "about" },
-    ...(hasEssays ? [{ label: "Writing", id: "writing" }] : []),
+    { label: "Writing", id: "writing" },
     { label: "Contact", id: "contact" },
 ];
 
@@ -20,7 +20,7 @@ const isMac = () => /Mac|iPhone|iPad/.test(navigator.platform || navigator.userA
 const OWNER: Record<string, string> = { certificates: "about" };
 
 /**
- * Plain links, always visible. Five destinations don't need a menu button.
+ * Plain links, always visible. Four destinations don't need a menu button.
  *
  * On the home page the link for the section you're reading is marked. The
  * active section is the last one whose top has passed a line a third of the

@@ -88,7 +88,7 @@ export default function StreamDemo() {
                         type="button"
                         onClick={() => ask(i)}
                         aria-pressed={i === pick}
-                        className={`border px-2 py-1 transition-colors ${
+                        className={`border px-2 py-1 transition-colors pointer-coarse:min-h-[44px] ${
                             i === pick ? "border-[var(--gold)] text-[var(--fg)]" : "border-[var(--rule-strong)] text-[var(--fg-muted)] hover:text-[var(--fg)]"
                         }`}
                     >
@@ -119,15 +119,16 @@ export default function StreamDemo() {
                 <span className="tabular-nums">
                     {status} · first word {THINK_MS}ms · {count}/{tokens.length} tokens · {Math.round(1000 / TOKEN_MS)} tok/s
                 </span>
-                {streaming && (
-                    <button
-                        type="button"
-                        onClick={stop}
-                        className="shrink-0 border border-[var(--rule-strong)] px-2 py-1 text-[var(--fg-soft)] transition-colors hover:border-[var(--gold)] hover:text-[var(--fg)]"
-                    >
-                        ■ Stop
-                    </button>
-                )}
+                {/* Always laid out, hidden when idle, so the row doesn't grow and shrink as a reply starts and ends. */}
+                <button
+                    type="button"
+                    onClick={stop}
+                    className={`shrink-0 border border-[var(--rule-strong)] px-2 py-1 text-[var(--fg-soft)] transition-colors pointer-coarse:min-h-[44px] hover:border-[var(--gold)] hover:text-[var(--fg)] ${
+                        streaming ? "" : "invisible"
+                    }`}
+                >
+                    ■ Stop
+                </button>
             </div>
         </div>
     );

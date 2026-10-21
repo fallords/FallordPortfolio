@@ -40,4 +40,5 @@ Buka http://localhost:3000. Perintah lain: `npm run build`, `npm run start`, dan
 | `src/content/` | data sertifikat dan tulisan |
 | `src/lib/` | konstanta situs dan hook bersama |
 | `public/` | frame potret, scan sertifikat, screenshot, PDF |
+| `scripts/` | pengecekan sebelum build: setiap path gambar atau PDF di `src/` harus ada di `public/` |
 | `next.config.ts` | header keamanan, cache, aturan gambar |

@@ -87,18 +87,12 @@ const nextConfig: NextConfig = {
           ]
         : []),
       {
-        // Portrait frames — immutable, cache for 1 year
+        // Portrait frames never change, so they are cached for a year. Every
+        // other file in /public (certificate scans, screenshots) keeps Vercel's
+        // default and is re-checked, so replacing one under the same name shows
+        // up for returning visitors too. Fonts are under /_next/static, which
+        // Next already caches for good.
         source: "/frames/:path*",
-        headers: [
-          {
-            key: "Cache-Control",
-            value: "public, max-age=31536000, immutable",
-          },
-        ],
-      },
-      {
-        // All other static assets (fonts, icons, etc.)
-        source: "/:all*(svg|jpg|jpeg|png|webp|avif|ico|woff|woff2)",
         headers: [
           {
             key: "Cache-Control",

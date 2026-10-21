@@ -5,6 +5,7 @@ import { createPortal } from "react-dom";
 import Image from "next/image";
 import type { Certification } from "@/content/certifications";
 import useSwipe from "@/lib/useSwipe";
+import inertOthers from "@/lib/inertOthers";
 
 interface CertificateLightboxProps {
     /**
@@ -39,6 +40,7 @@ export default function CertificateLightbox({
     onClose,
     onStep,
 }: CertificateLightboxProps) {
+    const dialogRef = useRef<HTMLDivElement>(null);
     const closeButtonRef = useRef<HTMLButtonElement>(null);
     // Touch: swipe sideways to step through, drag down to put it away.
     const swipe = useSwipe({ onLeft: () => onStep(1), onRight: () => onStep(-1), onDown: onClose });
@@ -57,13 +59,17 @@ export default function CertificateLightbox({
 
         // Whatever opened the viewer gets focus back when it closes; otherwise
         // focus falls to <body> and a keyboard user loses their place.
+        // The page behind goes inert so Tab can't leave the dialog: after the
+        // opener is noted (inert would blur it), and back before it gets focus.
         const opener = document.activeElement as HTMLElement | null;
+        const restorePage = inertOthers(dialogRef.current);
         const previousOverflow = document.body.style.overflow;
         document.body.style.overflow = "hidden";
         document.addEventListener("keydown", onKey);
         closeButtonRef.current?.focus();
 
         return () => {
+            restorePage();
             document.body.style.overflow = previousOverflow;
             document.removeEventListener("keydown", onKey);
             opener?.focus({ preventScroll: true });
@@ -77,6 +83,7 @@ export default function CertificateLightbox({
 
     return createPortal(
         <div
+            ref={dialogRef}
             role="dialog"
             aria-modal="true"
             aria-hidden={!open}

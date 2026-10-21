@@ -7,7 +7,7 @@ import { reportPortraitProgress } from "@/lib/portraitProgress";
  * The sequence is one continuous head turn: frame 1 is a right-facing
  * profile, frame 181 looks straight into the camera.
  */
-const TOTAL = 181;
+export const TOTAL = 181;
 const PROFILE = 1;
 const FRONT = TOTAL;
 
@@ -62,9 +62,10 @@ const CONCURRENCY = 6;
 /**
  * Coarse to fine: both ends, then every 32nd frame, every 16th … every one.
  * Whatever has arrived is enough to play the turn, just with fewer steps —
- * the sequence is usable after ~25 requests instead of 181.
+ * the sequence is usable after ~25 requests instead of 181. The Code demo
+ * (demos/CodeDemo.tsx) runs this same function.
  */
-function loadOrder() {
+export function loadOrder() {
     const order: number[] = [];
     const seen = new Set<number>();
     const push = (i: number) => {
@@ -81,7 +82,7 @@ function loadOrder() {
 }
 
 /** Frames in the queue up to the every-8th pass — enough for a smooth turn. */
-const COARSE_COUNT = Math.ceil(TOTAL / 8) + 1;
+export const COARSE_COUNT = Math.ceil(TOTAL / 8) + 1;
 
 /*
  * Sine in-out, not cubic. Cubic packs the movement into the middle of each

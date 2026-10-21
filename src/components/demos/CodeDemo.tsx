@@ -1,6 +1,7 @@
 "use client";
 
 import { useEffect, useState } from "react";
+import { COARSE_COUNT as PLAYABLE, TOTAL, loadOrder } from "../Portrait";
 
 /*
  * The loader behind the portrait at the top of the site
@@ -23,25 +24,12 @@ function loadOrder(total: number) {
   return order;
 }`;
 
-/** The same function, for real, so the strip shows its actual output. */
-function loadOrder(total: number) {
-    const order: number[] = [];
-    const seen = new Set<number>();
-    const push = (i: number) => {
-        if (i < 1 || i > total || seen.has(i)) return;
-        seen.add(i);
-        order.push(i);
-    };
-    push(1);
-    push(total);
-    for (const stride of [32, 16, 8, 4, 2, 1]) for (let i = 1; i <= total; i += stride) push(i);
-    return order;
-}
-
-const TOTAL = 181;
-const ORDER = loadOrder(TOTAL);
-/** Frames needed before the portrait can start turning (every 8th, plus both ends). */
-const PLAYABLE = Math.ceil(TOTAL / 8) + 1;
+/*
+ * The strip runs the portrait's own loadOrder() (imported above), so what it
+ * lights up is the order the portrait really loads in. PLAYABLE is the
+ * frames needed before it can start turning: every 8th, plus both ends.
+ */
+const ORDER = loadOrder();
 /** Position of each frame in the load order, for colouring the strip. */
 const RANK = (() => {
     const r = new Array<number>(TOTAL + 1).fill(0);

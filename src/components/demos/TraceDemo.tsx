@@ -127,7 +127,7 @@ export default function TraceDemo() {
                             setRun((r) => r + 1);
                         }}
                         disabled={!done}
-                        className="min-h-[24px] shrink-0 border border-[var(--rule-strong)] px-2 py-0.5 text-[var(--fg-soft)] transition-colors hover:border-[var(--gold)] hover:text-[var(--fg)] disabled:opacity-40 sm:py-1"
+                        className="min-h-[24px] pointer-coarse:min-h-[44px] shrink-0 border border-[var(--rule-strong)] px-2 py-0.5 text-[var(--fg-soft)] transition-colors hover:border-[var(--gold)] hover:text-[var(--fg)] disabled:opacity-40 sm:py-1"
                     >
                         ↻ Send again
                     </button>

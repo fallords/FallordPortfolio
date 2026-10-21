@@ -3,7 +3,7 @@
 import { useEffect, useMemo, useRef, useState } from "react";
 import { usePathname, useRouter } from "next/navigation";
 import { EMAIL, SOCIALS } from "@/lib/site";
-import { hasEssays } from "@/content/writing";
+import inertOthers from "@/lib/inertOthers";
 import { TOGGLE_GRID_EVENT } from "./GridOverlay";
 
 export const OPEN_PALETTE_EVENT = "open-palette";
@@ -21,6 +21,7 @@ type Command = { group: string; label: string; hint?: string; run: () => void | 
 export default function CommandPalette() {
     const router = useRouter();
     const pathname = usePathname();
+    const rootRef = useRef<HTMLDivElement>(null);
     const inputRef = useRef<HTMLInputElement>(null);
     const [open, setOpen] = useState(false);
     const [query, setQuery] = useState("");
@@ -35,15 +36,16 @@ export default function CommandPalette() {
     };
 
     const commands = useMemo<Command[]>(() => {
+        // No `behavior` on the scrolls: the CSS decides, and turns smoothing off under reduced motion.
         const go = (id: string) => () => {
-            if (pathname === "/") document.getElementById(id)?.scrollIntoView({ behavior: "smooth" });
+            if (pathname === "/") document.getElementById(id)?.scrollIntoView();
             else router.push(`/#${id}`);
         };
         return [
             { group: "Go to", label: "Work", run: go("work") },
             { group: "Go to", label: "What I do", run: go("about") },
             { group: "Go to", label: "Certificates", run: go("certificates") },
-            ...(hasEssays ? [{ group: "Go to", label: "Writing", run: go("writing") }] : []),
+            { group: "Go to", label: "Writing", run: go("writing") },
             { group: "Go to", label: "Contact", run: go("contact") },
             {
                 group: "Contact",
@@ -65,7 +67,7 @@ export default function CommandPalette() {
                 run: () => void window.open(s.href, "_blank", "noopener,noreferrer"),
             })),
             { group: "View", label: "Toggle layout grid", hint: "G", run: () => void window.dispatchEvent(new Event(TOGGLE_GRID_EVENT)) },
-            { group: "View", label: "Back to top", run: () => window.scrollTo({ top: 0, behavior: "smooth" }) },
+            { group: "View", label: "Back to top", run: () => window.scrollTo({ top: 0 }) },
         ];
     }, [pathname, router, copied]);
 
@@ -96,11 +98,17 @@ export default function CommandPalette() {
     }, [open]);
 
     // Focus the input on open, and hand focus back to where it was on close.
+    // The page behind goes inert after the opener is noted (inert would blur
+    // it) and comes back before focus returns (an inert element can't take it).
     useEffect(() => {
         if (!open) return;
         const opener = document.activeElement as HTMLElement | null;
+        const restorePage = inertOthers(rootRef.current);
         inputRef.current?.focus();
-        return () => opener?.focus({ preventScroll: true });
+        return () => {
+            restorePage();
+            opener?.focus({ preventScroll: true });
+        };
     }, [open]);
 
     if (!open) return null;
@@ -136,7 +144,7 @@ export default function CommandPalette() {
     let lastGroup = "";
 
     return (
-        <div className="fixed inset-0 z-[70] flex items-start justify-center bg-[var(--surface)]/70 px-4 pt-[18vh] backdrop-blur-sm" onClick={close}>
+        <div ref={rootRef} className="fixed inset-0 z-[70] flex items-start justify-center bg-[var(--surface)]/70 px-4 pt-[18vh] backdrop-blur-sm" onClick={close}>
             <div
                 role="dialog"
                 aria-modal="true"

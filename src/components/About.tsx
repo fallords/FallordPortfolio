@@ -64,7 +64,7 @@ const tools = [
 ];
 
 /**
- * Four capabilities, each shown rather than described. Selecting one swaps
+ * Five capabilities, each shown rather than described. Selecting one swaps
  * the window on the right; the demo is keyed on the selection, so it plays
  * from the start every time you come back to it.
  */

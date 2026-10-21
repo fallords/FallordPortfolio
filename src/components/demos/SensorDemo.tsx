@@ -46,6 +46,7 @@ export default function SensorDemo() {
     // The interval reads these; refs keep it from restarting on every change.
     const injectedRef = useRef<number[]>([]);
     const countRef = useRef(WINDOW);
+    const rootRef = useRef<HTMLDivElement>(null);
 
     useEffect(() => {
         if (window.matchMedia("(prefers-reduced-motion: reduce)").matches) {
@@ -55,8 +56,13 @@ export default function SensorDemo() {
             }, 0);
             return () => clearTimeout(id);
         }
+        // Scrolled away, the stream holds still instead of redrawing a chart no one sees.
+        let onScreen = true;
+        const io = new IntersectionObserver(([entry]) => (onScreen = entry.isIntersecting));
+        if (rootRef.current) io.observe(rootRef.current);
         let timers: ReturnType<typeof setTimeout>[] = [];
         const id = setInterval(() => {
+            if (!onScreen) return;
             const count = ++countRef.current;
             const inj = injectedRef.current;
             setN(count);
@@ -85,6 +91,7 @@ export default function SensorDemo() {
         }, TICK_MS);
         return () => {
             clearInterval(id);
+            io.disconnect();
             timers.forEach(clearTimeout);
         };
     }, []);
@@ -105,7 +112,7 @@ export default function SensorDemo() {
     const latest = sampleAt(n, injected);
 
     return (
-        <div className="flex h-full flex-col gap-2.5 p-3.5 font-mono text-xs sm:gap-3 sm:p-5">
+        <div ref={rootRef} className="flex h-full flex-col gap-2.5 p-3.5 font-mono text-xs sm:gap-3 sm:p-5">
             <div className="flex items-baseline justify-between text-[var(--fg-dim)]">
                 <span>acceleration · m/s²</span>
                 <span className={`tabular-nums ${latest > THRESHOLD ? "text-[var(--gold)]" : "text-[var(--fg-soft)]"}`}>
@@ -129,7 +136,7 @@ export default function SensorDemo() {
                 <button
                     type="button"
                     onClick={shake}
-                    className="border border-[var(--gold)] px-2 py-1 text-[var(--fg)] transition-colors hover:bg-[var(--gold)] hover:text-[var(--surface)]"
+                    className="border border-[var(--gold)] px-2 py-1 text-[var(--fg)] transition-colors pointer-coarse:min-h-[44px] hover:bg-[var(--gold)] hover:text-[var(--surface)]"
                 >
                     Simulate an impact
                 </button>
@@ -151,7 +158,8 @@ export default function SensorDemo() {
                 ))}
             </ol>
 
-            <ul className="mt-auto flex flex-col gap-1 border-t border-[var(--rule)] pt-3 text-[var(--fg-dim)]" aria-live="polite">
+            {/* No aria-live: an event lands every ~8s on its own, and each one would interrupt a screen reader. */}
+            <ul className="mt-auto flex flex-col gap-1 border-t border-[var(--rule)] pt-3 text-[var(--fg-dim)]">
                 <li className="flex justify-between">
                     <span>stored events</span>
                     <span className="tabular-nums text-[var(--fg-soft)]">{events}</span>

@@ -226,7 +226,8 @@ export default function Certifications() {
                      * lines beside three buttons. From sm up they sit side by side.
                      */}
                     <div className="mt-4 flex flex-col gap-4 sm:mt-5 sm:flex-row sm:items-start sm:justify-between sm:gap-6">
-                        <div className="min-w-0" aria-live="polite">
+                        {/* Read out only when it isn't advancing by itself, or a screen reader hears a new name every 5s. */}
+                        <div className="min-w-0" aria-live={paused ? "polite" : "off"}>
                             <p className="text-base leading-snug text-[var(--fg)] sm:text-lg">{cert.name}</p>
                             <p className="mt-1 text-sm text-[var(--fg-dim)]">
                                 {cert.issuer} · <span className="font-mono">{cert.year}</span>

@@ -103,6 +103,7 @@ Catatan:
 ```
 .
 ├── docs/                         dokumen ini
+├── scripts/check-assets.mjs      dijalankan sebelum build: path gambar/PDF harus ada
 ├── public/
 │   ├── certificates/             scan sertifikat (JPEG, sisi terpanjang ±1600px)
 │   ├── frames/
@@ -131,6 +132,7 @@ Catatan:
 │       ├── site.ts               domain, email, tautan sosial
 │       ├── intro.ts              boot script dan konstanta intro
 │       ├── portraitProgress.ts   progres potret untuk layar intro
+│       ├── inertOthers.ts        mengunci halaman di belakang dialog
 │       ├── useScrollFade.ts      tepi memudar di baris yang digeser
 │       └── useSwipe.ts           swipe sentuh
 ├── next.config.ts                header keamanan, cache, aturan gambar
@@ -200,11 +202,11 @@ Urutan diatur di `app/page.tsx`.
 
 | Tab | Demo | Isi |
 |---|---|---|
-| Code | `CodeDemo` | Mengetik dan menjalankan `loadOrder` milik potret, lalu menyalakan 181 kotak sesuai urutan muat |
+| Code | `CodeDemo` | Mengetik `loadOrder` milik potret, lalu menjalankan fungsi aslinya (diimpor dari `Portrait.tsx`) dan menyalakan 181 kotak sesuai urutan muat |
 | Design | `WireframeDemo` | Wireframe hero dan desain jadinya, dengan slider di antara keduanya. Bentuk panel memilih versi lebar atau HP lewat container query |
 | Systems | `TraceDemo` | Trace request `POST /api/analyze`, diputar 2,5× lebih lambat |
 | AI | `StreamDemo` | Jawaban chat yang mengalir per token. Jawabannya sudah ditulis, tidak ada API |
-| Hardware | `SensorDemo` | Sinyal akselerometer dengan ambang jatuh 23.1 m/s², lalu jalur MPU6050 → ESP32 → LoRa → Receiver → HTTP POST → MySQL |
+| Hardware | `SensorDemo` | Sinyal akselerometer dengan ambang jatuh 23.1 m/s², lalu jalur MPU6050 → ESP32 → LoRa → Receiver → HTTP POST → MySQL. Berhenti saat panel tidak terlihat |
 
 Tab dipilih dengan klik atau keyboard (panah, Home, End), tidak dengan hover, supaya demo tidak berganti saat kursor lewat. Demo di-*key* pada tab, jadi selalu mulai dari awal. Setiap demo dibungkus `ErrorBoundary` dengan tombol "Try again". Panel demo setinggi 480px tetap mulai 768px. Daftar "Tools I use" bisa dilipat di HP.
 
@@ -216,7 +218,7 @@ Tab dipilih dengan klik atau keyboard (panah, Home, End), tidak dengan hover, su
 - lightbox terbuka
 - pengunjung memakai reduced motion
 
-Di HP ada strip thumbnail yang bisa digeser dan swipe di viewer. Di laptop, index ada di margin. Lightbox (`CertificateLightbox`) dirender lewat portal dan tetap terpasang saat tertutup (disembunyikan dengan `visibility`). Lightbox mendukung panah, Esc, swipe kiri dan kanan, tarik ke bawah untuk menutup, serta fokus yang pindah ke tombol Close dan kembali ke tombol pembuka.
+Di HP ada strip thumbnail yang bisa digeser dan swipe di viewer. Di laptop, index ada di margin. Lightbox (`CertificateLightbox`) dirender lewat portal dan tetap terpasang saat tertutup (disembunyikan dengan `visibility`). Lightbox mendukung panah, Esc, swipe kiri dan kanan, tarik ke bawah untuk menutup, serta fokus yang pindah ke tombol Close dan kembali ke tombol pembuka. Nama sertifikat hanya dibacakan screen reader (`aria-live`) saat slideshow tidak berjalan sendiri.
 
 **Writing.** Cover bergaya halaman cetak, dengan ukuran huruf dalam satuan `cqw` (mengikuti lebar cover). Di laptop, ringkasan dan kata kunci ikut tampil. Di HP, tulisan ditampilkan sebagai daftar ringkas. Halaman tulisan (`/writing/[slug]`) hanya memuat ringkasan (abstract, atau paragraf pembuka untuk studi kasus), tombol PDF di bawah judul, kata kunci, dan tautan Newer/Older. Teks lengkap ada di PDF.
 
@@ -243,7 +245,7 @@ Tidak ada warna yang ditulis langsung di komponen. Warna baru ditambahkan sebaga
 
 - **Grid:** `.shell` (lebar maksimum 1280px, padding 20px, menjadi 40px dari 768px, ditambah safe area) dan `.grid-12` (4 kolom dengan jarak 16px, menjadi 12 kolom dengan jarak 24px dari 768px).
 - **Ukuran dasar:** di bawah 380px, `font-size` root menjadi 93.75% (15px), sehingga semua ukuran ikut mengecil.
-- **Kelas utilitas:** `.link`, `.reveal`, `.rise`, `.fade-in`, `.draw`, `.grow-x`, `.scroll-fade`, `.pulse-dot`, `.nudge-x`, `.caret`, `.intro*`, `.page-loading`, `.loading-bar`, `.wf-wide`, dan `.wf-tall`.
+- **Kelas utilitas:** `.link`, `.reveal`, `.rise`, `.fade-in`, `.draw`, `.scroll-fade`, `.pulse-dot`, `.nudge-x`, `.caret`, `.intro*`, `.page-loading`, `.loading-bar`, `.wf-wide`, dan `.wf-tall`.
 - **Reduced motion:** semua animasi selesai seketika, dan bar loading diam.
 
 Rincian tipografi, skala, dan catatan desain ada di halaman "Catatan Desain Fadhlan Bani" (artifact privat).
@@ -295,13 +297,13 @@ File sumber video dan skrip pembuat frame tidak ada di repo. Untuk mengganti pot
   - **Palette:** Ctrl/⌘ K atau `/`, lalu ↑ ↓ ↵ Esc.
   - **Overlay grid:** tombol `G`.
   - **Lightbox:** ← → Esc.
-- **Fokus:** outline emas 1px dengan jarak 3px (`:focus-visible`). Fokus dikembalikan ke pembuka setelah dialog ditutup.
+- **Fokus:** outline emas 1px dengan jarak 3px (`:focus-visible`). Selama lightbox atau palette terbuka, elemen lain di `<body>` dibuat `inert` (`lib/inertOthers.ts`), jadi Tab tidak bisa keluar ke halaman di belakangnya. Fokus dikembalikan ke pembuka setelah dialog ditutup.
 - **Sentuh:**
   - **Swipe:** `useSwipe` memakai pointer event (bukan mouse), dengan ambang 40px, `touch-action` `pan-y` atau `pinch-zoom`, dan pengecekan `visualViewport.scale` supaya swipe tidak terpicu saat layar di-zoom.
   - **Baris geser:** baris yang bisa digeser memakai `useScrollFade` (atribut `data-more-left` dan `data-more-right`) dan `SwipeHint`.
-- **Target sentuh:** tombol (chip tab, panah dan Pause sertifikat, toggle Tools, Run again di layar sentuh) 44px, ditulis dalam px supaya tidak ikut mengecil di layar di bawah 380px. Tautan teks minimal 24px, dan sekitar 40px di perangkat sentuh (`.link` mendapat padding tambahan di `pointer: coarse`).
+- **Target sentuh:** tombol (chip tab, panah dan Pause sertifikat, toggle Tools, dan di layar sentuh semua tombol demo: Run again, Send again, chip pertanyaan, Stop, Simulate an impact) 44px, ditulis dalam px supaya tidak ikut mengecil di layar di bawah 380px. Tautan teks minimal 24px, dan sekitar 40px di perangkat sentuh (`.link` mendapat padding tambahan di `pointer: coarse`).
 - **Ukuran huruf:** tidak ada teks di bawah 12px (`text-xs`), termasuk di dalam demo.
-- **Gerak:** `prefers-reduced-motion` membuat animasi selesai seketika, potret diam, dan slideshow berhenti.
+- **Gerak:** `prefers-reduced-motion` membuat animasi selesai seketika, potret diam, slideshow berhenti, dan scroll tidak halus (termasuk dari palette, yang tidak menulis `behavior` sendiri dan mengikuti CSS).
 - **Semantik:** landmark `header`/`main`/`nav`/`footer`, `aria-current` di menu, `role="dialog"` dengan `aria-modal` di lightbox dan palette, serta `role="status"` di loading.
 
 ## 12. Performa
@@ -309,7 +311,9 @@ File sumber video dan skrip pembuat frame tidak ada di repo. Untuk mengganti pot
 - Semua halaman statis dan dilayani dari CDN.
 - Gambar lewat `next/image` dalam format AVIF atau WebP. Hanya folder yang terdaftar di `images.localPatterns` yang boleh dioptimasi.
 - **Cache:**
-  - `/frames/*` dan file gambar atau font di `public` disajikan dengan `Cache-Control: public, max-age=31536000, immutable`.
+  - `/frames/*` disajikan dengan `Cache-Control: public, max-age=31536000, immutable`, karena frame tidak pernah berubah.
+  - File lain di `public` (scan sertifikat, screenshot) memakai default Vercel dan dicek ulang, jadi file yang diganti dengan nama sama langsung terlihat. Font ada di `/_next/static` dan sudah di-cache permanen oleh Next.
+  - Header dan palette tidak mengimpor `content/writing.ts`, supaya isi tulisan tidak ikut terkirim di JavaScript setiap halaman.
   - HTML memakai `max-age=0, must-revalidate`.
 - **Font:** di-host sendiri dan di-preload.
 - **JavaScript:** sekitar 184 KB (terkompresi) untuk beranda.
@@ -388,17 +392,18 @@ Lainnya:
 1. Simpan scan ke `public/certificates/nama-baru.jpg`, JPEG dengan sisi terpanjang sekitar 1600px.
 2. Tambahkan entri di `src/content/certifications.ts`. Urutan array adalah urutan tampil. Isi `name` dan `issuer` persis seperti di sertifikat, lalu `year`, `field`, `image`, dan `url` (hanya untuk halaman verifikasi resmi).
 3. Kalau `field` baru, tambahkan ke salah satu grup di `GROUPS` (`components/Certifications.tsx`). Kalau tidak, sertifikat masuk grup "Other".
+4. `npm run build` menjalankan `scripts/check-assets.mjs` lebih dulu: build gagal kalau path gambar atau PDF di `src/` tidak ada di `public/`, jadi salah ketik ketahuan sebelum tayang.
 
 **Menambah atau mengubah proyek di Work:**
 
 1. Ubah array `projects` di `components/Works.tsx`.
-2. Simpan screenshot dengan nama file **baru** di `public/`. Gambar disajikan dengan cache 1 tahun, jadi file baru dengan nama lama tidak akan terlihat oleh pengunjung lama.
+2. Simpan screenshot di `public/`. Mengganti file dengan nama yang sama juga boleh, karena gambar di luar `/frames` dicek ulang oleh browser.
 3. Tambahkan path screenshot ke `images.localPatterns` di `next.config.ts`. Kalau tidak, optimizer menjawab 400.
 
 **Menambah tulisan:**
 
 1. Simpan PDF ke `public/`.
-2. Tambahkan entri di `yourEssays` (`src/content/writing.ts`): `slug`, `title`, `year`, `field`, `summary`, `readingTime`, dan `body`. Kalau `body` memuat `"## Abstract"`, paragraf di bawahnya menjadi ringkasan. Kalau tidak, paragraf pembukanya yang dipakai.
+2. Tambahkan entri di `yourEssays` (`src/content/writing.ts`): `slug`, `title`, `year`, `field`, `summary`, `readingTime`, dan `body`. Kalau `body` memuat `"## Abstract"`, paragraf di bawahnya menjadi ringkasan. Kalau tidak, paragraf pembukanya yang dipakai. Hanya bagian itu yang tampil, jadi teks lengkap cukup ada di PDF (studi kasus LoRa hanya menyimpan paragraf pembukanya).
 3. Halaman, sitemap, dan daftar di beranda dibuat otomatis.
 
 **Mengubah teks:**
