@@ -29,24 +29,24 @@ function Cover({ essay }: { essay: Essay }) {
      */
     return (
         <Link href={`/writing/${essay.slug}`} aria-label={`Read ${essay.title}`} className="group @container block">
-            <span className="flex aspect-[3/4] flex-col overflow-hidden bg-[#ebe6da] p-[8.5cqw] text-[#1c1d1e] shadow-[0_16px_32px_-10px_rgba(0,0,0,0.7)] transition-transform duration-500 ease-out group-hover:-translate-y-1.5 @min-[12rem]:shadow-[0_24px_48px_-12px_rgba(0,0,0,0.7)]">
-                <span className="flex justify-between border-b border-[#1c1d1e]/25 pb-[2.5cqw] font-mono text-[3.5cqw] text-[#1c1d1e]/70 @min-[12rem]:text-[max(9px,3.5cqw)]">
+            <span className="flex aspect-[3/4] flex-col overflow-hidden bg-[var(--paper)] p-[8.5cqw] text-[var(--ink)] shadow-[0_16px_32px_-10px_rgba(0,0,0,0.7)] transition-transform duration-500 ease-out group-hover:-translate-y-1.5 @min-[12rem]:shadow-[0_24px_48px_-12px_rgba(0,0,0,0.7)]">
+                <span className="flex justify-between border-b border-[var(--ink)]/25 pb-[2.5cqw] font-mono text-[3.5cqw] text-[var(--ink)]/70 @min-[12rem]:text-[max(9px,3.5cqw)]">
                     <span>{essay.label ?? "Essay"}</span>
                     <span>{essay.year}</span>
                 </span>
 
-                <span className="mt-[8cqw] text-[3.9cqw] text-[#1c1d1e]/60 @min-[12rem]:text-[max(9px,3.9cqw)]">{essay.field}</span>
+                <span className="mt-[8cqw] text-[3.9cqw] text-[var(--ink)]/60 @min-[12rem]:text-[max(9px,3.9cqw)]">{essay.field}</span>
                 <span className="mt-[2.5cqw] font-serif text-[9.2cqw] font-semibold leading-[1.08]">{essay.title}</span>
                 {essay.subtitle && (
-                    <span className="mt-[4cqw] hidden font-serif text-[5.2cqw] italic leading-snug text-[#1c1d1e]/75 @min-[12rem]:block">
+                    <span className="mt-[4cqw] hidden font-serif text-[5.2cqw] leading-snug text-[var(--ink)]/75 @min-[12rem]:block">
                         {essay.subtitle}
                     </span>
                 )}
 
-                <span className="mt-auto border-t border-[#1c1d1e]/25 pt-[4cqw]">
+                <span className="mt-auto border-t border-[var(--ink)]/25 pt-[4cqw]">
                     <span className="block text-[4.2cqw] font-medium @min-[12rem]:text-[max(10px,4.2cqw)]">Fadhlan Bani Nugraha</span>
                     {essay.orcid && (
-                        <span className="mt-0.5 hidden font-mono text-[max(9px,3.5cqw)] text-[#1c1d1e]/60 @min-[12rem]:block">ORCID {essay.orcid}</span>
+                        <span className="mt-0.5 hidden font-mono text-[max(9px,3.5cqw)] text-[var(--ink)]/60 @min-[12rem]:block">ORCID {essay.orcid}</span>
                     )}
                 </span>
             </span>
@@ -72,7 +72,7 @@ function Piece({ essay }: { essay: Essay }) {
             </div>
 
             <div className="md:col-span-9 md:col-start-4 lg:col-span-7">
-                <p className="font-mono text-[11px] leading-relaxed text-[var(--fg-dim)] md:text-xs">
+                <p className="text-xs leading-relaxed text-[var(--fg-dim)]">
                     {essay.field} · {essay.year} · {essay.readingTime} read
                 </p>
                 <h3 className="mt-1 text-pretty font-serif text-[1.3rem] font-medium leading-[1.1] text-[var(--fg)] md:mt-4 md:text-4xl">
@@ -126,7 +126,6 @@ export default function Writing() {
     return (
         <Section
             id="writing"
-            index="04"
             title="Writing"
             count={essaysByYear.length}
             intro="Longer pieces: my thesis project, written up as a case study, and an essay on something outside of code."

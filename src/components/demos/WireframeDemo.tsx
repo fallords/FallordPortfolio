@@ -96,15 +96,15 @@ function Design({ id }: { id: string }) {
                     <feColorMatrix type="saturate" values="0" />
                 </filter>
                 <linearGradient id={`${id}-fade-x`} x1="0" x2="1" y1="0" y2="0">
-                    <stop offset="0" stopColor="#0d1011" />
-                    <stop offset="0.45" stopColor="#0d1011" stopOpacity="0" />
+                    <stop offset="0" stopColor="var(--surface)" />
+                    <stop offset="0.45" stopColor="var(--surface)" stopOpacity="0" />
                 </linearGradient>
                 <linearGradient id={`${id}-fade-y`} x1="0" x2="0" y1="0" y2="1">
-                    <stop offset="0.6" stopColor="#0d1011" stopOpacity="0" />
-                    <stop offset="1" stopColor="#0d1011" />
+                    <stop offset="0.6" stopColor="var(--surface)" stopOpacity="0" />
+                    <stop offset="1" stopColor="var(--surface)" />
                 </linearGradient>
             </defs>
-            <rect {...GROUND} fill="#0d1011" />
+            <rect {...GROUND} fill="var(--surface)" />
 
             {/* Header */}
             <text x={X0} y={31} fontSize={9} fontWeight={500} fill="var(--fg)" style={sans}>
@@ -134,7 +134,7 @@ function Design({ id }: { id: string }) {
                 A learner and a builder.
             </text>
             <rect x={X0} y={256} width={62} height={18} fill="var(--fg)" />
-            <text x={X0 + 31} y={267.5} fontSize={7} textAnchor="middle" fill="#0d1011" style={sans}>
+            <text x={X0 + 31} y={267.5} fontSize={7} textAnchor="middle" fill="var(--surface)" style={sans}>
                 Email me
             </text>
             <text x={X0 + 76} y={267.5} fontSize={7} fill="var(--fg-soft)" textDecoration="underline" style={sans}>
@@ -243,20 +243,20 @@ function DesignTall({ id }: { id: string }) {
                     <feColorMatrix type="saturate" values="0" />
                 </filter>
                 <linearGradient id={`${id}-m-fade`} x1="0" x2="0" y1="0" y2="1">
-                    <stop offset="0.3" stopColor="#0d1011" stopOpacity="0" />
-                    <stop offset="1" stopColor="#0d1011" />
+                    <stop offset="0.3" stopColor="var(--surface)" stopOpacity="0" />
+                    <stop offset="1" stopColor="var(--surface)" />
                 </linearGradient>
                 <linearGradient id={`${id}-m-sides`} x1="0" x2="1" y1="0" y2="0">
-                    <stop offset="0.04" stopColor="#0d1011" />
-                    <stop offset="0.2" stopColor="#0d1011" stopOpacity="0" />
-                    <stop offset="0.8" stopColor="#0d1011" stopOpacity="0" />
-                    <stop offset="0.96" stopColor="#0d1011" />
+                    <stop offset="0.04" stopColor="var(--surface)" />
+                    <stop offset="0.2" stopColor="var(--surface)" stopOpacity="0" />
+                    <stop offset="0.8" stopColor="var(--surface)" stopOpacity="0" />
+                    <stop offset="0.96" stopColor="var(--surface)" />
                 </linearGradient>
                 <clipPath id={`${id}-m-clip`}>
                     <rect x={0} y={32} width={360} height={150} />
                 </clipPath>
             </defs>
-            <rect {...GROUND} fill="#0d1011" />
+            <rect {...GROUND} fill="var(--surface)" />
 
             {/* Header */}
             <text x={MX0} y={21} fontSize={9.5} fontWeight={500} fill="var(--fg)" style={sans}>
@@ -291,7 +291,7 @@ function DesignTall({ id }: { id: string }) {
                 {MLINE.text}
             </text>
             <rect x={MX0} y={243} width={70} height={22} fill="var(--fg)" />
-            <text x={MX0 + 35} y={257.5} fontSize={8.5} textAnchor="middle" fill="#0d1011" style={sans}>
+            <text x={MX0 + 35} y={257.5} fontSize={8.5} textAnchor="middle" fill="var(--surface)" style={sans}>
                 Email me
             </text>
             <text x={100} y={257.5} fontSize={8.5} fill="var(--fg-soft)" textDecoration="underline" style={sans}>
@@ -418,13 +418,13 @@ export default function WireframeDemo() {
             </div>
 
             <span
-                className="pointer-events-none absolute left-3 top-3 border border-[var(--rule-strong)] bg-[var(--surface)]/80 px-1.5 py-0.5 font-mono text-[10px] text-[var(--fg-soft)] transition-opacity"
+                className="pointer-events-none absolute left-3 top-3 border border-[var(--rule-strong)] bg-[var(--surface)]/80 px-1.5 py-0.5 text-xs text-[var(--fg-soft)] transition-opacity"
                 style={{ opacity: pos > 14 ? 1 : 0 }}
             >
                 wireframe
             </span>
             <span
-                className="pointer-events-none absolute right-3 top-3 border border-[var(--rule-strong)] bg-[var(--surface)]/80 px-1.5 py-0.5 font-mono text-[10px] text-[var(--fg-soft)] transition-opacity"
+                className="pointer-events-none absolute right-3 top-3 border border-[var(--rule-strong)] bg-[var(--surface)]/80 px-1.5 py-0.5 text-xs text-[var(--fg-soft)] transition-opacity"
                 style={{ opacity: pos < 86 ? 1 : 0 }}
             >
                 design
@@ -432,7 +432,7 @@ export default function WireframeDemo() {
 
             {/* The divider and its grip. */}
             <div className="pointer-events-none absolute inset-y-0 w-px bg-[var(--gold)]" style={{ left: `${pos}%` }}>
-                <span className="absolute left-1/2 top-1/2 flex h-9 w-9 -translate-x-1/2 -translate-y-1/2 items-center justify-center border border-[var(--gold)] bg-[var(--surface)] font-mono text-xs text-[var(--gold)] md:h-7 md:w-7 md:text-[11px]">
+                <span className="absolute left-1/2 top-1/2 flex h-9 w-9 -translate-x-1/2 -translate-y-1/2 items-center justify-center border border-[var(--gold)] bg-[var(--surface)] font-mono text-xs text-[var(--gold)] md:h-7 md:w-7">
                     ↔
                 </span>
             </div>

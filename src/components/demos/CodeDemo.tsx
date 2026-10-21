@@ -57,10 +57,10 @@ const TOKEN =
 
 const STYLE = [
     "text-[var(--fg-dim)] italic", // comment
-    "text-[#8fbf9f]", // string
+    "text-[var(--syntax-string)]", // string
     "text-[var(--gold)]", // keyword
-    "text-[#9fb6c6]", // type
-    "text-[#c9a3c9]", // number
+    "text-[var(--syntax-type)]", // type
+    "text-[var(--syntax-number)]", // number
     "text-[var(--fg)]", // function call
 ];
 
@@ -132,7 +132,7 @@ export default function CodeDemo() {
 
     return (
         <div className="flex h-full flex-col">
-            <pre className="min-h-0 flex-1 overflow-hidden px-4 py-2.5 font-mono text-[10px] leading-[1.45] text-[var(--fg-muted)] sm:px-5 sm:py-3.5 sm:text-[11px] sm:leading-[1.65] lg:py-4 lg:text-[12.5px] lg:leading-[1.55]">
+            <pre className="min-h-0 flex-1 overflow-hidden px-4 py-2.5 font-mono text-xs leading-[1.45] text-[var(--fg-muted)] sm:px-5 sm:py-3.5 sm:leading-[1.6] lg:py-4 lg:text-[12.5px] lg:leading-[1.55]">
                 {/*
                  * Every line is laid out from the start, the untyped part
                  * invisible. On a phone the panel is only as tall as this, so
@@ -163,7 +163,7 @@ export default function CodeDemo() {
             </pre>
 
             {/* The code's output: every frame, lit in the order loadOrder() returns. */}
-            <div className="shrink-0 border-t border-[var(--rule)] px-4 py-2 font-mono text-[11px] sm:px-5 sm:py-2.5">
+            <div className="shrink-0 border-t border-[var(--rule)] px-4 py-2 font-mono text-xs sm:px-5 sm:py-2.5">
                 <div className="flex items-baseline justify-between text-[var(--fg-dim)]">
                     <span>
                         loadOrder(181)<span className="hidden sm:inline"> → frames in load order</span>
@@ -197,7 +197,7 @@ export default function CodeDemo() {
                         type="button"
                         onClick={restart}
                         disabled={!done}
-                        className="min-h-[24px] border border-[var(--rule-strong)] px-2 py-0.5 text-[var(--fg-soft)] sm:py-1 transition-colors hover:border-[var(--gold)] hover:text-[var(--fg)] disabled:opacity-40"
+                        className="min-h-[24px] pointer-coarse:min-h-[44px] border border-[var(--rule-strong)] px-2 py-0.5 text-[var(--fg-soft)] sm:py-1 transition-colors hover:border-[var(--gold)] hover:text-[var(--fg)] disabled:opacity-40"
                     >
                         ↻ Run again
                     </button>

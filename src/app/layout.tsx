@@ -28,7 +28,6 @@ const cormorant = Cormorant_Garamond({
   variable: "--font-cormorant",
   subsets: ["latin"],
   weight: ["500", "600"],
-  style: ["normal", "italic"],
 });
 
 // Pinch-zoom stays enabled (WCAG 1.4.4) — no maximumScale, no userScalable.

@@ -105,7 +105,7 @@ export default function SensorDemo() {
     const latest = sampleAt(n, injected);
 
     return (
-        <div className="flex h-full flex-col gap-2.5 p-3.5 font-mono text-[11px] sm:gap-3 sm:p-5">
+        <div className="flex h-full flex-col gap-2.5 p-3.5 font-mono text-xs sm:gap-3 sm:p-5">
             <div className="flex items-baseline justify-between text-[var(--fg-dim)]">
                 <span>acceleration · m/s²</span>
                 <span className={`tabular-nums ${latest > THRESHOLD ? "text-[var(--gold)]" : "text-[var(--fg-soft)]"}`}>

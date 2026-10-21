@@ -9,7 +9,7 @@ import { OPEN_PALETTE_EVENT } from "./CommandPalette";
 const links = [
     { label: "Work", id: "work" },
     { label: "About", id: "about" },
-    ...(hasEssays ? [{ label: "Writing", id: "writing", wide: true }] : []),
+    ...(hasEssays ? [{ label: "Writing", id: "writing" }] : []),
     { label: "Contact", id: "contact" },
 ];
 
@@ -79,12 +79,12 @@ export default function Header() {
                 </Link>
 
                 <nav aria-label="Primary">
-                    {/* Tight on a phone so all four fit from 360px; a 320px screen drops Writing. */}
-                    <ul className="flex items-center gap-3.5 text-sm min-[400px]:gap-5 md:gap-7">
+                    {/* Tighter still under 360px, so all four fit on a 320px screen too. */}
+                    <ul className="flex items-center gap-2.5 text-sm min-[360px]:gap-3.5 min-[400px]:gap-5 md:gap-7">
                         {links.map((link) => {
                             const isActive = pathname === "/" && active === link.id;
                             return (
-                                <li key={link.id} className={"wide" in link ? "hidden min-[360px]:block" : undefined}>
+                                <li key={link.id}>
                                     <Link
                                         href={`/#${link.id}`}
                                         prefetch={prefetch}

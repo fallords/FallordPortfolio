@@ -4,7 +4,10 @@
  * Three materials, each with one job.
  *   Iron   — every surface and all text.
  *   Cloak  — the portrait, selection, and hover fills. Nothing else.
- *   Gold   — interactive state only: a link you are pointing at.
+ *   Gold   — what you are pointing at, and the small markers that guide you
+ *            (progress lines, the "try this" hints, list numerals).
+ * Every colour on the site is a token here, the few outside the three
+ * materials included, so none is written straight into a component.
  */
 :root {
   --surface: #0d1011;
@@ -23,6 +26,18 @@
   --cloak: #14261c;
   --cloak-bright: #2f5a44;
   --gold: #bf9d5f;
+
+  /* The status dot and its word: a project that is live. */
+  --live: #5fbf8a;
+  /* The footer's name, one shade off the cloak it is cut into. */
+  --wordmark: #1c3426;
+  /* The writing covers: the one light surface, printed paper and its ink. */
+  --paper: #ebe6da;
+  --ink: #1c1d1e;
+  /* Syntax colours in the Code demo. */
+  --syntax-string: #8fbf9f;
+  --syntax-type: #9fb6c6;
+  --syntax-number: #c9a3c9;
 }
 
 @theme inline {
@@ -32,6 +47,8 @@
 }
 
 html {
+  /* clip, not hidden: sticky and fixed descendants keep working. */
+  overflow-x: clip;
   scroll-behavior: smooth;
   /* Anchored sections land below the sticky header, not under it. */
   scroll-padding-top: 4.5rem;
@@ -281,8 +298,8 @@ html[data-intro="show"] .rise {
  */
 .reveal {
   transition:
-    opacity 900ms cubic-bezier(0.22, 1, 0.36, 1),
-    transform 900ms cubic-bezier(0.22, 1, 0.36, 1);
+    opacity 500ms cubic-bezier(0.22, 1, 0.36, 1),
+    transform 500ms cubic-bezier(0.22, 1, 0.36, 1);
   transition-delay: var(--delay, 0ms);
 }
 

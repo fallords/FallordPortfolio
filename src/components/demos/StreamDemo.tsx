@@ -11,13 +11,13 @@ import { useEffect, useState } from "react";
 const EXAMPLES = [
     {
         chip: "Better button label",
-        prompt: "What's a better label for the “Submit” button on a contact form?",
-        reply: "Try “Send message”. It says exactly what happens when someone clicks it, and it's short enough to fit on one line on a phone.",
+        prompt: "What’s a better label for the “Submit” button on a contact form?",
+        reply: "Try “Send message”. It says exactly what happens when someone clicks it, and it’s short enough to fit on one line on a phone.",
     },
     {
         chip: "Summarise a chat",
         prompt: "Summarise this in one line: “Are you coming tonight?” “Maybe, depends on work.” “Ok, let me know by 6.”",
-        reply: "They're making plans for tonight. One of them isn't sure yet and has been asked to confirm by 6.",
+        reply: "They’re making plans for tonight. One of them isn’t sure yet and has been asked to confirm by 6.",
     },
     {
         chip: "Explain LoRa",
@@ -81,7 +81,7 @@ export default function StreamDemo() {
     return (
         <div className="flex h-full flex-col gap-3 p-3.5 text-sm sm:gap-4 sm:p-5">
             {/* Suggested prompts */}
-            <div className="flex flex-wrap gap-2 font-mono text-[11px]">
+            <div className="flex flex-wrap gap-2 text-xs">
                 {EXAMPLES.map((ex, i) => (
                     <button
                         key={ex.chip}
@@ -115,7 +115,7 @@ export default function StreamDemo() {
                 )}
             </div>
 
-            <div className="mt-auto flex items-center justify-between gap-3 border-t border-[var(--rule)] pt-3 font-mono text-[11px] text-[var(--fg-dim)]">
+            <div className="mt-auto flex items-center justify-between gap-3 border-t border-[var(--rule)] pt-3 font-mono text-xs text-[var(--fg-dim)]">
                 <span className="tabular-nums">
                     {status} · first word {THINK_MS}ms · {count}/{tokens.length} tokens · {Math.round(1000 / TOKEN_MS)} tok/s
                 </span>

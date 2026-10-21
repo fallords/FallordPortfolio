@@ -9,7 +9,7 @@ import type { ScrollEdges } from "@/lib/useScrollFade";
  */
 export default function SwipeHint({ edges, className = "" }: { edges: ScrollEdges; className?: string }) {
     return (
-        <p aria-hidden="true" className={`h-4 font-mono text-[11px] leading-4 text-[var(--fg-dim)] ${className}`}>
+        <p aria-hidden="true" className={`h-4 text-xs leading-4 text-[var(--fg-dim)] ${className}`}>
             {edges.right ? (
                 <>
                     swipe for more <span className="nudge-x text-[var(--gold)]">→</span>

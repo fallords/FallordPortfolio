@@ -18,8 +18,8 @@ export default function Home() {
                 {/* The two sections run in the browser; if one fails, it says so in its place and the rest stays. */}
                 <ErrorBoundary
                     fallback={
-                        <Section id="about" index="02" title="What I do">
-                            <FallbackNotice message="This section couldn't be shown just now." />
+                        <Section id="about" title="What I do">
+                            <FallbackNotice message="This section couldn’t be shown just now." />
                         </Section>
                     }
                 >
@@ -27,8 +27,8 @@ export default function Home() {
                 </ErrorBoundary>
                 <ErrorBoundary
                     fallback={
-                        <Section id="certificates" index="03" title="Certificates">
-                            <FallbackNotice message="The certificates couldn't be shown just now." />
+                        <Section id="certificates" title="Certificates">
+                            <FallbackNotice message="The certificates couldn’t be shown just now." />
                         </Section>
                     }
                 >

@@ -16,7 +16,7 @@ export default function FallbackNotice({
 }) {
     return (
         <div role="alert" className={`flex flex-col items-start gap-3 ${className}`}>
-            <p className="font-mono text-xs text-[var(--gold)]">Error</p>
+            <p className="text-xs text-[var(--gold)]">Error</p>
             <p className="max-w-sm text-sm leading-relaxed text-[var(--fg-muted)]">{message}</p>
             <button
                 type="button"

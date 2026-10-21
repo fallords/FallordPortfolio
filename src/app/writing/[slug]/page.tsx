@@ -101,7 +101,7 @@ export default async function EssayPage({
                     </h1>
 
                     {essay.subtitle && (
-                        <p className="mt-4 font-serif text-xl md:text-2xl italic leading-snug text-[var(--fg-muted)]">
+                        <p className="mt-4 font-serif text-xl md:text-2xl leading-snug text-[var(--fg-muted)]">
                             {essay.subtitle}
                         </p>
                     )}
@@ -117,7 +117,7 @@ export default async function EssayPage({
                             >
                                 Download the PDF ↗
                             </a>
-                            <span className="font-mono text-xs text-[var(--fg-dim)]">Full text · {essay.readingTime} read</span>
+                            <span className="text-xs text-[var(--fg-dim)]">Full text · {essay.readingTime} read</span>
                         </div>
                     )}
 

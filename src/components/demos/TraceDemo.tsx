@@ -55,7 +55,7 @@ export default function TraceDemo() {
     const done = t >= TOTAL_MS;
 
     return (
-        <div className="flex h-full flex-col p-3.5 font-mono text-[11px] sm:p-5 sm:text-[11.5px]">
+        <div className="flex h-full flex-col p-3.5 font-mono text-xs sm:p-5">
             <div className="flex items-baseline justify-between text-[var(--fg-dim)]">
                 <span>request timeline · played at 1/{SLOWDOWN} speed</span>
                 <span className="tabular-nums text-[var(--fg)]">{Math.round(t)} ms</span>

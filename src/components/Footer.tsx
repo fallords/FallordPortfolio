@@ -10,7 +10,7 @@ export default function Footer() {
              */}
             <p
                 aria-hidden="true"
-                className="shell select-none whitespace-nowrap pt-12 font-serif text-[min(18vw,15rem)] font-medium leading-[0.8] tracking-[-0.02em] text-[#1c3426] [text-shadow:0_-1px_0_rgba(0,0,0,0.45),0_1px_0_rgba(255,255,255,0.045)] md:pt-20"
+                className="shell select-none whitespace-nowrap pt-12 font-serif text-[min(18vw,15rem)] font-medium leading-[0.8] tracking-[-0.02em] text-[var(--wordmark)] [text-shadow:0_-1px_0_rgba(0,0,0,0.45),0_1px_0_rgba(255,255,255,0.045)] md:pt-20"
             >
                 Fadhlan Bani
             </p>

@@ -16,10 +16,10 @@ export default function NotFound() {
                 <div className="col-span-4 md:col-span-8 md:col-start-4">
                     <p className="font-mono text-xs text-[var(--fg-dim)]">404</p>
                     <h1 className="mt-4 font-serif text-5xl font-medium leading-none md:text-6xl">
-                        This page doesn&apos;t exist.
+                        This page doesn’t exist.
                     </h1>
                     <p className="mt-6 max-w-md text-[var(--fg-muted)]">
-                        The link might be old, or there&apos;s a typo in the address.
+                        The link might be old, or there’s a typo in the address.
                     </p>
                     <div className="mt-10 flex flex-wrap gap-6 text-sm">
                         <Link href="/" className="link text-[var(--fg-soft)]">← Home</Link>

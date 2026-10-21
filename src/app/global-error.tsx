@@ -36,7 +36,7 @@ export default function GlobalError({
                             Something went wrong.
                         </h1>
                         <p className="mt-6 max-w-md text-[var(--fg-muted)]">
-                            The site couldn&apos;t load this time. Try again, or come back in a moment.
+                            The site couldn’t load this time. Try again, or come back in a moment.
                         </p>
                         {error.digest && (
                             <p className="mt-3 text-xs text-[var(--fg-dim)]" style={{ fontFamily: MONO }}>

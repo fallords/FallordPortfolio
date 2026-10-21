@@ -21,12 +21,12 @@ export default function Error({
     return (
         <main className="shell grid-12 min-h-[70svh] content-center py-24">
             <div className="col-span-4 md:col-span-8 md:col-start-4">
-                <p className="font-mono text-xs text-[var(--fg-dim)]">Error</p>
+                <p className="text-xs text-[var(--fg-dim)]">Error</p>
                 <h1 className="mt-4 font-serif text-5xl font-medium leading-none md:text-6xl">
                     Something went wrong.
                 </h1>
                 <p className="mt-6 max-w-md text-[var(--fg-muted)]">
-                    Try loading it again. If that doesn&apos;t work, the homepage should.
+                    Try loading it again. If that doesn’t work, the homepage should.
                 </p>
                 {error.digest && (
                     <p className="mt-3 font-mono text-xs text-[var(--fg-dim)]">Reference {error.digest}</p>

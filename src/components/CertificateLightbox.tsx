@@ -73,7 +73,7 @@ export default function CertificateLightbox({
     if (!mounted || !cert?.image) return null;
 
     const control =
-        "flex h-10 w-10 items-center justify-center border border-[var(--rule-strong)] text-[var(--fg-soft)] transition-colors hover:border-[var(--fg-muted)] hover:text-[var(--fg)]";
+        "flex h-[44px] w-[44px] items-center justify-center border border-[var(--rule-strong)] text-[var(--fg-soft)] transition-colors hover:border-[var(--fg-muted)] hover:text-[var(--fg)]";
 
     return createPortal(
         <div
@@ -129,7 +129,7 @@ export default function CertificateLightbox({
             </div>
 
             {/* Touch screens have no arrow keys and no obvious way out; say what the fingers do. */}
-            <p aria-hidden="true" className="shrink-0 text-balance px-5 pt-3 text-center font-mono text-[11px] leading-relaxed text-[var(--fg-dim)] [@media(hover:hover)]:hidden">
+            <p aria-hidden="true" className="shrink-0 text-balance px-5 pt-3 text-center text-xs leading-relaxed text-[var(--fg-dim)] [@media(hover:hover)]:hidden">
                 ← swipe → · pinch to zoom · drag down to close
             </p>
 

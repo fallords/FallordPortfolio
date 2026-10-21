@@ -32,7 +32,7 @@ const services = [
     },
     {
         title: "Systems",
-        desc: "The parts people don't see. I plan APIs and databases (with DFDs and ERDs), set up Linux servers, and test things properly before they go live.",
+        desc: "Behind the screens, I plan APIs and databases (with DFDs and ERDs), set up Linux servers, and test things properly before they go live.",
         file: "trace",
         meta: "POST /api/analyze",
         hint: "send the request again",
@@ -48,7 +48,7 @@ const services = [
     },
     {
         title: "Hardware",
-        desc: "I program ESP32 boards in C++, wire up sensors, and send their data over LoRa to a server and a web dashboard. I've put this together and tested it on real hardware.",
+        desc: "I program ESP32 boards in C++, wire up sensors, and send their data over LoRa to a server and a web dashboard. I’ve put this together and tested it on real hardware.",
         file: "sensor → server",
         meta: "live",
         hint: "tap the chart",
@@ -125,7 +125,6 @@ export default function About() {
     return (
         <Section
             id="about"
-            index="02"
             title="What I do"
             intro="Five things I work on. Most projects need more than one. Pick one and try it."
             // A phone goes straight to the chips; their hint and the demo's say the same thing.
@@ -162,8 +161,7 @@ export default function About() {
                                         aria-controls="skill-panel"
                                         tabIndex={selected ? 0 : -1}
                                         onClick={() => choose(i)}
-                                        onMouseEnter={() => choose(i)}
-                                        className={`group flex h-9 items-center gap-2 whitespace-nowrap border px-3 sm:h-10 text-left transition-colors lg:grid lg:h-auto lg:w-full lg:grid-cols-[2.25rem_1fr] lg:items-baseline lg:gap-0 lg:whitespace-normal lg:border-0 lg:px-0 lg:py-4 ${
+                                        className={`group flex h-[44px] items-center gap-2 whitespace-nowrap border px-3 text-left transition-colors lg:grid lg:h-auto lg:w-full lg:grid-cols-[2.25rem_1fr] lg:items-baseline lg:gap-0 lg:whitespace-normal lg:border-0 lg:px-0 lg:py-4 ${
                                             selected ? "border-[var(--gold)]" : "border-[var(--rule-strong)]"
                                         }`}
                                     >
@@ -181,16 +179,10 @@ export default function About() {
                                         >
                                             {service.title}
                                         </span>
-                                        {/* 0fr → 1fr: the only honest way to animate to "auto" height in CSS. */}
-                                        <span
-                                            className={`col-start-2 hidden transition-[grid-template-rows] duration-500 ease-[cubic-bezier(0.22,1,0.36,1)] lg:grid ${
-                                                selected ? "grid-rows-[1fr]" : "grid-rows-[0fr]"
-                                            }`}
-                                        >
-                                            <span className="overflow-hidden">
-                                                <span className="block pt-2 pr-2 text-sm leading-relaxed text-[var(--fg-muted)]">
-                                                    {service.desc}
-                                                </span>
+                                        {/* Opens at once and fades in: only opacity animates, never the height. */}
+                                        <span className={`col-start-2 ${selected ? "hidden lg:block" : "hidden"}`}>
+                                            <span className="fade-in block pt-2 pr-2 text-sm leading-relaxed text-[var(--fg-muted)]" style={{ animationDuration: "300ms" }}>
+                                                {service.desc}
                                             </span>
                                         </span>
                                     </button>
@@ -215,11 +207,12 @@ export default function About() {
                         {/* A narrow phone may wrap the hint to two lines; the bar grows rather than clipping it. */}
                         <div className="flex min-h-9 shrink-0 items-center justify-between gap-4 border-b border-[var(--rule)] px-4 py-1.5 font-mono text-xs sm:min-h-10 sm:py-2">
                             <span className="shrink-0 text-[var(--fg-soft)]">{file}</span>
+                            {/* The file name is code, so it stays mono; what is said about it is words. */}
                             {tried ? (
-                                <span className="text-right text-[var(--fg-dim)]">{meta}</span>
+                                <span className="text-right font-sans text-[var(--fg-dim)]">{meta}</span>
                             ) : (
                                 // The dot is inline, so if the hint ever wraps it stays with the first line.
-                                <span className="text-right text-[var(--gold)]">
+                                <span className="text-right font-sans text-[var(--gold)]">
                                     <span aria-hidden="true" className="pulse-dot mr-2 inline-block h-1.5 w-1.5 rounded-full bg-[var(--gold)] align-middle" />
                                     <span className="sr-only">Interactive demo: </span>
                                     {hint}
@@ -259,12 +252,12 @@ export default function About() {
                         aria-expanded={toolsOpen}
                         aria-controls="tools-list"
                         onClick={() => setToolsOpen((o) => !o)}
-                        className="flex h-10 w-full items-center justify-between border-y border-[var(--rule)] text-sm text-[var(--fg-soft)] md:hidden"
+                        className="flex h-[44px] w-full items-center justify-between border-y border-[var(--rule)] text-sm text-[var(--fg-soft)] md:hidden"
                     >
                         <span>
                             Tools I use <span className="font-mono text-xs text-[var(--fg-dim)]">· {tools.reduce((n, t) => n + t.items.length, 0)}</span>
                         </span>
-                        <span className="font-mono text-xs text-[var(--gold)]">{toolsOpen ? "hide ↑" : "show ↓"}</span>
+                        <span className="text-xs text-[var(--gold)]">{toolsOpen ? "hide ↑" : "show ↓"}</span>
                     </button>
                     <p className="hidden text-sm text-[var(--fg-dim)] md:block">Tools I use</p>
                     <dl
@@ -273,7 +266,7 @@ export default function About() {
                     >
                         {tools.map((t) => (
                             <div key={t.group} className="contents sm:block">
-                                <dt className="font-mono text-xs leading-5 text-[var(--fg-dim)]">{t.group}</dt>
+                                <dt className="text-xs leading-5 text-[var(--fg-dim)]">{t.group}</dt>
                                 <dd className="text-[var(--fg-soft)] sm:mt-1">{t.items.join(" · ")}</dd>
                             </div>
                         ))}

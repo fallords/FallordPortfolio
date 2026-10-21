@@ -24,10 +24,9 @@ const projects = [
         title: "Free AI CV Maker",
         subtitle: "A CV builder that runs in the browser",
         description:
-            "You fill in a form, and the preview lays your CV out on A4 pages as you type. Then you save it as a PDF from the print dialog, with selectable text and no watermark. It's free and needs no account. The app is in English and Indonesian.",
+            "You fill in a form, and the preview lays your CV out on A4 pages as you type. Then you save it as a PDF from the print dialog, with selectable text and no watermark. It’s free and needs no account. The app is in English and Indonesian.",
         image: "/cv-maker-phone.png",
         href: "https://fallord-cv-maker.vercel.app/",
-        host: "fallord-cv-maker.vercel.app",
         year: "2026",
         type: "Web app",
         stack: ["Next.js", "React", "TypeScript", "Tailwind CSS", "Vitest", "Playwright", "Vercel"],
@@ -42,7 +41,7 @@ const projects = [
             },
             {
                 title: "Stays on your device",
-                desc: "Drafts save to the browser as you type and come back after a refresh. There's no server. Export to JSON to keep a copy.",
+                desc: "Drafts save to the browser as you type and come back after a refresh. There’s no server. Export to JSON to keep a copy.",
             },
             {
                 title: "Optional AI",
@@ -57,7 +56,6 @@ const projects = [
             "A web app for reading relationship chats. You paste in a conversation or upload screenshots of it, and it writes up the patterns it sees. After that you can keep asking it questions about the result. The app is in Indonesian.",
         image: "/sera-phone.png",
         href: "https://s-e-r-a-smart-emotional-relationshi.vercel.app/",
-        host: "s-e-r-a-smart-emotional-relationshi.vercel.app",
         year: "2026",
         type: "AI web app",
         stack: ["Python", "Flask", "Google Gemini API", "JavaScript", "Canvas", "Vercel"],
@@ -85,7 +83,7 @@ const projects = [
 
 export default function Works() {
     return (
-        <Section id="work" index="01" title="Work" count={projects.length} wide>
+        <Section id="work" title="Work" count={projects.length} wide>
             {/*
              * Projects are separated by a rule, as pieces are in Writing. Blank
              * space alone took 96px, the widest gap in the section on a phone.
@@ -104,12 +102,15 @@ export default function Works() {
                         className={`grid grid-cols-1 items-start gap-x-6 gap-y-5 md:grid-cols-12 md:gap-y-10 ${index > 0 ? "border-t border-[var(--rule)] pt-6 md:pt-12" : ""}`}
                     >
                         <div className="md:col-span-9 md:col-start-4 md:row-start-1">
-                            <p className="flex flex-wrap items-center gap-x-3 gap-y-1 font-mono text-xs text-[var(--fg-dim)]">
-                                <span>{project.year}</span>
+                            <p className="flex flex-wrap items-center gap-x-3 gap-y-1 text-xs text-[var(--fg-dim)]">
+                                <span className="font-mono">{project.year}</span>
                                 <span aria-hidden="true">·</span>
                                 <span>{project.type}</span>
                                 <span aria-hidden="true">·</span>
-                                <span className="text-[#5fbf8a]">Live</span>
+                                <span className="flex items-center gap-1.5 text-[var(--live)]">
+                                    <span aria-hidden="true" className="h-1.5 w-1.5 rounded-full bg-[var(--live)]" />
+                                    Live
+                                </span>
                             </p>
 
                             <h3 className="mt-2 font-serif text-[2.25rem] font-medium leading-none text-[var(--fg)] md:mt-4 md:text-6xl">
@@ -121,8 +122,9 @@ export default function Works() {
                         </div>
 
                         {/*
-                         * The live app in a slim browser frame, at the screenshot's own
-                         * proportions. On a phone the frame takes a third of the width
+                         * The live app's screenshot in a hairline frame, at its own
+                         * proportions: no imitation browser bar, the visitor already has
+                         * one. On a phone the frame takes a third of the width
                          * and the description, with the button to open the app, sits
                          * beside it, so the whole project fits on one screen. Below
                          * 480px the button's bottom lines up with the frame's; wider,
@@ -137,11 +139,6 @@ export default function Works() {
                                 aria-label={`Open ${project.title}`}
                                 className="group block w-[36%] max-w-[15rem] shrink-0 self-start border border-[var(--rule-strong)] bg-[var(--surface-card)] transition-colors hover:border-[var(--gold)] md:w-auto md:max-w-none"
                             >
-                                {/* gap-1.5, not 2: at 1024px the CV maker's address otherwise misses fitting by 0.2px. */}
-                                <span className="flex h-8 items-center gap-1.5 border-b border-[var(--rule)] px-3 font-mono text-[10px] text-[var(--fg-dim)] md:h-9 md:text-[11px]">
-                                    <span aria-hidden="true" className="h-1.5 w-1.5 shrink-0 rounded-full bg-[#5fbf8a]" />
-                                    <span className="truncate">{project.host}</span>
-                                </span>
                                 <span className="relative block aspect-[625/985] overflow-hidden">
                                     <Image
                                         src={project.image}
@@ -185,7 +182,7 @@ export default function Works() {
                                         {/* text-pretty moves a word down so a card doesn't end on one lone word. It never adds a line. */}
                                         <p className="mt-1.5 text-pretty text-sm leading-relaxed text-[var(--fg-muted)] sm:mt-2">{f.desc}</p>
                                         {f.chain && (
-                                            <p className="mt-2.5 flex flex-wrap items-center gap-x-1 gap-y-1.5 font-mono text-[10.5px] text-[var(--fg-soft)] sm:mt-3 sm:gap-x-1.5 sm:gap-y-2 sm:text-[11px]">
+                                            <p className="mt-2.5 flex flex-wrap items-center gap-x-1 gap-y-1.5 font-mono text-xs text-[var(--fg-soft)] sm:mt-3 sm:gap-x-1.5 sm:gap-y-2">
                                                 {/* The arrow trails its model, so a wrapped line ends on → instead of starting with one. */}
                                                 {f.chain.map((model, j) => (
                                                     <span key={model} className="flex items-center gap-1 sm:gap-1.5">

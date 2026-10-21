@@ -60,9 +60,11 @@ const subscribeMotion = (cb: () => void) => {
  * be stoppable — WCAG 2.2.2), while the full-size view is open, while the
  * section is off screen, and always under reduced motion.
  *
- * It deliberately does not pause on hover or focus. It used to, and clicking
- * an arrow left focus inside, which stopped it until you clicked elsewhere —
- * so it looked like it never moved at all.
+ * It also pauses while keyboard focus is inside the section, so nothing
+ * slides away from someone tabbing through it. Only keyboard focus
+ * (`:focus-visible`): a mouse click on an arrow leaves focus inside too, and
+ * when that paused it, the slideshow looked like it never moved at all. It
+ * deliberately does not pause on hover, for the same reason.
  */
 export default function Certifications() {
     const rootRef = useRef<HTMLDivElement>(null);
@@ -90,9 +92,10 @@ export default function Certifications() {
     const [userPaused, setUserPaused] = useState(false);
     const [visible, setVisible] = useState(false);
     const [open, setOpen] = useState(false);
+    const [keyboardInside, setKeyboardInside] = useState(false);
     const reduced = useSyncExternalStore(subscribeMotion, () => window.matchMedia(motionQuery).matches, () => true);
 
-    const paused = userPaused || !visible || open || reduced || TOTAL < 2;
+    const paused = userPaused || !visible || open || keyboardInside || reduced || TOTAL < 2;
     const cert = ORDERED[active];
 
     const step = useCallback((d: 1 | -1) => {
@@ -134,17 +137,22 @@ export default function Certifications() {
     if (TOTAL === 0) return null;
 
     const arrow =
-        "flex h-10 w-10 items-center justify-center border border-[var(--rule-strong)] text-[var(--fg-soft)] transition-colors hover:border-[var(--gold)] hover:text-[var(--fg)]";
+        "flex h-[44px] w-[44px] items-center justify-center border border-[var(--rule-strong)] text-[var(--fg-soft)] transition-colors hover:border-[var(--gold)] hover:text-[var(--fg)]";
 
     return (
-        <Section id="certificates" index="03" title="Certificates" count={TOTAL} wide>
+        <Section id="certificates" title="Certificates" count={TOTAL} wide>
             {/*
              * lg and up: the index sits in the margin (columns 1–3), the viewer
              * takes columns 4–12 under the section title. Below lg the margin is
              * too narrow for a list, so it is one column with a thumbnail strip.
              */}
-            <div ref={rootRef} className="grid grid-cols-1 gap-x-6 gap-y-8 md:grid-cols-12">
-                <p className="font-mono text-xs text-[var(--fg-dim)] md:col-span-9 md:col-start-4 lg:row-start-1">
+            <div
+                ref={rootRef}
+                onFocus={(e) => (e.target as Element).matches(":focus-visible") && setKeyboardInside(true)}
+                onBlur={(e) => !e.currentTarget.contains(e.relatedTarget as Node | null) && setKeyboardInside(false)}
+                className="grid grid-cols-1 gap-x-6 gap-y-8 md:grid-cols-12"
+            >
+                <p className="text-xs text-[var(--fg-dim)] md:col-span-9 md:col-start-4 lg:row-start-1">
                     {TOTAL} certificates · {ISSUERS} institutions · {SPAN}
                 </p>
 
@@ -191,7 +199,7 @@ export default function Certifications() {
                             );
                         })}
                         {/* Revealed on hover with a mouse; always there on a touch screen, which also gets the swipe. */}
-                        <span className="absolute bottom-3 right-4 border border-[var(--rule-strong)] bg-[var(--surface)]/80 px-1.5 py-0.5 font-mono text-xs text-[var(--fg-muted)] transition-opacity [@media(hover:hover)]:opacity-0 [@media(hover:hover)]:group-hover:opacity-100">
+                        <span className="absolute bottom-3 right-4 border border-[var(--rule-strong)] bg-[var(--surface)]/80 px-1.5 py-0.5 text-xs text-[var(--fg-muted)] transition-opacity [@media(hover:hover)]:opacity-0 [@media(hover:hover)]:group-hover:opacity-100">
                             <span className="[@media(hover:none)]:hidden">Open full size ↗</span>
                             <span className="[@media(hover:hover)]:hidden">← swipe → · tap to enlarge</span>
                         </span>

@@ -77,14 +77,14 @@ export default function PageLoading() {
         <div role="status" className="page-loading fade-in" style={{ "--delay": "150ms", animationDuration: "250ms" } as React.CSSProperties}>
             <div className="shell grid-12 w-full">
                 <div className="col-span-4 md:col-span-6 md:col-start-4">
-                    <p className="font-mono text-xs text-[var(--gold)]">{labelFor(target)}</p>
+                    <p className="text-xs text-[var(--gold)]">{labelFor(target)}</p>
                     <p aria-hidden="true" className="mt-3 font-serif text-5xl font-medium leading-none tracking-[-0.02em] text-[var(--fg)] md:text-7xl">
                         Fadhlan Bani
                     </p>
                     <div aria-hidden="true" className="mt-10 h-px w-full overflow-hidden bg-[var(--rule)]">
                         <div className="loading-bar h-full w-1/3 bg-[var(--gold)]" />
                     </div>
-                    <p className="mt-3 font-mono text-xs text-[var(--fg-dim)]">Loading</p>
+                    <p className="mt-3 text-xs text-[var(--fg-dim)]">Loading</p>
                 </div>
             </div>
         </div>

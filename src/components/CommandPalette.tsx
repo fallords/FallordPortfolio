@@ -40,11 +40,11 @@ export default function CommandPalette() {
             else router.push(`/#${id}`);
         };
         return [
-            { group: "Go to", label: "Work", hint: "01", run: go("work") },
-            { group: "Go to", label: "What I do", hint: "02", run: go("about") },
-            { group: "Go to", label: "Certificates", hint: "03", run: go("certificates") },
-            ...(hasEssays ? [{ group: "Go to", label: "Writing", hint: "04", run: go("writing") }] : []),
-            { group: "Go to", label: "Contact", hint: "05", run: go("contact") },
+            { group: "Go to", label: "Work", run: go("work") },
+            { group: "Go to", label: "What I do", run: go("about") },
+            { group: "Go to", label: "Certificates", run: go("certificates") },
+            ...(hasEssays ? [{ group: "Go to", label: "Writing", run: go("writing") }] : []),
+            { group: "Go to", label: "Contact", run: go("contact") },
             {
                 group: "Contact",
                 label: copied ? "Copied to clipboard" : "Copy email address",
@@ -187,7 +187,7 @@ export default function CommandPalette() {
                     })}
                 </ul>
 
-                <p className="flex gap-4 border-t border-[var(--rule)] px-5 py-2.5 font-mono text-[11px] text-[var(--fg-dim)]">
+                <p className="flex gap-4 border-t border-[var(--rule)] px-5 py-2.5 font-mono text-xs text-[var(--fg-dim)]">
                     <span>↑↓ move</span>
                     <span>↵ select</span>
                     <span>esc close</span>

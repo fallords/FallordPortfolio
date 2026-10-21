@@ -83,7 +83,7 @@ export default function IntroScreen() {
         <div className="intro" aria-hidden="true">
             <div className="shell grid-12 w-full">
                 <div className="col-span-4 md:col-span-6 md:col-start-4">
-                    <p className="font-mono text-xs text-[var(--gold)]">Portfolio</p>
+                    <p className="text-xs text-[var(--gold)]">Portfolio</p>
                     <p className="intro-name mt-3 font-serif text-5xl font-medium leading-none tracking-[-0.02em] text-[var(--fg)] md:text-7xl">
                         Fadhlan Bani
                     </p>
@@ -97,9 +97,9 @@ export default function IntroScreen() {
                             style={{ transform: `scaleX(${progress})` }}
                         />
                     </div>
-                    <p className="mt-3 flex justify-between font-mono text-xs text-[var(--fg-dim)]">
+                    <p className="mt-3 flex justify-between text-xs text-[var(--fg-dim)]">
                         <span>Loading</span>
-                        {hydrated && <span className="tabular-nums">{String(Math.round(progress * 100)).padStart(3, "0")}%</span>}
+                        {hydrated && <span className="font-mono tabular-nums">{String(Math.round(progress * 100)).padStart(3, "0")}%</span>}
                     </p>
                 </div>
             </div>
