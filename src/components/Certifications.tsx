@@ -41,7 +41,7 @@ const ORDERED: Certification[] = grouped.flatMap((g) => g.items.map((x) => x.cer
 const TOTAL = ORDERED.length;
 const ISSUERS = new Set(ORDERED.map((c) => c.issuer)).size;
 const YEARS = ORDERED.map((c) => Number(c.year)).filter(Boolean);
-const SPAN = YEARS.length ? `${Math.min(...YEARS)} to ${Math.max(...YEARS)}` : "";
+const SPAN = YEARS.length ? `${Math.min(...YEARS)}–${Math.max(...YEARS)}` : "";
 
 const motionQuery = "(prefers-reduced-motion: reduce)";
 const subscribeMotion = (cb: () => void) => {
@@ -140,10 +140,19 @@ export default function Certifications() {
         "flex h-[44px] w-[44px] items-center justify-center border border-[var(--rule-strong)] text-[var(--fg-soft)] transition-colors hover:border-[var(--gold)] hover:text-[var(--fg)]";
 
     return (
-        <Section id="certificates" title="Certificates" count={TOTAL} wide>
+        <Section
+            id="certificates"
+            title="Certificates"
+            meta={
+                <>
+                    {TOTAL} from {ISSUERS} institutions<span className="hidden sm:inline"> · {SPAN}</span>
+                </>
+            }
+            wide
+        >
             {/*
              * lg and up: the index sits in the margin (columns 1–3), the viewer
-             * takes columns 4–12 under the section title. Below lg the margin is
+             * takes columns 4–12. Below lg the margin is
              * too narrow for a list, so it is one column with a thumbnail strip.
              */}
             <div
@@ -152,12 +161,8 @@ export default function Certifications() {
                 onBlur={(e) => !e.currentTarget.contains(e.relatedTarget as Node | null) && setKeyboardInside(false)}
                 className="grid grid-cols-1 gap-x-6 gap-y-8 md:grid-cols-12"
             >
-                <p className="text-xs text-[var(--fg-dim)] md:col-span-9 md:col-start-4 lg:row-start-1">
-                    {TOTAL} certificates · {ISSUERS} institutions · {SPAN}
-                </p>
-
                 {/* Viewer */}
-                <div className="md:col-span-9 md:col-start-4 lg:row-start-2">
+                <div className="md:col-span-9 md:col-start-4 lg:row-start-1">
                     <button
                         type="button"
                         {...swipe.handlers}
@@ -244,7 +249,7 @@ export default function Certifications() {
                         </div>
                         <div className="order-first flex shrink-0 items-center justify-between gap-3 sm:order-none sm:justify-start">
                             <span className="font-mono text-xs tabular-nums text-[var(--fg-dim)]">
-                                {String(active + 1).padStart(2, "0")} / {String(TOTAL).padStart(2, "0")}
+                                {active + 1} / {TOTAL}
                             </span>
                             <span className="flex gap-2 sm:gap-3">
                             {!reduced && (
@@ -293,12 +298,12 @@ export default function Certifications() {
                 </div>
 
                 {/* Index, grouped by field */}
-                <nav aria-label="Certificate index" className="hidden lg:col-span-3 lg:col-start-1 lg:row-span-2 lg:row-start-1 lg:block">
+                <nav aria-label="Certificate index" className="hidden lg:col-span-3 lg:col-start-1 lg:row-start-1 lg:block">
                     {grouped.map((group) => (
                         <div key={group.label} className="mb-6 last:mb-0">
                             <p className="flex justify-between text-xs text-[var(--fg-dim)]">
                                 <span>{group.label}</span>
-                                <span className="font-mono">{String(group.items.length).padStart(2, "0")}</span>
+                                <span className="font-mono">{group.items.length}</span>
                             </p>
                             <ul className="mt-2 border-t border-[var(--rule)]">
                                 {group.items.map(({ cert: c, index }) => {

@@ -84,7 +84,7 @@ export default function IntroScreen() {
             <div className="shell grid-12 w-full">
                 <div className="col-span-4 md:col-span-6 md:col-start-4">
                     <p className="text-xs text-[var(--gold)]">Portfolio</p>
-                    <p className="intro-name mt-3 font-serif text-5xl font-medium leading-none tracking-[-0.02em] text-[var(--fg)] md:text-7xl">
+                    <p className="intro-name mt-3 font-display text-[2.75rem] font-bold leading-none tracking-[-0.04em] text-[var(--fg)] md:text-6xl">
                         Fadhlan Bani
                     </p>
                     <p className="mt-4 text-sm text-[var(--fg-muted)]">Developer &amp; designer from Indonesia</p>

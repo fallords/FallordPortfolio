@@ -36,9 +36,9 @@ function Cover({ essay }: { essay: Essay }) {
                 </span>
 
                 <span className="mt-[8cqw] text-[3.9cqw] text-[var(--ink)]/60 @min-[12rem]:text-[max(9px,3.9cqw)]">{essay.field}</span>
-                <span className="mt-[2.5cqw] font-serif text-[9.2cqw] font-semibold leading-[1.08]">{essay.title}</span>
+                <span className="mt-[2.5cqw] font-display text-[8.4cqw] font-bold leading-[1.08] tracking-[-0.02em]">{essay.title}</span>
                 {essay.subtitle && (
-                    <span className="mt-[4cqw] hidden font-serif text-[5.2cqw] leading-snug text-[var(--ink)]/75 @min-[12rem]:block">
+                    <span className="mt-[4cqw] hidden text-[4.6cqw] leading-snug text-[var(--ink)]/75 @min-[12rem]:block">
                         {essay.subtitle}
                     </span>
                 )}
@@ -72,10 +72,10 @@ function Piece({ essay }: { essay: Essay }) {
             </div>
 
             <div className="md:col-span-9 md:col-start-4 lg:col-span-7">
-                <p className="text-xs leading-relaxed text-[var(--fg-dim)]">
+                <p className="font-mono text-xs leading-relaxed text-[var(--fg-dim)]">
                     {essay.field} · {essay.year} · {essay.readingTime} read
                 </p>
-                <h3 className="mt-1 text-pretty font-serif text-[1.3rem] font-medium leading-[1.1] text-[var(--fg)] md:mt-4 md:text-4xl">
+                <h3 className="mt-1 min-w-0 text-pretty font-display wrap-anywhere text-[1.15rem] font-bold leading-[1.15] tracking-[-0.02em] text-[var(--fg)] md:mt-4 md:text-3xl">
                     <Link href={`/writing/${essay.slug}`} className="transition-colors hover:text-[var(--gold)]">
                         {essay.title}
                     </Link>
@@ -127,7 +127,7 @@ export default function Writing() {
         <Section
             id="writing"
             title="Writing"
-            count={essaysByYear.length}
+            meta={`${essaysByYear.length} pieces`}
             intro="Longer pieces: my thesis project, written up as a case study, and an essay on something outside of code."
             introClassName="hidden md:block"
             wide

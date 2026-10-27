@@ -41,7 +41,7 @@ Situs portofolio satu halaman (beranda) ditambah halaman per tulisan. Semua hala
 Prinsip yang dipegang di seluruh kode:
 
 - **HP dulu.** Setiap section dirancang muat kira-kira satu layar HP. Yang bisa digeser atau terpotong selalu diberi petunjuk.
-- **Tiga material warna.** Iron (permukaan dan teks), Cloak (hijau tua: potret, Contact, footer), Gold (yang sedang ditunjuk dan penomoran).
+- **Tiga material warna.** Iron (permukaan dan teks), Cloak (hijau tua: potret, Contact, footer), Gold (yang sedang ditunjuk: fokus, item aktif, garis progres).
 - **Ringan dan tahan gagal.** Bagian yang gagal diganti pesan di tempatnya sendiri, dan halaman tetap terbaca tanpa JavaScript.
 - **Isi asli saja.** Data proyek, sertifikat, dan tulisan diambil dari dokumen aslinya, bukan teks karangan.
 
@@ -53,7 +53,7 @@ Prinsip yang dipegang di seluruh kode:
 | UI | React, dengan React Compiler (`reactCompiler: true`) | 19.2.8 |
 | Bahasa | TypeScript, mode `strict` | 5.9 |
 | Styling | Tailwind CSS 4 (lewat `@tailwindcss/postcss`) dan token CSS di `globals.css` | 4.2 |
-| Font | `next/font/google`, di-host sendiri: Cormorant Garamond, Geist, Geist Mono | |
+| Font | `next/font/google`, di-host sendiri: Geist, Geist Mono | |
 | Gambar | `next/image`, format AVIF lalu WebP | |
 | Gambar share | `next/og` (`ImageResponse`), dibuat saat build | |
 | Lint | ESLint 9 dengan `eslint-config-next` (core-web-vitals dan typescript) | 9.39 |
@@ -165,7 +165,7 @@ Error di dalam halaman ditangani `app/error.tsx`. Error di root layout ditangani
 
 `app/layout.tsx` berisi:
 
-- **Font:** Geist (teks, antarmuka, label, dan petunjuk), Geist Mono (hanya data dan kode: tahun, penghitung, kode, ID model, tombol keyboard), dan Cormorant Garamond 500/600 (judul, selalu tegak, tanpa italic). Semua di-host sendiri oleh `next/font` dan dipasang sebagai variabel CSS `--font-geist`, `--font-geist-mono`, dan `--font-cormorant`.
+- **Font:** dua keluarga. Geist 400 untuk teks dan antarmuka, Geist 700 yang dirapatkan untuk judul (token `--font-display`, kelas `font-display`), dan Geist Mono untuk label dan data (header section, tahun, jumlah, jam, penghitung frame, kode, dan wordmark di header). Judul selalu tegak, tanpa italic. Keduanya di-host sendiri oleh `next/font` sebagai variabel CSS `--font-geist` dan `--font-geist-mono`. Cormorant Garamond sudah dihapus.
 - **Viewport:** `themeColor #0d1011`, `viewportFit: cover`, dan zoom tidak dikunci.
 - **Metadata:** judul "Fadhlan Bani · Developer & designer", deskripsi, canonical `/`, Open Graph, Twitter card, dan `robots: index, follow`.
 - **Boot script** (`BOOT_SCRIPT` dari `lib/intro.ts`) sebagai `<script>` inline di `<head>`. Lihat bagian 10.
@@ -184,23 +184,32 @@ Urutan diatur di `app/page.tsx`.
 |---|---|---|---|
 | Hero | | `Hero.tsx`, `Portrait.tsx`, `LocalTime.tsx` | teks di `Hero.tsx`, email di `site.ts` |
 | Work | `work` | `Works.tsx`, `SwipeRow.tsx` | array `projects` di `Works.tsx` |
-| What I do | `about` | `About.tsx`, `demos/*` | array `services` dan `tools` di `About.tsx` |
+| What I do | `about` | `About.tsx`, `demos/*` | array `services` (termasuk `tools` per kemampuan) di `About.tsx` |
 | Certificates | `certificates` | `Certifications.tsx`, `CertificateLightbox.tsx` | `content/certifications.ts` |
 | Writing | `writing` | `Writing.tsx` | `content/writing.ts` |
 | Contact | `contact` | `Contact.tsx`, `CopyEmail.tsx` | `lib/site.ts` |
 | Footer | | `Footer.tsx`, `GridToggle.tsx` | |
 
-**Kerangka section (`Section.tsx`).** Semua section di bawah hero memakai komponen ini dengan props `id`, `title`, `intro`, `count` (superscript jumlah, tampil kalau lebih dari 1), `wide`, `className`, `introClassName`, dan `padding`. Section tidak bernomor: penomoran 01–05 di margin sudah dihapus karena urutannya bukan langkah yang harus diikuti. Di grid 12 kolom, kolom 1–3 adalah margin (pada section `wide`: daftar tab, screenshot, cover, atau index) dan kolom 4–12 adalah konten. Padding vertikal bawaan 64px, menjadi 80px dari 1024px. Contact memakai `padding="py-16"` supaya ritme halaman tidak seragam.
+**Kerangka section (`Section.tsx`).** Semua section di bawah hero memakai komponen ini dengan props `id`, `title`, `intro`, `meta`, `wide`, `className`, `introClassName`, dan `padding`. Section dibuka dengan header berjalan bergaya datasheet selebar 12 kolom: nama section dalam mono, garis tipis sampai tepi, lalu `meta` di ujung (misalnya "2 projects" atau "11 from 8 institutions"). Garis itu sekaligus pemisah antar-section, jadi tidak ada border di atas section. Header sengaja kecil supaya tiap section dibuka oleh isinya sendiri, bukan kata raksasa yang sama berulang. Section tidak bernomor, karena urutannya bukan langkah yang harus diikuti. Di grid 12 kolom, kolom 1–3 adalah margin (pada section `wide`: daftar tab, screenshot, cover, atau index) dan kolom 4–12 adalah konten. Padding vertikal bawaan 64px, menjadi 80px dari 1024px. Contact memakai `padding="py-16"` supaya ritme halaman tidak seragam.
 
 **Header.** Header menempel di atas (48px di HP, 56px di laptop). Link menuju `/#id`. Di beranda, link section yang sedang dibaca ditandai garis bawah emas (`aria-current="location"`): section aktif adalah yang bagian atasnya sudah melewati sepertiga layar, dan Certificates ikut menandai About. Di layar ≥768px ada tombol Ctrl/⌘ K.
 
 **Hero.** Di HP, potret ditaruh di atas (46svh) dan teks naik 112px menimpa bagian bawahnya yang memudar. Di laptop, potret menempel ke tepi kanan (62%), nama diletakkan melintasi sambungan, dan ada tiga fakta (Based in dengan jam WIB, Focus, Stack). Kalau potret gagal, kotaknya tetap ada dengan warna cloak.
 
-**Work.** Setiap proyek punya meta (tahun, jenis, titik Live), judul, subjudul, deskripsi, screenshot dalam bingkai garis tipis (tanpa tiruan bar browser), kartu fitur, stack, dan tombol "Open the app". Di HP, kartu fitur menjadi baris yang digeser (84% lebar, snap).
+**Work.** Kedua proyek berdampingan sebagai dua kolom setara, dipisah garis tipis vertikal (mulai 768px), supaya mata membandingkan ke samping dan bukan membaca template yang sama dua kali ke bawah. Tiap kolom berisi:
+- screenshot dalam bingkai garis tipis (tanpa tiruan bar browser), dengan meta mono (tahun, jenis, titik Live), judul, dan subjudul di sebelahnya
+- deskripsi, yang mulai 1024px ikut di sebelah screenshot
+- fitur sebagai baris bergaris tipis, bukan kartu: di bawah 1024px nama fitur menyambung ke penjelasannya, dan mulai 1024px nama di kiri dan penjelasan di kanan
+- stack (mono) dan tombol "Open the app", yang sejajar di kedua kolom karena kolomnya flex dengan `mt-auto`
 
-**What I do.** Lima tab ARIA (Code, Design, Systems, AI, Hardware), masing-masing dengan demo:
+Di HP, satu proyek per layar (kartu 88% lebar, snap) yang digeser lewat `SwipeRow`.
 
-| Tab | Demo | Isi |
+**What I do.** Sebuah "bench": kelima kemampuan tampil sekaligus, masing-masing dengan demonya yang sedang berjalan.
+- **Desktop (mulai 1024px):** grid berukuran tidak sama. Code (7 kolom) dan Design (5 kolom) di baris atas, lalu Systems, AI, dan Hardware (masing-masing 4 kolom) di baris bawah.
+- **Tablet:** dua per baris, dengan Code selebar dua kolom.
+- **HP:** satu demo per layar (88% lebar, snap) yang digeser lewat `SwipeRow`.
+
+| Kartu | Demo | Isi |
 |---|---|---|
 | Code | `CodeDemo` | Mengetik `loadOrder` milik potret, lalu menjalankan fungsi aslinya (diimpor dari `Portrait.tsx`) dan menyalakan 181 kotak sesuai urutan muat |
 | Design | `WireframeDemo` | Wireframe hero dan desain jadinya, dengan slider di antara keduanya. Bentuk panel memilih versi lebar atau HP lewat container query |
@@ -208,7 +217,13 @@ Urutan diatur di `app/page.tsx`.
 | AI | `StreamDemo` | Jawaban chat yang mengalir per token. Jawabannya sudah ditulis, tidak ada API |
 | Hardware | `SensorDemo` | Sinyal akselerometer dengan ambang jatuh 23.1 m/s², lalu jalur MPU6050 → ESP32 → LoRa → Receiver → HTTP POST → MySQL. Berhenti saat panel tidak terlihat |
 
-Tab dipilih dengan klik atau keyboard (panah, Home, End), tidak dengan hover, supaya demo tidak berganti saat kursor lewat. Demo di-*key* pada tab, jadi selalu mulai dari awal. Setiap demo dibungkus `ErrorBoundary` dengan tombol "Try again". Panel demo setinggi 480px tetap mulai 768px. Daftar "Tools I use" bisa dilipat di HP.
+Cara kerjanya:
+- **Isi kartu:** nama dan petunjuk "coba ini" (berdenyut emas sampai demonya dipakai, lalu berganti keterangan seperti "Portrait.tsx, code from this site"), panel demo, satu kalimat deskripsi, dan tools-nya.
+- **Satu bingkai saja:** hanya panel demo yang berbingkai, supaya tidak ada kartu di dalam kartu.
+- **Demo mulai saat terlihat:** demo di-mount saat kartunya pertama kali terlihat (IntersectionObserver, 35%), jadi demo yang berjalan sekali seperti kode mengetik, trace, dan jawaban chat diputar saat ada yang melihat. Di HP, kartu yang belum digeser masuk belum menjalankan apa pun.
+- **Tinggi panel:** mulai 768px tingginya tetap, yaitu 440px untuk Code dan Design, dan 440px di tablet atau 400px di desktop untuk tiga demo lainnya. Di HP setinggi isinya, dengan ruang 20rem yang dijaga sampai demonya muncul.
+- **Tools:** tidak ada lagi daftar "Tools I use" terpisah. Ke-16 tools ada di kartu kemampuan masing-masing.
+- **Error:** setiap demo dibungkus `ErrorBoundary` dengan tombol "Try again".
 
 **Certificates.** Sertifikat dikelompokkan berdasarkan `field` ke dalam `GROUPS` (Cloud & AI, Computer science, Earth observation, Psychology & society, lalu Other untuk bidang yang tidak terdaftar). Ringkasan jumlah sertifikat, institusi, dan rentang tahun dihitung otomatis. Viewer berganti sendiri setiap 5 detik lewat animasi bar progres, dan berhenti saat:
 
@@ -222,7 +237,7 @@ Di HP ada strip thumbnail yang bisa digeser dan swipe di viewer. Di laptop, inde
 
 **Writing.** Cover bergaya halaman cetak, dengan ukuran huruf dalam satuan `cqw` (mengikuti lebar cover). Di laptop, ringkasan dan kata kunci ikut tampil. Di HP, tulisan ditampilkan sebagai daftar ringkas. Halaman tulisan (`/writing/[slug]`) hanya memuat ringkasan (abstract, atau paragraf pembuka untuk studi kasus), tombol PDF di bawah judul, kata kunci, dan tautan Newer/Older. Teks lengkap ada di PDF.
 
-**Contact dan footer.** Contact memuat email besar dengan font serif (dipecah dengan `<wbr>` setelah "@"), tombol "Copy address", serta LinkedIn dan Instagram. Footer memuat nama besar dengan warna satu tingkat dari latar, tombol "Show grid", dan "Back to top".
+**Contact dan footer.** Contact memuat email besar dengan Geist tebal (dipecah dengan `<wbr>` setelah "@"), tombol "Copy address", serta LinkedIn dan Instagram. Footer satu baris di bawah garis tipis: hak cipta, kredit, tombol "Show grid", dan "Back to top". Nama besar di footer sudah dihapus.
 
 **Command palette (`CommandPalette.tsx`).** Dibuka dengan Ctrl/⌘ K atau `/`, berupa combobox dengan `aria-activedescendant`. Isinya: lompat ke section, salin dan kirim email, buka profil sosial, tampilkan grid, dan kembali ke atas. Daftar section di dalamnya ditulis manual, jadi harus disesuaikan kalau section ditambah, dihapus, atau diganti namanya.
 
@@ -236,8 +251,8 @@ Semua token ada di `:root` dalam `src/app/globals.css`.
 | `--fg` / `--fg-soft` / `--fg-muted` / `--fg-dim` / `--fg-faint` | `#e7ebed` / `#c2c9cc` / `#8f999d` / `#78838a` / `#3f474b` | judul, teks panjang, pendukung, label, dekorasi |
 | `--rule` / `--rule-strong` | putih kebiruan 9% / 18% | garis rambut |
 | `--cloak` / `--cloak-bright` | `#14261c` / `#2f5a44` | Contact, footer, seleksi teks |
-| `--gold` | `#bf9d5f` | hover, fokus, menu aktif, garis progres, petunjuk, nomor daftar |
-| `--live` / `--wordmark` | `#5fbf8a` / `#1c3426` | titik Live, nama besar di footer |
+| `--gold` | `#bf9d5f` | hover, fokus, item aktif, garis progres, petunjuk. Tidak dipakai untuk angka atau hiasan |
+| `--live` | `#5fbf8a` | titik Live |
 | `--paper` / `--ink` | `#ebe6da` / `#1c1d1e` | cover tulisan |
 | `--syntax-string` / `--syntax-type` / `--syntax-number` | `#8fbf9f` / `#9fb6c6` / `#c9a3c9` | warna kode di demo Code |
 
@@ -293,7 +308,6 @@ File sumber video dan skrip pembuat frame tidak ada di repo. Untuk mengganti pot
 ## 11. Interaksi dan aksesibilitas
 
 - **Keyboard:**
-  - **Tab What I do:** panah, Home, dan End, dan hanya tab terpilih yang masuk urutan Tab.
   - **Palette:** Ctrl/⌘ K atau `/`, lalu ↑ ↓ ↵ Esc.
   - **Overlay grid:** tombol `G`.
   - **Lightbox:** ← → Esc.
@@ -301,7 +315,7 @@ File sumber video dan skrip pembuat frame tidak ada di repo. Untuk mengganti pot
 - **Sentuh:**
   - **Swipe:** `useSwipe` memakai pointer event (bukan mouse), dengan ambang 40px, `touch-action` `pan-y` atau `pinch-zoom`, dan pengecekan `visualViewport.scale` supaya swipe tidak terpicu saat layar di-zoom.
   - **Baris geser:** baris yang bisa digeser memakai `useScrollFade` (atribut `data-more-left` dan `data-more-right`) dan `SwipeHint`.
-- **Target sentuh:** tombol (chip tab, panah dan Pause sertifikat, toggle Tools, dan di layar sentuh semua tombol demo: Run again, Send again, chip pertanyaan, Stop, Simulate an impact) 44px, ditulis dalam px supaya tidak ikut mengecil di layar di bawah 380px. Tautan teks minimal 24px, dan sekitar 40px di perangkat sentuh (`.link` mendapat padding tambahan di `pointer: coarse`).
+- **Target sentuh:** tombol (panah dan Pause sertifikat, dan di layar sentuh semua tombol demo: Run again, Send again, chip pertanyaan, Stop, Simulate an impact) 44px, ditulis dalam px supaya tidak ikut mengecil di layar di bawah 380px. Tautan teks minimal 24px, dan sekitar 40px di perangkat sentuh (`.link` mendapat padding tambahan di `pointer: coarse`).
 - **Ukuran huruf:** tidak ada teks di bawah 12px (`text-xs`), termasuk di dalam demo.
 - **Gerak:** `prefers-reduced-motion` membuat animasi selesai seketika, potret diam, slideshow berhenti, dan scroll tidak halus (termasuk dari palette, yang tidak menulis `behavior` sendiri dan mengikuti CSS).
 - **Semantik:** landmark `header`/`main`/`nav`/`footer`, `aria-current` di menu, `role="dialog"` dengan `aria-modal` di lightbox dan palette, serta `role="status"` di loading.
@@ -440,7 +454,7 @@ Checklist manual (dengan `npm run start` atau situs live):
 - [ ] Lebar 320, 360, 390, 412, 768, 1024, 1440, dan 1920: tidak ada scroll ke samping, dan tidak ada teks yang terpotong.
 - [ ] Console bersih: tidak ada error, permintaan 4xx/5xx, atau pelanggaran CSP.
 - [ ] Intro tampil sekali per sesi, dan potret berputar.
-- [ ] Kelima tab What I do: demo jalan, dan keyboard berfungsi.
+- [ ] Kelima demo What I do: jalan saat terlihat, di HP muncul saat digeser masuk, tidak ada panel yang terpotong di 768px, dan keyboard berfungsi di dalam demo.
 - [ ] Sertifikat: maju dan mundur, pause, swipe di HP, lightbox (panah, Esc, fokus).
 - [ ] Ctrl/⌘ K, tombol G, Back to top.
 - [ ] Buka halaman tulisan, lalu kembali: layar loading tidak tertinggal.
@@ -461,14 +475,16 @@ Selama pengembangan, pemeriksaan ini dijalankan otomatis dengan Chrome headless 
 | Halaman tulisan hanya ringkasan | Teks lengkap ada di PDF, sehingga halaman tetap ringan |
 | Satu tema gelap | Identitas visual. Semua warna lewat token, jadi tema terang cukup dengan mendefinisikan ulang token |
 | Section tanpa nomor | Penomoran 01–05 di margin adalah pola template editorial, dan urutannya bukan langkah |
-| Judul selalu tegak, Cormorant italic tidak dimuat | Judul italic adalah ciri tulisan AI, dan satu file font jadi tidak perlu diunduh |
+| Judul memakai Geist 700, bukan serif | Gabungan gelap, emas, dan serif display terbaca sebagai template "portofolio premium". Satu file font juga jadi tidak perlu diunduh |
+| Header section bergaya datasheet | Judul raksasa satu kata yang sama di tiap section adalah pola template. Header kecil membuat tiap section dibuka oleh isinya |
+| Tanpa angka hiasan (01–04, angka berawalan nol) | Angka yang tidak menghitung apa pun adalah ciri template. Angka yang tersisa adalah jumlah atau posisi yang nyata |
 | Tanpa analytics | Tidak ada pihak ketiga, dan CSP tetap ketat |
 
 ## 19. Masalah yang diketahui
 
 - Tanpa JavaScript, potret kosong (kotak hijau dengan keterangan "Frame 001 / 181").
-- Di lebar 360px, section What I do sedikit lebih dari satu layar (chip 44px dan teks demo 12px menambah tingginya).
-- Catatan desain: masih ada serif di bawah 32px (subjudul artikel, judul tulisan di HP, Newer/Older).
+- Di desktop, What I do setinggi sekitar 1370px, karena kelima demo tampil sekaligus. Di HP muat satu layar (811px di 390px).
+- `Reveal.tsx` dan kelas `.reveal` tidak dipakai lagi sejak judul section dan panel demo tidak lagi muncul dengan animasi. Keduanya bisa dihapus.
 - Index sertifikat di laptop memakai nama lengkap, jadi beberapa baris turun ke dua baris. Ini disengaja: memotong nama akan menyembunyikan informasi.
 - Bentuk header masih bar standar (nama di kiri, empat tautan dan tombol Ctrl K di kanan). Untuk empat tautan ini pilihan yang paling mudah dipakai.
 - Skrip pembuat frame potret tidak ada di repo.

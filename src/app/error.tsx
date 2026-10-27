@@ -22,7 +22,7 @@ export default function Error({
         <main className="shell grid-12 min-h-[70svh] content-center py-24">
             <div className="col-span-4 md:col-span-8 md:col-start-4">
                 <p className="text-xs text-[var(--fg-dim)]">Error</p>
-                <h1 className="mt-4 font-serif text-5xl font-medium leading-none md:text-6xl">
+                <h1 className="mt-4 font-display text-4xl font-bold leading-none tracking-[-0.03em] md:text-5xl">
                     Something went wrong.
                 </h1>
                 <p className="mt-6 max-w-md text-[var(--fg-muted)]">

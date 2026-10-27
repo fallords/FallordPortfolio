@@ -30,16 +30,13 @@ async function loadFont(family: string, weight: number, text: string) {
 }
 
 export default async function OpengraphImage() {
-    const [serif, sans] = await Promise.all([
-        loadFont("Cormorant+Garamond", 500, NAME),
-        loadFont("Geist", 400, LINE + URL_TEXT),
-    ]);
+    const [bold, regular] = await Promise.all([loadFont("Geist", 700, NAME), loadFont("Geist", 400, LINE + URL_TEXT)]);
     /*
-     * Both or neither. Each font is subset, so with only one loaded the
+     * Both or neither. Each weight is subset, so with only one loaded the
      * renderer would draw whichever letters it happens to contain in that
-     * face and the rest in its fallback — a line of mixed type.
+     * weight and the rest in its fallback — a line of mixed type.
      */
-    const custom = serif && sans;
+    const custom = bold && regular;
 
     return new ImageResponse(
         (
@@ -61,10 +58,10 @@ export default async function OpengraphImage() {
                     style={{
                         display: "flex",
                         marginTop: 12,
-                        fontSize: 150,
+                        fontSize: 136,
                         lineHeight: 1,
-                        letterSpacing: "-0.02em",
-                        fontFamily: custom ? "Cormorant" : undefined,
+                        letterSpacing: "-0.04em",
+                        fontWeight: 700,
                     }}
                 >
                     {NAME}
@@ -79,8 +76,8 @@ export default async function OpengraphImage() {
             ...size,
             fonts: custom
                 ? [
-                      { name: "Cormorant", data: serif, weight: 500, style: "normal" },
-                      { name: "Geist", data: sans, weight: 400, style: "normal" },
+                      { name: "Geist", data: bold, weight: 700, style: "normal" },
+                      { name: "Geist", data: regular, weight: 400, style: "normal" },
                   ]
                 : undefined,
         }

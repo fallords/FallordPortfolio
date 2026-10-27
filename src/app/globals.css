@@ -1,11 +1,16 @@
+/* Hallmark · genre: modern-minimal · macrostructure: Workbench · tone: technical
+ * theme: preserved (Iron / Cloak / Gold) · type: Geist 700 display + Geist 400 body + Geist Mono labels
+ * section heads: running header (label · rule · count) · enrichment: none (the portrait stays)
+ * nav: kept bar, mono wordmark · footer: Ft2 inline single line
+ */
 @import "tailwindcss";
 
 /*
  * Three materials, each with one job.
  *   Iron   — every surface and all text.
  *   Cloak  — the portrait, selection, and hover fills. Nothing else.
- *   Gold   — what you are pointing at, and the small markers that guide you
- *            (progress lines, the "try this" hints, list numerals).
+ *   Gold   — what you are pointing at: focus, the active item, progress
+ *            lines, the "try this" hints. Never decoration, never a numeral.
  * Every colour on the site is a token here, the few outside the three
  * materials included, so none is written straight into a component.
  */
@@ -29,8 +34,6 @@
 
   /* The status dot and its word: a project that is live. */
   --live: #5fbf8a;
-  /* The footer's name, one shade off the cloak it is cut into. */
-  --wordmark: #1c3426;
   /* The writing covers: the one light surface, printed paper and its ink. */
   --paper: #ebe6da;
   --ink: #1c1d1e;
@@ -43,7 +46,8 @@
 @theme inline {
   --font-sans: var(--font-geist);
   --font-mono: var(--font-geist-mono);
-  --font-serif: var(--font-cormorant);
+  /* Headings: the body face at 700, set tight. A token of its own so it can change in one place. */
+  --font-display: var(--font-geist);
 }
 
 html {

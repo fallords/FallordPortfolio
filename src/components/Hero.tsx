@@ -48,17 +48,18 @@ export default function Hero() {
                     <p className="rise text-sm text-[var(--fg-muted)]">Developer &amp; designer from Indonesia</p>
 
                     <h1
-                        className="rise mt-4 font-serif text-[4rem] font-medium leading-[0.85] tracking-[-0.02em] text-[var(--fg)] md:text-[min(9.5vw,9rem)]"
+                        className="rise mt-3 min-w-0 font-display text-[clamp(2.75rem,13vw,3.75rem)] wrap-anywhere font-bold leading-[0.95] tracking-[-0.04em] text-[var(--fg)] md:mt-4 md:text-[min(8vw,6.5rem)]"
                         style={{ animationDelay: "60ms" }}
                     >
                         Fadhlan Bani
                     </h1>
 
+                    {/* What he builds, in the words the "What I do" section uses for it. */}
                     <p
-                        className="rise mt-5 max-w-[30rem] text-[1.0625rem] leading-relaxed text-[var(--fg-soft)] md:mt-8 md:text-xl"
+                        className="rise mt-4 max-w-[30rem] text-pretty text-[1.0625rem] leading-relaxed text-[var(--fg-soft)] md:mt-6 md:text-xl"
                         style={{ animationDelay: "140ms" }}
                     >
-                        A learner and a builder.
+                        I build web apps, AI tools and firmware for small boards.
                     </p>
 
                     <div className="rise mt-6 flex flex-wrap items-center gap-x-6 gap-y-3 md:mt-8" style={{ animationDelay: "200ms" }}>
@@ -81,7 +82,7 @@ export default function Hero() {
                     {facts.map((fact) => (
                         // Label beside value on a phone (three short rows), stacked from sm up.
                         <div key={fact.label} className="grid grid-cols-[5rem_1fr] items-baseline gap-3 sm:block">
-                            <dt className="text-xs text-[var(--fg-dim)]">{fact.label}</dt>
+                            <dt className="font-mono text-xs text-[var(--fg-dim)]">{fact.label}</dt>
                             <dd className="text-sm text-[var(--fg-soft)] sm:mt-1">{fact.value}</dd>
                         </div>
                     ))}

@@ -15,14 +15,14 @@ const X1 = 600;
 const GUTTER = 8;
 const COL = (X1 - X0 - GUTTER * 11) / 12;
 const PX = X0 + 7 * (COL + GUTTER) - 70; // portrait's left edge
-const TITLE_X = X0 + 3 * (COL + GUTTER);
 
 const r = (x: number, y: number, w: number, h: number) => `M${x} ${y}h${w}v${h}h${-w}v${-h}`;
 const d = (i: number) => ({ "--delay": `${i}ms` }) as React.CSSProperties;
 
 // Frame 181 in colour: this demo greys it through its own SVG filter, so it keeps the original.
 const PORTRAIT = `/_next/image?url=${encodeURIComponent("/frames/still-full.jpg")}&w=640&q=75`;
-const serif = { fontFamily: "var(--font-cormorant)" };
+// The hero name: the body face at 700, set tight, as the live hero sets it.
+const display = { fontFamily: "var(--font-geist)", letterSpacing: "-0.04em" };
 
 /*
  * Each picture comes in two shapes, and the panel's own shape picks one (a
@@ -65,8 +65,8 @@ function Wireframe() {
             <path className="draw" style={d(800)} pathLength={1} d={`M${PX} 48L640 310M640 48L${PX} 310`} {...stroke} strokeOpacity={0.4} />
 
             <rect className="fade-in" style={d(880)} x={X0} y={171} width={108} height={6} {...block} />
-            <rect className="fade-in" style={d(900)} x={X0} y={186} width={272} height={34} fill="var(--fg-soft)" />
-            <rect className="fade-in" style={d(1000)} x={X0} y={236} width={92} height={7} {...block} />
+            <rect className="fade-in" style={d(900)} x={X0} y={186} width={280} height={34} fill="var(--fg-soft)" />
+            <rect className="fade-in" style={d(1000)} x={X0} y={236} width={204} height={7} {...block} />
             <path className="draw" style={d(1050)} pathLength={1} d={r(X0, 256, 62, 18)} {...stroke} />
             <rect className="fade-in" style={d(1100)} x={X0 + 76} y={263} width={44} height={5} {...block} />
 
@@ -76,8 +76,9 @@ function Wireframe() {
             ))}
 
             <path className="draw" style={d(1350)} pathLength={1} d="M0 336H640" {...stroke} />
-            <rect className="fade-in" style={d(1450)} x={X0} y={354} width={12} height={5} fill="var(--gold)" />
-            <rect className="fade-in" style={d(1500)} x={TITLE_X} y={350} width={90} height={20} fill="var(--fg-soft)" />
+            <rect className="fade-in" style={d(1450)} x={X0} y={356} width={20} height={6} fill="var(--fg-soft)" />
+            <path className="draw" style={d(1480)} pathLength={1} d={`M${X0 + 26} 359.5H${X1 - 46}`} {...stroke} />
+            <rect className="fade-in" style={d(1500)} x={X1 - 38} y={357} width={38} height={5} {...block} />
 
             <g className="fade-in" style={{ ...d(1650), ...mono }} fill="var(--gold)" fontSize={10}>
                 <path d={`M${X0 + COL} 392V384M${X0 + COL + GUTTER} 392V384M${X0 + COL} 388H${X0 + COL + GUTTER}`} stroke="var(--gold)" strokeWidth={1} />
@@ -107,7 +108,7 @@ function Design({ id }: { id: string }) {
             <rect {...GROUND} fill="var(--surface)" />
 
             {/* Header */}
-            <text x={X0} y={31} fontSize={9} fontWeight={500} fill="var(--fg)" style={sans}>
+            <text x={X0} y={31} fontSize={9} fontWeight={500} fill="var(--fg)" style={mono}>
                 Fadhlan Bani
             </text>
             {["Work", "About", "Writing", "Contact"].map((label, i) => (
@@ -127,11 +128,11 @@ function Design({ id }: { id: string }) {
             <text x={X0} y={177} fontSize={7} fill="var(--fg-muted)" style={sans}>
                 Developer &amp; designer from Indonesia
             </text>
-            <text x={X0} y={219} fontSize={52} fontWeight={500} fill="var(--fg)" style={serif}>
+            <text x={X0} y={217} fontSize={44} fontWeight={700} fill="var(--fg)" style={display}>
                 Fadhlan Bani
             </text>
             <text x={X0} y={242} fontSize={7.5} fill="var(--fg-soft)" style={sans}>
-                A learner and a builder.
+                I build web apps, AI tools and firmware for small boards.
             </text>
             <rect x={X0} y={256} width={62} height={18} fill="var(--fg)" />
             <text x={X0 + 31} y={267.5} fontSize={7} textAnchor="middle" fill="var(--surface)" style={sans}>
@@ -149,7 +150,7 @@ function Design({ id }: { id: string }) {
                 ["Stack", "Next.js, React, TS"],
             ].map(([label, value], i) => (
                 <g key={label} style={sans}>
-                    <text x={X0 + i * 108} y={303} fontSize={5.5} fill="var(--fg-dim)">
+                    <text x={X0 + i * 108} y={303} fontSize={5.5} fill="var(--fg-dim)" style={mono}>
                         {label}
                     </text>
                     <text x={X0 + i * 108} y={313} fontSize={6.5} fill="var(--fg-soft)">
@@ -160,11 +161,12 @@ function Design({ id }: { id: string }) {
 
             {/* Next section */}
             <line x1={0} x2={640} y1={336} y2={336} stroke="var(--rule)" />
-            <text x={X0} y={360} fontSize={7} fill="var(--gold)" style={mono}>
-                01
-            </text>
-            <text x={TITLE_X} y={369} fontSize={24} fontWeight={500} fill="var(--fg)" style={serif}>
+            <text x={X0} y={362} fontSize={7} fontWeight={500} fill="var(--fg)" style={mono}>
                 Work
+            </text>
+            <line x1={X0 + 26} x2={X1 - 46} y1={359.5} y2={359.5} stroke="var(--rule-strong)" />
+            <text x={X1} y={362} fontSize={7} textAnchor="end" fill="var(--fg-dim)" style={mono}>
+                2 projects
             </text>
         </svg>
     );
@@ -186,7 +188,7 @@ const MLINKS = [
     { label: "Writing", x: 268, w: 27 },
     { label: "Contact", x: 304, w: 32 },
 ];
-const MLINE = { text: "A learner and a builder.", w: 124 };
+const MLINE = { text: "I build web apps, AI tools and firmware for small boards.", w: 300 };
 const MFACTS = [
     { label: "Based in", value: "Indonesia", lw: 29, vw: 41 },
     { label: "Focus", value: "Software, AI, IoT, UI design", lw: 19, vw: 128 },
@@ -214,7 +216,7 @@ function WireframeTall() {
             <path className="draw" style={d(800)} pathLength={1} d="M0 32L360 182M360 32L0 182" {...stroke} strokeOpacity={0.4} />
 
             <rect className="fade-in" style={d(880)} x={MX0} y={166} width={148} height={6} {...block} />
-            <rect className="fade-in" style={d(900)} x={MX0} y={182} width={192} height={30} fill="var(--fg-soft)" />
+            <rect className="fade-in" style={d(900)} x={MX0} y={182} width={214} height={30} fill="var(--fg-soft)" />
             <rect className="fade-in" style={d(1000)} x={MX0} y={223} width={MLINE.w} height={6} {...block} />
             <path className="draw" style={d(1200)} pathLength={1} d={r(MX0, 243, 70, 22)} {...stroke} />
             <rect className="fade-in" style={d(1250)} x={100} y={252} width={48} height={5} {...block} />
@@ -259,7 +261,7 @@ function DesignTall({ id }: { id: string }) {
             <rect {...GROUND} fill="var(--surface)" />
 
             {/* Header */}
-            <text x={MX0} y={21} fontSize={9.5} fontWeight={500} fill="var(--fg)" style={sans}>
+            <text x={MX0} y={21} fontSize={9.5} fontWeight={500} fill="var(--fg)" style={mono}>
                 Fadhlan Bani
             </text>
             {MLINKS.map((l) => (
@@ -284,10 +286,10 @@ function DesignTall({ id }: { id: string }) {
             <text x={MX0} y={172} fontSize={8.5} fill="var(--fg-muted)" style={sans}>
                 Developer &amp; designer from Indonesia
             </text>
-            <text x={MX0} y={210} fontSize={38} fontWeight={500} fill="var(--fg)" style={serif}>
+            <text x={MX0} y={209} fontSize={34} fontWeight={700} fill="var(--fg)" style={display}>
                 Fadhlan Bani
             </text>
-            <text x={MX0} y={229} fontSize={10.5} fill="var(--fg-soft)" style={sans}>
+            <text x={MX0} y={229} fontSize={9.5} fill="var(--fg-soft)" style={sans}>
                 {MLINE.text}
             </text>
             <rect x={MX0} y={243} width={70} height={22} fill="var(--fg)" />
@@ -302,7 +304,7 @@ function DesignTall({ id }: { id: string }) {
             <line x1={MX0} x2={MX1} y1={278} y2={278} stroke="var(--rule-strong)" />
             {MFACTS.map((f, i) => (
                 <g key={f.label} style={sans}>
-                    <text x={MX0} y={296 + i * 17} fontSize={7} fill="var(--fg-dim)">
+                    <text x={MX0} y={296 + i * 17} fontSize={7} fill="var(--fg-dim)" style={mono}>
                         {f.label}
                     </text>
                     <text x={95} y={296 + i * 17} fontSize={8.5} fill="var(--fg-soft)">

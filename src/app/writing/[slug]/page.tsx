@@ -92,16 +92,16 @@ export default async function EssayPage({
                         ← All writing
                     </Link>
 
-                    <p className="text-sm text-[var(--fg-dim)]">
-                        {essay.field} · <span className="font-mono">{essay.year}</span>
+                    <p className="font-mono text-sm text-[var(--fg-dim)]">
+                        {essay.field} · {essay.year}
                     </p>
 
-                    <h1 className="mt-5 font-serif text-4xl md:text-5xl font-medium leading-[1.05] text-balance">
+                    <h1 className="mt-5 min-w-0 font-display text-[2rem] wrap-anywhere font-bold leading-[1.08] tracking-[-0.03em] text-balance md:text-5xl">
                         {essay.title}
                     </h1>
 
                     {essay.subtitle && (
-                        <p className="mt-4 font-serif text-xl md:text-2xl leading-snug text-[var(--fg-muted)]">
+                        <p className="mt-4 text-lg leading-snug text-[var(--fg-muted)] md:text-xl">
                             {essay.subtitle}
                         </p>
                     )}
@@ -150,7 +150,7 @@ export default async function EssayPage({
                  * than pure white, which is harsh over more than a few lines.
                  */}
                 <section className="mx-auto mt-12 max-w-[68ch]" aria-labelledby="summary-heading">
-                    <h2 id="summary-heading" className="mb-5 font-serif text-2xl md:text-3xl font-medium text-[var(--fg)]">
+                    <h2 id="summary-heading" className="mb-5 font-mono text-sm font-medium text-[var(--fg)]">
                         {summary.label}
                     </h2>
                     {summary.paragraphs.map((paragraph, i) => (
@@ -165,7 +165,7 @@ export default async function EssayPage({
 
                 {essay.keywords && essay.keywords.length > 0 && (
                     <div className="mx-auto mt-10 max-w-[68ch] border-t border-[var(--rule)] pt-10">
-                        <h2 className="text-sm font-medium text-[var(--fg)]">
+                        <h2 className="font-mono text-sm font-medium text-[var(--fg)]">
                             Keywords
                         </h2>
                         <ul className="mt-4 flex flex-wrap gap-2">
@@ -205,7 +205,7 @@ export default async function EssayPage({
                                         <span className="text-xs text-[var(--fg-dim)]">
                                             {label}
                                         </span>
-                                        <span className="font-serif text-xl font-medium leading-tight text-[var(--fg-soft)]">
+                                        <span className="font-display text-lg font-bold leading-tight tracking-[-0.02em] text-[var(--fg-soft)]">
                                             {sibling.title}
                                         </span>
                                     </Link>

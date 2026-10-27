@@ -15,7 +15,7 @@ export default function Contact() {
                 href={`mailto:${EMAIL}`}
                 // Sized to the screen so the address fits on one line down to
                 // ~340px; below that it may break, but only after the "@".
-                className="inline-block font-serif text-[clamp(1.75rem,8.2vw,3.75rem)] font-medium leading-tight text-[var(--fg)] underline decoration-[var(--rule-strong)] decoration-1 underline-offset-[0.2em] transition-colors hover:decoration-[var(--gold)]"
+                className="inline-block font-display text-[clamp(1.5rem,7vw,3.25rem)] font-bold leading-tight tracking-[-0.03em] text-[var(--fg)] underline decoration-[var(--rule-strong)] decoration-1 underline-offset-[0.2em] transition-colors hover:decoration-[var(--gold)]"
             >
                 {EMAIL.split("@")[0]}@<wbr />
                 {EMAIL.split("@")[1]}

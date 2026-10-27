@@ -14,7 +14,7 @@ interface CertificateLightboxProps {
      */
     cert: Certification | null;
     open: boolean;
-    /** Zero-based position, for the "03 / 10" counter. */
+    /** Zero-based position, for the "3 / 11" counter. */
     index: number;
     total: number;
     onClose: () => void;
@@ -104,7 +104,7 @@ export default function CertificateLightbox({
         >
             <div className="shell flex h-14 shrink-0 items-center justify-between" onClick={(e) => e.stopPropagation()}>
                 <span className="font-mono text-xs tabular-nums text-[var(--fg-dim)]">
-                    {String(index + 1).padStart(2, "0")} / {String(total).padStart(2, "0")}
+                    {index + 1} / {total}
                 </span>
                 <button
                     ref={closeButtonRef}

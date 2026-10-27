@@ -74,7 +74,7 @@ export default function Header() {
     return (
         <header className="sticky top-0 z-40 border-b border-[var(--rule)] bg-[var(--surface)]/85 backdrop-blur-md">
             <div className="shell flex h-12 items-center justify-between md:h-14">
-                <Link href="/" prefetch={prefetch} className="flex h-12 items-center text-sm font-medium text-[var(--fg)] md:h-14">
+                <Link href="/" prefetch={prefetch} className="flex h-12 items-center font-mono text-sm font-medium text-[var(--fg)] md:h-14">
                     Fadhlan Bani
                 </Link>
 

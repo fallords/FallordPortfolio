@@ -78,7 +78,7 @@ export default function PageLoading() {
             <div className="shell grid-12 w-full">
                 <div className="col-span-4 md:col-span-6 md:col-start-4">
                     <p className="text-xs text-[var(--gold)]">{labelFor(target)}</p>
-                    <p aria-hidden="true" className="mt-3 font-serif text-5xl font-medium leading-none tracking-[-0.02em] text-[var(--fg)] md:text-7xl">
+                    <p aria-hidden="true" className="mt-3 font-display text-[2.75rem] font-bold leading-none tracking-[-0.04em] text-[var(--fg)] md:text-6xl">
                         Fadhlan Bani
                     </p>
                     <div aria-hidden="true" className="mt-10 h-px w-full overflow-hidden bg-[var(--rule)]">

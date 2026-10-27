@@ -2,9 +2,7 @@
 
 import { useEffect, useRef, useState } from "react";
 import Section from "./Section";
-import useScrollFade from "@/lib/useScrollFade";
-import SwipeHint from "./SwipeHint";
-import Reveal from "./Reveal";
+import SwipeRow from "./SwipeRow";
 import ErrorBoundary from "./ErrorBoundary";
 import FallbackNotice from "./FallbackNotice";
 import CodeDemo from "./demos/CodeDemo";
@@ -13,266 +11,172 @@ import TraceDemo from "./demos/TraceDemo";
 import StreamDemo from "./demos/StreamDemo";
 import SensorDemo from "./demos/SensorDemo";
 
+/*
+ * Each capability carries the tools it is done with, so there is no separate
+ * "Tools I use" list to cross-reference. All sixteen tools are here, each
+ * under the one place it is used.
+ *
+ * `span` places the card on the bench from lg: the two that need room (the
+ * code, the wireframe) share the top row, the three that read fine at a
+ * phone's width share the bottom one. `panel` is the demo's height from md,
+ * the size each one is drawn for.
+ */
 const services = [
     {
         title: "Code",
         desc: "I write software in TypeScript, Python and C++: web apps and the servers behind them, tools built on AI models, and firmware for small boards.",
-        file: "Portrait.tsx",
-        meta: "code from this site",
+        tools: ["Next.js", "React", "TypeScript", "Tailwind CSS"],
+        meta: "Portrait.tsx, code from this site",
         hint: "watch it, then rerun",
         Demo: CodeDemo,
+        span: "md:col-span-2 lg:col-span-7",
+        panel: "md:h-[27.5rem]",
     },
     {
         title: "Design",
         desc: "Before I write any code, I work out the layout, the screens, and what happens between them. Usually in Figma.",
-        file: "home / hero",
-        meta: "wireframe → design",
+        tools: ["Figma"],
+        meta: "this site's hero, wireframe → design",
         hint: "drag the slider",
         Demo: WireframeDemo,
+        span: "lg:col-span-5",
+        panel: "md:h-[27.5rem]",
     },
     {
         title: "Systems",
         desc: "Behind the screens, I plan APIs and databases (with DFDs and ERDs), set up Linux servers, and test things properly before they go live.",
-        file: "trace",
+        tools: ["PHP", "MySQL", "Linux (Ubuntu, Apache)", "Vercel"],
         meta: "POST /api/analyze",
         hint: "send the request again",
         Demo: TraceDemo,
+        span: "lg:col-span-4",
+        panel: "md:h-[27.5rem] lg:h-[25rem]",
     },
     {
         title: "AI",
         desc: "Adding AI to a product: chat, text generation, reading images, and connecting to LLM APIs like Gemini.",
-        file: "chat",
-        meta: "streaming",
+        tools: ["Python", "LLM APIs", "Google Gemini"],
+        meta: "a streamed reply",
         hint: "pick a question",
         Demo: StreamDemo,
+        span: "lg:col-span-4",
+        panel: "md:h-[27.5rem] lg:h-[25rem]",
     },
     {
         title: "Hardware",
         desc: "I program ESP32 boards in C++, wire up sensors, and send their data over LoRa to a server and a web dashboard. I’ve put this together and tested it on real hardware.",
-        file: "sensor → server",
-        meta: "live",
+        tools: ["ESP32", "Arduino (C++)", "LoRa", "MPU6050"],
+        meta: "sensor → server, live",
         hint: "tap the chart",
         Demo: SensorDemo,
+        span: "lg:col-span-4",
+        panel: "md:h-[27.5rem] lg:h-[25rem]",
     },
 ];
 
-const tools = [
-    { group: "Web", items: ["Next.js", "React", "TypeScript", "Tailwind CSS", "PHP", "MySQL"] },
-    { group: "AI", items: ["Python", "LLM APIs", "Google Gemini"] },
-    { group: "Hardware", items: ["ESP32", "Arduino (C++)", "LoRa", "MPU6050"] },
-    { group: "Ops & design", items: ["Linux (Ubuntu, Apache)", "Vercel", "Figma"] },
-];
+type Service = (typeof services)[number];
 
 /**
- * Five capabilities, each shown rather than described. Selecting one swaps
- * the window on the right; the demo is keyed on the selection, so it plays
- * from the start every time you come back to it.
+ * One capability on the bench: its name, its demo, what it is and what it is
+ * done with. The demo mounts the first time the card comes into view, so the
+ * ones that play once (the code typing itself, the trace, the reply) play
+ * while someone is looking, not before.
  */
-export default function About() {
-    const [active, setActive] = useState(0);
-    const { Demo, file, meta, hint } = services[active];
+function Bench({ service }: { service: Service }) {
+    const { title, desc, tools, meta, hint, Demo, span, panel } = service;
+    const ref = useRef<HTMLLIElement>(null);
+    const [shown, setShown] = useState(false);
     /*
-     * Until someone actually uses the demo on screen, its header carries a
-     * pulsing "try this" hint instead of the plain label. Switching to
-     * another demo brings the hint back for that one.
+     * Until someone uses the demo, its card carries a pulsing "try this" hint
+     * instead of the plain label.
      */
     const [tried, setTried] = useState(false);
-    // A phone keeps the tools list folded, so the section fits one screen.
-    const [toolsOpen, setToolsOpen] = useState(false);
-    const choose = (i: number) => {
-        if (i === active) return;
-        setActive(i);
-        setTried(false);
-    };
 
-    /*
-     * Below lg the tabs are a row of chips wider than the screen. Bring the
-     * chosen one to the middle of the row, so the next one along is always
-     * in sight. Scrolls the row only, never the page.
-     */
-    const tabsRef = useRef<HTMLOListElement>(null);
-    const tabEdges = useScrollFade(tabsRef);
     useEffect(() => {
-        const row = tabsRef.current;
-        const chip = row?.children[active] as HTMLElement | undefined;
-        if (!row || !chip || row.scrollWidth <= row.clientWidth) return;
-        const box = chip.getBoundingClientRect();
-        const left = box.left - row.getBoundingClientRect().left + row.scrollLeft - (row.clientWidth - box.width) / 2;
-        const smooth = !window.matchMedia("(prefers-reduced-motion: reduce)").matches;
-        row.scrollTo({ left, behavior: smooth ? "smooth" : "auto" });
-    }, [active]);
-
-    // ARIA tabs pattern: arrows move between tabs, Home/End jump to the ends,
-    // and only the selected tab sits in the Tab order.
-    const onTabKey = (e: React.KeyboardEvent) => {
-        const last = services.length - 1;
-        const next =
-            e.key === "ArrowDown" || e.key === "ArrowRight"
-                ? (active + 1) % services.length
-                : e.key === "ArrowUp" || e.key === "ArrowLeft"
-                  ? (active - 1 + services.length) % services.length
-                  : e.key === "Home"
-                    ? 0
-                    : e.key === "End"
-                      ? last
-                      : null;
-        if (next === null) return;
-        e.preventDefault();
-        choose(next);
-        document.getElementById(`skill-tab-${next}`)?.focus();
-    };
+        const el = ref.current;
+        if (!el) return;
+        const io = new IntersectionObserver(
+            ([entry]) => {
+                if (!entry.isIntersecting) return;
+                setShown(true);
+                io.disconnect();
+            },
+            { threshold: 0.35 }
+        );
+        io.observe(el);
+        return () => io.disconnect();
+    }, []);
 
     return (
-        <Section
-            id="about"
-            title="What I do"
-            intro="Five things I work on. Most projects need more than one. Pick one and try it."
-            // A phone goes straight to the chips; their hint and the demo's say the same thing.
-            introClassName="hidden md:block"
-            wide
-        >
-            {/*
-             * Separate grid items so a narrow screen gets tabs → demo →
-             * description → tools: the demo sits right under the chip you just
-             * tapped, and the description follows it as a caption, instead of
-             * pushing it most of a screen further down. Below lg the tabs are a
-             * swipeable row of chips. From lg the tabs become a list in the
-             * margin (columns 1–3), with the description inside the list, and
-             * the demo and tools take columns 4–12, under the section title.
-             */}
-            <div className="grid grid-cols-1 gap-x-6 gap-y-3 sm:gap-y-4 md:grid-cols-12 lg:gap-y-8">
-                <div className="md:col-span-9 md:col-start-4 lg:col-span-3 lg:col-start-1 lg:row-start-1">
-                    <ol
-                        ref={tabsRef}
-                        role="tablist"
-                        aria-label="Capabilities"
-                        onKeyDown={onTabKey}
-                        className="scroll-fade -mx-5 flex gap-2 overflow-x-auto px-5 pb-1 [scrollbar-width:none] md:mx-0 md:px-0 lg:block lg:overflow-visible lg:border-b lg:border-[var(--rule)] lg:pb-0 [&::-webkit-scrollbar]:hidden"
-                    >
-                        {services.map((service, i) => {
-                            const selected = i === active;
-                            return (
-                                <li key={service.title} className="shrink-0 lg:border-t lg:border-[var(--rule)]">
-                                    <button
-                                        type="button"
-                                        role="tab"
-                                        id={`skill-tab-${i}`}
-                                        aria-selected={selected}
-                                        aria-controls="skill-panel"
-                                        tabIndex={selected ? 0 : -1}
-                                        onClick={() => choose(i)}
-                                        className={`group flex h-[44px] items-center gap-2 whitespace-nowrap border px-3 text-left transition-colors lg:grid lg:h-auto lg:w-full lg:grid-cols-[2.25rem_1fr] lg:items-baseline lg:gap-0 lg:whitespace-normal lg:border-0 lg:px-0 lg:py-4 ${
-                                            selected ? "border-[var(--gold)]" : "border-[var(--rule-strong)]"
-                                        }`}
-                                    >
-                                        <span
-                                            className={`font-mono text-xs transition-colors ${
-                                                selected ? "text-[var(--gold)]" : "text-[var(--fg-dim)]"
-                                            }`}
-                                        >
-                                            {String(i + 1).padStart(2, "0")}
-                                        </span>
-                                        <span
-                                            className={`text-sm transition-colors lg:text-xl ${
-                                                selected ? "text-[var(--fg)]" : "text-[var(--fg-dim)] group-hover:text-[var(--fg-muted)]"
-                                            }`}
-                                        >
-                                            {service.title}
-                                        </span>
-                                        {/* Opens at once and fades in: only opacity animates, never the height. */}
-                                        <span className={`col-start-2 ${selected ? "hidden lg:block" : "hidden"}`}>
-                                            <span className="fade-in block pt-2 pr-2 text-sm leading-relaxed text-[var(--fg-muted)]" style={{ animationDuration: "300ms" }}>
-                                                {service.desc}
-                                            </span>
-                                        </span>
-                                    </button>
-                                </li>
-                            );
-                        })}
-                    </ol>
-                    <SwipeHint edges={tabEdges} className="mt-1.5 text-right lg:hidden" />
-                </div>
-
-                <Reveal className="md:col-span-9 md:col-start-4 lg:row-start-1">
-                    <div
-                        id="skill-panel"
-                        role="tabpanel"
-                        onPointerDownCapture={() => setTried(true)}
-                        onKeyDownCapture={() => setTried(true)}
-                        aria-labelledby={`skill-tab-${active}`}
-                        // A phone: as tall as the demo inside needs, so a short one leaves no
-                        // empty box. From md: one fixed height, so switching never moves the page.
-                        className="flex flex-col border border-[var(--rule-strong)] bg-[var(--surface-card)] md:h-[30rem]"
-                    >
-                        {/* A narrow phone may wrap the hint to two lines; the bar grows rather than clipping it. */}
-                        <div className="flex min-h-9 shrink-0 items-center justify-between gap-4 border-b border-[var(--rule)] px-4 py-1.5 font-mono text-xs sm:min-h-10 sm:py-2">
-                            <span className="shrink-0 text-[var(--fg-soft)]">{file}</span>
-                            {/* The file name is code, so it stays mono; what is said about it is words. */}
-                            {tried ? (
-                                <span className="text-right font-sans text-[var(--fg-dim)]">{meta}</span>
-                            ) : (
-                                // The dot is inline, so if the hint ever wraps it stays with the first line.
-                                <span className="text-right font-sans text-[var(--gold)]">
-                                    <span aria-hidden="true" className="pulse-dot mr-2 inline-block h-1.5 w-1.5 rounded-full bg-[var(--gold)] align-middle" />
-                                    <span className="sr-only">Interactive demo: </span>
-                                    {hint}
-                                </span>
-                            )}
-                        </div>
-                        <div className="md:min-h-0 md:flex-1">
-                            {/* A demo that breaks is replaced by a notice, in its own panel only. */}
-                            <ErrorBoundary
-                                key={active}
-                                fallback={(retry) => (
-                                    <FallbackNotice
-                                        message="This demo stopped working. Starting it again usually fixes it."
-                                        onRetry={retry}
-                                        className="h-full min-h-[16rem] justify-center p-6"
-                                    />
-                                )}
-                            >
-                                <Demo />
-                            </ErrorBoundary>
-                        </div>
-                    </div>
-                </Reveal>
-
-                {/* Below lg: the chosen capability's description, as a caption under its demo. */}
-                <p className="max-w-[40rem] text-[13px] leading-[1.55] text-[var(--fg-muted)] sm:text-base md:col-span-9 md:col-start-4 lg:hidden">
-                    {services[active].desc}
-                </p>
-
-                {/*
-                 * Below md the list folds behind a toggle; from md it is always open.
-                 * Label beside value on a phone; from sm, one column per group.
-                 */}
-                <div className="md:col-span-9 md:col-start-4 md:mt-6 lg:row-start-2 lg:mt-0">
-                    <button
-                        type="button"
-                        aria-expanded={toolsOpen}
-                        aria-controls="tools-list"
-                        onClick={() => setToolsOpen((o) => !o)}
-                        className="flex h-[44px] w-full items-center justify-between border-y border-[var(--rule)] text-sm text-[var(--fg-soft)] md:hidden"
-                    >
-                        <span>
-                            Tools I use <span className="font-mono text-xs text-[var(--fg-dim)]">· {tools.reduce((n, t) => n + t.items.length, 0)}</span>
-                        </span>
-                        <span className="text-xs text-[var(--gold)]">{toolsOpen ? "hide ↑" : "show ↓"}</span>
-                    </button>
-                    <p className="hidden text-sm text-[var(--fg-dim)] md:block">Tools I use</p>
-                    <dl
-                        id="tools-list"
-                        className={`${toolsOpen ? "grid" : "hidden"} mt-3 grid-cols-[6.5rem_1fr] gap-x-4 gap-y-2 text-sm sm:grid-cols-2 sm:gap-x-6 sm:gap-y-5 md:grid lg:grid-cols-4`}
-                    >
-                        {tools.map((t) => (
-                            <div key={t.group} className="contents sm:block">
-                                <dt className="text-xs leading-5 text-[var(--fg-dim)]">{t.group}</dt>
-                                <dd className="text-[var(--fg-soft)] sm:mt-1">{t.items.join(" · ")}</dd>
-                            </div>
-                        ))}
-                    </dl>
-                </div>
+        <li ref={ref} className={`flex w-[88%] shrink-0 snap-start flex-col md:w-auto ${span}`}>
+            <div className="mb-2.5 flex flex-wrap items-baseline justify-between gap-x-4 gap-y-1">
+                <h3 className="font-display text-xl font-bold tracking-[-0.02em] text-[var(--fg)]">{title}</h3>
+                {tried ? (
+                    <p className="text-xs text-[var(--fg-dim)]">{meta}</p>
+                ) : (
+                    // The dot is inline, so if the hint ever wraps it stays with the first line.
+                    <p className="text-xs text-[var(--gold)]">
+                        <span aria-hidden="true" className="pulse-dot mr-2 inline-block h-1.5 w-1.5 rounded-full bg-[var(--gold)] align-middle" />
+                        <span className="sr-only">Interactive demo: </span>
+                        {hint}
+                    </p>
+                )}
             </div>
+
+            {/*
+             * The only box on the card: the demo itself. A phone: as tall as the
+             * demo needs (with room held for it until it mounts). From md: the
+             * height the demo is drawn for.
+             */}
+            <div
+                onPointerDownCapture={() => setTried(true)}
+                onKeyDownCapture={() => setTried(true)}
+                className={`flex min-h-[20rem] flex-col border border-[var(--rule-strong)] bg-[var(--surface-card)] md:min-h-0 ${panel}`}
+            >
+                {shown && (
+                    <div className="fade-in md:min-h-0 md:flex-1" style={{ animationDuration: "300ms" }}>
+                        {/* A demo that breaks is replaced by a notice, in its own panel only. */}
+                        <ErrorBoundary
+                            fallback={(retry) => (
+                                <FallbackNotice
+                                    message="This demo stopped working. Starting it again usually fixes it."
+                                    onRetry={retry}
+                                    className="h-full min-h-[16rem] justify-center p-6"
+                                />
+                            )}
+                        >
+                            <Demo />
+                        </ErrorBoundary>
+                    </div>
+                )}
+            </div>
+
+            <p className="mt-3 max-w-[40rem] text-pretty text-[13px] leading-[1.55] text-[var(--fg-muted)] md:text-sm">{desc}</p>
+            {/* Non-breaking spaces keep each tool's name whole ("Tailwind CSS"). */}
+            <p className="mt-1.5 font-mono text-xs leading-5 text-[var(--fg-dim)]">
+                {tools.map((tool) => tool.replaceAll(" ", " ")).join(" · ")}
+            </p>
+        </li>
+    );
+}
+
+/**
+ * Five capabilities, each shown working rather than described: a bench of
+ * live demos. From lg an uneven grid (the code and the wireframe big on top,
+ * the trace, the chat and the sensor below); on a tablet two to a row, the
+ * code across both; on a phone one per screen, swiped.
+ */
+export default function About() {
+    return (
+        <Section id="about" title="What I do" meta={`${services.length} demos`} wide>
+            <SwipeRow
+                className="-mx-5 flex snap-x snap-mandatory scroll-px-5 gap-4 overflow-x-auto px-5 [scrollbar-width:none] md:mx-0 md:grid md:grid-cols-2 md:gap-x-6 md:gap-y-12 md:overflow-visible md:px-0 lg:grid-cols-12 [&::-webkit-scrollbar]:hidden"
+                hintClassName="mt-2 text-right md:hidden"
+            >
+                {services.map((service) => (
+                    <Bench key={service.title} service={service} />
+                ))}
+            </SwipeRow>
         </Section>
     );
 }

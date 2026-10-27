@@ -83,157 +83,120 @@ const projects = [
 
 export default function Works() {
     return (
-        <Section id="work" title="Work" count={projects.length} wide>
+        <Section id="work" title="Work" meta={`${projects.length} projects`} wide>
             {/*
-             * Projects are separated by a rule, as pieces are in Writing. Blank
-             * space alone took 96px, the widest gap in the section on a phone.
+             * The projects side by side, as equals: the same parts in the same
+             * places, so the eye compares across instead of reading one template
+             * twice down the page. From md, two columns split by a hairline. On a
+             * phone, one project per screen, swiped like the other rows here.
+             * Each project is a flex column, so the stack and the button sit on one
+             * line across both, however long either's features run.
              */}
-            <ul className="flex flex-col gap-6 md:gap-12">
+            <SwipeRow
+                className="-mx-5 flex snap-x snap-mandatory scroll-px-5 gap-3 overflow-x-auto px-5 [scrollbar-width:none] md:mx-0 md:grid md:grid-cols-2 md:gap-0 md:overflow-visible md:px-0 [&::-webkit-scrollbar]:hidden"
+                hintClassName="mt-2 text-right md:hidden"
+            >
                 {projects.map((project, index) => (
-                    /*
-                     * Three grid items so the order can differ by width. A phone
-                     * reads name → screenshot → features, so you know what you
-                     * are looking at before a tall screenshot fills the screen.
-                     * From md up the screenshot hangs in the margin (columns 1–3)
-                     * and the rest starts at column 4, under the section title.
-                     */
                     <li
                         key={project.title}
-                        className={`grid grid-cols-1 items-start gap-x-6 gap-y-5 md:grid-cols-12 md:gap-y-10 ${index > 0 ? "border-t border-[var(--rule)] pt-6 md:pt-12" : ""}`}
+                        className={`flex w-[88%] shrink-0 snap-start flex-col border border-[var(--rule)] p-4 md:w-auto md:p-0 ${
+                            index === 0 ? "md:border-0 md:pr-8 lg:pr-12" : "md:border-y-0 md:border-r-0 md:pl-8 lg:pl-12"
+                        }`}
                     >
-                        <div className="md:col-span-9 md:col-start-4 md:row-start-1">
-                            <p className="flex flex-wrap items-center gap-x-3 gap-y-1 text-xs text-[var(--fg-dim)]">
-                                <span className="font-mono">{project.year}</span>
-                                <span aria-hidden="true">·</span>
-                                <span>{project.type}</span>
-                                <span aria-hidden="true">·</span>
-                                <span className="flex items-center gap-1.5 text-[var(--live)]">
-                                    <span aria-hidden="true" className="h-1.5 w-1.5 rounded-full bg-[var(--live)]" />
-                                    Live
-                                </span>
-                            </p>
-
-                            <h3 className="mt-2 font-serif text-[2.25rem] font-medium leading-none text-[var(--fg)] md:mt-4 md:text-6xl">
-                                {project.title}
-                            </h3>
-                            <p className="mt-1.5 text-sm text-[var(--fg-dim)] md:mt-2">{project.subtitle}</p>
-                            {/* A phone has this beside the screenshot instead. */}
-                            <p className="mt-6 hidden max-w-[40rem] text-pretty leading-relaxed text-[var(--fg-muted)] md:block">{project.description}</p>
-                        </div>
-
                         {/*
                          * The live app's screenshot in a hairline frame, at its own
-                         * proportions: no imitation browser bar, the visitor already has
-                         * one. On a phone the frame takes a third of the width
-                         * and the description, with the button to open the app, sits
-                         * beside it, so the whole project fits on one screen. Below
-                         * 480px the button's bottom lines up with the frame's; wider,
-                         * the frame outgrows the text, so the button follows the text
-                         * instead of floating up to 300px below it.
+                         * proportions (no imitation browser bar: the visitor already
+                         * has one), with the name beside it. From lg the description
+                         * joins the name there; narrower, it runs full width below.
                          */}
-                        <div className="flex gap-4 md:col-span-3 md:col-start-1 md:row-span-2 md:row-start-1 md:block">
+                        <div className="flex gap-4 lg:gap-6">
                             <a
                                 href={project.href}
                                 target="_blank"
                                 rel="noopener noreferrer"
                                 aria-label={`Open ${project.title}`}
-                                className="group block w-[36%] max-w-[15rem] shrink-0 self-start border border-[var(--rule-strong)] bg-[var(--surface-card)] transition-colors hover:border-[var(--gold)] md:w-auto md:max-w-none"
+                                className="group block w-[34%] max-w-[9.5rem] shrink-0 self-start border border-[var(--rule-strong)] bg-[var(--surface-card)] transition-colors hover:border-[var(--gold)]"
                             >
                                 <span className="relative block aspect-[625/985] overflow-hidden">
                                     <Image
                                         src={project.image}
                                         alt={`Screenshot of ${project.title}`}
                                         fill
-                                        sizes="(max-width: 768px) 240px, 300px"
+                                        sizes="152px"
                                         className="object-cover object-top transition-transform duration-700 ease-out group-hover:scale-[1.02]"
                                     />
                                 </span>
                             </a>
 
-                            <div className="flex min-w-0 flex-1 flex-col md:hidden">
-                                <p className="text-pretty pb-3 text-[13px] leading-[1.55] text-[var(--fg-muted)]">{project.description}</p>
-                                <a
-                                    href={project.href}
-                                    target="_blank"
-                                    rel="noopener noreferrer"
-                                    className="mt-auto inline-flex h-10 w-full shrink-0 items-center min-[480px]:mt-0 justify-center bg-[var(--fg)] px-3 text-sm font-medium text-[var(--surface)] transition-colors hover:bg-[var(--gold)]"
-                                >
-                                    Open the app ↗
-                                </a>
+                            <div className="min-w-0">
+                                <p className="flex flex-wrap items-center gap-x-2 gap-y-1 font-mono text-xs text-[var(--fg-dim)]">
+                                    <span>{project.year}</span>
+                                    <span aria-hidden="true">·</span>
+                                    <span>{project.type}</span>
+                                    <span aria-hidden="true">·</span>
+                                    <span className="flex items-center gap-1.5 text-[var(--live)]">
+                                        <span aria-hidden="true" className="h-1.5 w-1.5 rounded-full bg-[var(--live)]" />
+                                        Live
+                                    </span>
+                                </p>
+                                <h3 className="mt-2 min-w-0 font-display text-2xl font-bold leading-[1.05] tracking-[-0.03em] text-[var(--fg)] wrap-anywhere lg:text-4xl">
+                                    {project.title}
+                                </h3>
+                                <p className="mt-1.5 text-sm text-[var(--fg-dim)]">{project.subtitle}</p>
+                                <p className="mt-4 hidden text-pretty text-sm leading-relaxed text-[var(--fg-muted)] lg:block">{project.description}</p>
                             </div>
                         </div>
+                        <p className="mt-4 text-pretty text-[13px] leading-[1.55] text-[var(--fg-muted)] md:text-sm lg:hidden">{project.description}</p>
 
-                        <div className="md:col-span-9 md:col-start-4 md:row-start-2">
-                            {/*
-                             * A phone: a row of cards to swipe through, one screen's worth
-                             * instead of four stacked. From sm: a hairline grid, where 1px
-                             * gaps over a rule-coloured ground draw the dividers.
-                             */}
-                            <SwipeRow
-                                className="-mx-5 flex snap-x snap-mandatory scroll-px-5 gap-3 overflow-x-auto px-5 [scrollbar-width:none] sm:mx-0 sm:grid sm:grid-cols-2 sm:gap-px sm:overflow-visible sm:border sm:border-[var(--rule)] sm:bg-[var(--rule)] sm:px-0 [&::-webkit-scrollbar]:hidden"
-                                hintClassName="mt-2 text-right sm:hidden"
-                            >
-                                {project.features.map((f, i) => (
-                                    <li key={f.title} className="w-[84%] shrink-0 snap-start border border-[var(--rule)] bg-[var(--surface)] p-4 sm:w-auto sm:border-0 sm:p-5">
-                                        <p className="flex items-baseline gap-3">
-                                            <span className="font-mono text-xs text-[var(--gold)]">{String(i + 1).padStart(2, "0")}</span>
-                                            <span className="font-medium text-[var(--fg)]">{f.title}</span>
-                                        </p>
-                                        {/* text-pretty moves a word down so a card doesn't end on one lone word. It never adds a line. */}
-                                        <p className="mt-1.5 text-pretty text-sm leading-relaxed text-[var(--fg-muted)] sm:mt-2">{f.desc}</p>
+                        {/*
+                         * The features as rows, not cards: a hairline under each.
+                         * Nothing boxes them, so the four read as parts of one thing.
+                         * Below lg the name runs into its line, which keeps one
+                         * project to one phone screen; from lg it sits beside it.
+                         */}
+                        <dl className="mt-5 border-t border-[var(--rule)]">
+                            {project.features.map((f) => (
+                                <div key={f.title} className="text-pretty border-b border-[var(--rule)] py-2 text-[13px] leading-[1.55] md:text-sm lg:grid lg:grid-cols-[9.5rem_minmax(0,1fr)] lg:gap-6 lg:py-3">
+                                    <dt className="mr-1.5 inline font-medium text-[var(--fg)] lg:mr-0 lg:block">{f.title}</dt>
+                                    <dd className="inline text-[var(--fg-muted)] lg:block">
+                                        {f.desc}
                                         {f.chain && (
-                                            <p className="mt-2.5 flex flex-wrap items-center gap-x-1 gap-y-1.5 font-mono text-xs text-[var(--fg-soft)] sm:mt-3 sm:gap-x-1.5 sm:gap-y-2">
+                                            <span className="mt-2 flex flex-wrap items-center gap-x-1 gap-y-1.5 font-mono text-xs text-[var(--fg-soft)] sm:gap-x-1.5">
                                                 {/* The arrow trails its model, so a wrapped line ends on → instead of starting with one. */}
                                                 {f.chain.map((model, j) => (
                                                     <span key={model} className="flex items-center gap-1 sm:gap-1.5">
-                                                        <span className="border border-[var(--rule-strong)] px-1 sm:px-1.5 sm:py-0.5">{model}</span>
+                                                        <span className="border border-[var(--rule-strong)] px-1 sm:px-1.5">{model}</span>
                                                         {j < f.chain.length - 1 && <span aria-hidden="true" className="text-[var(--fg-faint)]">→</span>}
                                                     </span>
                                                 ))}
-                                            </p>
+                                            </span>
                                         )}
-                                    </li>
-                                ))}
-                                {/* A phone: the stack is the last card, rather than a line of its own below. */}
-                                <li className="w-[84%] shrink-0 snap-start border border-[var(--rule)] bg-[var(--surface)] p-4 sm:hidden">
-                                    <p className="font-medium text-[var(--fg)]">Built with</p>
-                                    {/*
-                                     * Non-breaking spaces keep each tool's name whole ("Tailwind
-                                     * CSS") and tie each dot to the name before it, so a line
-                                     * never starts with one.
-                                     */}
-                                    <p className="mt-1.5 text-pretty text-sm leading-relaxed text-[var(--fg-muted)]">
-                                        {project.stack.map((tool) => tool.replaceAll(" ", " ")).join(" · ")}
-                                    </p>
-                                </li>
-                            </SwipeRow>
+                                    </dd>
+                                </div>
+                            ))}
+                        </dl>
 
-                            {/*
-                             * The stack from sm, where the features are a grid and its
-                             * swipe card is gone; the button from md, where it no longer
-                             * sits beside the screenshot. Below lg the stack takes the whole
-                             * line, so the button always sits under it, rather than under
-                             * it or beside it depending on how long each project's stack is.
-                             */}
-                            <div className="mt-6 hidden flex-wrap items-center justify-between gap-6 sm:flex md:mt-8">
-                                <ul className="flex flex-wrap gap-x-4 gap-y-1 text-sm text-[var(--fg-soft)] md:w-full lg:w-auto">
-                                    {project.stack.map((tool) => (
-                                        <li key={tool}>{tool}</li>
-                                    ))}
-                                </ul>
-                                <a
-                                    href={project.href}
-                                    target="_blank"
-                                    rel="noopener noreferrer"
-                                    className="hidden h-10 items-center justify-center border border-[var(--rule-strong)] px-4 text-sm text-[var(--fg)] transition-colors hover:border-[var(--gold)] hover:text-[var(--gold)] md:inline-flex"
-                                >
-                                    Open the app ↗
-                                </a>
-                            </div>
+                        {/*
+                         * mt-auto: the stack and the button sit on the same line in
+                         * both columns. Non-breaking spaces keep each tool's name whole
+                         * ("Tailwind CSS") and tie each dot to the name before it.
+                         */}
+                        <div className="mt-auto flex flex-wrap items-center justify-between gap-x-6 gap-y-3 pt-4">
+                            <p className="min-w-0 flex-1 basis-48 text-pretty font-mono text-xs leading-relaxed text-[var(--fg-soft)]">
+                                {project.stack.map((tool) => tool.replaceAll(" ", " ")).join(" · ")}
+                            </p>
+                            <a
+                                href={project.href}
+                                target="_blank"
+                                rel="noopener noreferrer"
+                                className="inline-flex h-10 shrink-0 items-center justify-center border border-[var(--rule-strong)] px-4 text-sm text-[var(--fg)] transition-colors pointer-coarse:h-[44px] hover:border-[var(--gold)] hover:text-[var(--gold)]"
+                            >
+                                Open the app ↗
+                            </a>
                         </div>
                     </li>
                 ))}
-            </ul>
+            </SwipeRow>
         </Section>
     );
 }

@@ -1,5 +1,5 @@
 import type { Metadata, Viewport } from "next";
-import { Cormorant_Garamond, Geist, Geist_Mono } from "next/font/google";
+import { Geist, Geist_Mono } from "next/font/google";
 import "./globals.css";
 import { SITE_URL } from "@/lib/site";
 import Header from "@/components/Header";
@@ -10,24 +10,17 @@ import PageLoading from "@/components/PageLoading";
 import ErrorBoundary from "@/components/ErrorBoundary";
 import { BOOT_SCRIPT } from "@/lib/intro";
 
-// Interface and body text.
+// Body and interface at 400, headings at 700 (the variable font carries both).
 const geist = Geist({
   variable: "--font-geist",
   subsets: ["latin"],
 });
 
-// Data only: years, stacks, the clock, the frame counter.
+// Labels and data: section heads, years, counts, the clock, the frame counter, the wordmark.
 const geistMono = Geist_Mono({
   variable: "--font-geist-mono",
   subsets: ["latin"],
   weight: ["400", "500"],
-});
-
-// Display only, and only at sizes where its contrast holds up (32px and over).
-const cormorant = Cormorant_Garamond({
-  variable: "--font-cormorant",
-  subsets: ["latin"],
-  weight: ["500", "600"],
 });
 
 // Pinch-zoom stays enabled (WCAG 1.4.4) — no maximumScale, no userScalable.
@@ -77,7 +70,7 @@ export default function RootLayout({
         <script dangerouslySetInnerHTML={{ __html: BOOT_SCRIPT }} />
       </head>
       <body
-        className={`${geist.variable} ${geistMono.variable} ${cormorant.variable} font-sans antialiased`}
+        className={`${geist.variable} ${geistMono.variable} font-sans antialiased`}
       >
         <IntroScreen />
         <Header />
