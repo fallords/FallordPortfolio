@@ -452,6 +452,7 @@ npm run build
 Checklist manual (dengan `npm run start` atau situs live):
 
 - [ ] Lebar 320, 360, 390, 412, 768, 1024, 1440, dan 1920: tidak ada scroll ke samping, dan tidak ada teks yang terpotong.
+- [ ] Di emulasi HP, `innerWidth` sama dengan lebar layar setelah semua baris geser digeser sampai ujung. `overflow-x: clip` di `html` menyembunyikan luapan dari pengecekan biasa, tapi browser HP tetap melebarkan halaman untuk elemen `absolute` yang lolos dari scroller. Karena itu `SwipeRow` memakai `relative`.
 - [ ] Console bersih: tidak ada error, permintaan 4xx/5xx, atau pelanggaran CSP.
 - [ ] Intro tampil sekali per sesi, dan potret berputar.
 - [ ] Kelima demo What I do: jalan saat terlihat, di HP muncul saat digeser masuk, tidak ada panel yang terpotong di 768px, dan keyboard berfungsi di dalam demo.
