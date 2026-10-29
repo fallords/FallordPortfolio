@@ -1,6 +1,7 @@
-import Image from "next/image";
 import Section from "./Section";
 import SwipeRow from "./SwipeRow";
+import ErrorBoundary from "./ErrorBoundary";
+import { CvThumb, SeraThumb } from "./figures/thumbs/art";
 
 /*
  * Only real, shipped work belongs here. Add an entry when a project is
@@ -12,9 +13,11 @@ import SwipeRow from "./SwipeRow";
  * maker, the templates, the page guides, the local drafts and the AI being
  * off by default are what its lib/ and components/ do.
  *
- * Each screenshot is the live app at phone width (390px, at 2x), cut to the
- * frame's 625:985, so every project's frame is the same size. S.E.R.A.'s ends
- * on its chat box's divider, not a sliver of the box below it.
+ * Each project's thumbnail is a small working drawing of what it does, in
+ * the same isometric style as the Writing thumbnails and in the frame's
+ * 625:985, so every project's frame is the same size: the CV maker as a
+ * printer feeding out a CV in the template its dial picks, S.E.R.A. as a lens
+ * scanning down a chat and marking the sentences that read oddly.
  *
  * A description's last two words are joined by a non-breaking space: on a
  * phone, text-pretty would otherwise still leave "Indonesian." on its own.
@@ -25,7 +28,7 @@ const projects = [
         subtitle: "A CV builder that runs in the browser",
         description:
             "You fill in a form, and the preview lays your CV out on A4 pages as you type. Then you save it as a PDF from the print dialog, with selectable text and no watermark. It’s free and needs no account. The app is in English and Indonesian.",
-        image: "/cv-maker-phone.png",
+        thumb: <CvThumb />,
         href: "https://fallord-cv-maker.vercel.app/",
         year: "2026",
         type: "Web app",
@@ -54,7 +57,7 @@ const projects = [
         subtitle: "Smart Emotional Relationship Adviser",
         description:
             "A web app for reading relationship chats. You paste in a conversation or upload screenshots of it, and it writes up the patterns it sees. After that you can keep asking it questions about the result. The app is in Indonesian.",
-        image: "/sera-phone.png",
+        thumb: <SeraThumb />,
         href: "https://s-e-r-a-smart-emotional-relationshi.vercel.app/",
         year: "2026",
         type: "AI web app",
@@ -104,9 +107,8 @@ export default function Works() {
                         }`}
                     >
                         {/*
-                         * The live app's screenshot in a hairline frame, at its own
-                         * proportions (no imitation browser bar: the visitor already
-                         * has one), with the name beside it. From lg the description
+                         * The project's drawing in a hairline frame, linking to the
+                         * live app, with the name beside it. From lg the description
                          * joins the name there; narrower, it runs full width below.
                          */}
                         <div className="flex gap-4 lg:gap-6">
@@ -117,15 +119,8 @@ export default function Works() {
                                 aria-label={`Open ${project.title}`}
                                 className="group block w-[34%] max-w-[9.5rem] shrink-0 self-start border border-[var(--rule-strong)] bg-[var(--surface-card)] transition-colors hover:border-[var(--gold)]"
                             >
-                                <span className="relative block aspect-[625/985] overflow-hidden">
-                                    <Image
-                                        src={project.image}
-                                        alt={`Screenshot of ${project.title}`}
-                                        fill
-                                        sizes="152px"
-                                        className="object-cover object-top transition-transform duration-700 ease-out group-hover:scale-[1.02]"
-                                    />
-                                </span>
+                                {/* The drawing runs in the browser; if it fails, the empty frame holds its place. */}
+                                <ErrorBoundary fallback={<span className="block aspect-[625/985]" />}>{project.thumb}</ErrorBoundary>
                             </a>
 
                             <div className="min-w-0">

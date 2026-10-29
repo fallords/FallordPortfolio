@@ -60,8 +60,6 @@ const nextConfig: NextConfig = {
     localPatterns: [
       { pathname: "/frames/**", search: "" },
       { pathname: "/certificates/**", search: "" },
-      { pathname: "/sera-phone.png", search: "" },
-      { pathname: "/cv-maker-phone.png", search: "" },
     ],
   },
   async headers() {

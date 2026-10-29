@@ -4,6 +4,8 @@ import { notFound } from "next/navigation";
 import { essaysByYear, type Essay } from "@/content/writing";
 import ReadingProgress from "@/components/ReadingProgress";
 import Footer from "@/components/Footer";
+import { Cover } from "@/components/Writing";
+import { LoraFigure } from "@/components/figures/lora/figure";
 
 /**
  * What the page shows of a piece: the paragraphs under its "## Abstract", or
@@ -82,136 +84,113 @@ export default async function EssayPage({
         <main>
             <ReadingProgress />
 
-            <article className="shell pt-16 pb-24 md:pt-24 md:pb-32">
-                {/* Header shares the body's measure so the whole thing reads as one column */}
-                <header className="mx-auto max-w-[68ch]">
-                    <Link
-                        href="/#writing"
-                        className="link mb-10 inline-block text-sm text-[var(--fg-muted)]"
-                    >
+            {/* One column at the body's measure, so the whole piece reads top to bottom; only a figure is let out wider. */}
+            <article className="shell pt-12 pb-24 md:pt-20 md:pb-32">
+                <div className="mx-auto max-w-[68ch]">
+                    <Link href="/#writing" className="link text-sm text-[var(--fg-muted)]">
                         ← All writing
                     </Link>
 
-                    <p className="font-mono text-sm text-[var(--fg-dim)]">
-                        {essay.field} · {essay.year}
-                    </p>
-
-                    <h1 className="mt-5 min-w-0 font-display text-[2rem] wrap-anywhere font-bold leading-[1.08] tracking-[-0.03em] text-balance md:text-5xl">
-                        {essay.title}
-                    </h1>
-
-                    {essay.subtitle && (
-                        <p className="mt-4 text-lg leading-snug text-[var(--fg-muted)] md:text-xl">
-                            {essay.subtitle}
-                        </p>
-                    )}
-
-                    {/* The full text lives in the PDF, so it sits right under the title. */}
-                    {essay.pdfUrl && (
-                        <div className="mt-8 flex flex-wrap items-center gap-x-5 gap-y-3">
-                            <a
-                                href={essay.pdfUrl}
-                                target="_blank"
-                                rel="noopener noreferrer"
-                                className="inline-flex h-11 items-center bg-[var(--fg)] px-4 text-sm font-medium text-[var(--surface)] transition-colors hover:bg-[var(--gold)] md:h-10"
-                            >
-                                Download the PDF ↗
-                            </a>
-                            <span className="text-xs text-[var(--fg-dim)]">Full text · {essay.readingTime} read</span>
+                    {/* The piece's own cover beside its title, as on the shelf. Under sm the title takes the width. */}
+                    <header className="mt-8 sm:grid sm:grid-cols-[8.5rem_minmax(0,1fr)] sm:items-start sm:gap-8 md:mt-10">
+                        <div className="hidden sm:block">
+                            <Cover essay={essay} />
                         </div>
-                    )}
+                        <div className="min-w-0">
+                            <p className="font-mono text-xs text-[var(--fg-dim)] md:text-sm">
+                                {essay.field} · {essay.year} · {essay.readingTime} read
+                            </p>
+                            <h1 className="mt-3 min-w-0 font-display text-[2rem] font-bold leading-[1.08] tracking-[-0.03em] text-balance wrap-anywhere md:text-5xl">
+                                {essay.title}
+                            </h1>
+                            {essay.subtitle && <p className="mt-3 text-lg leading-snug text-[var(--fg-muted)] md:text-xl">{essay.subtitle}</p>}
 
-                    {/* Publication status and identifiers, the way a preprint carries them */}
-                    {(essay.publishedIn || essay.orcid) && (
-                        <div className="mt-6 flex flex-col gap-1 text-xs text-[var(--fg-dim)]">
-                            {essay.publishedIn && <span>{essay.publishedIn}</span>}
-                            {essay.orcid && (
+                            {/* The full text lives in the PDF, so it sits right under the title. */}
+                            {essay.pdfUrl && (
                                 <a
-                                    href={`https://orcid.org/${essay.orcid}`}
+                                    href={essay.pdfUrl}
                                     target="_blank"
                                     rel="noopener noreferrer"
-                                    className="link w-fit"
+                                    className="mt-6 inline-flex h-11 items-center bg-[var(--fg)] px-4 text-sm font-medium text-[var(--surface)] transition-colors hover:bg-[var(--gold)] md:h-10"
                                 >
-                                    ORCID <span className="font-mono">{essay.orcid}</span>
+                                    Download the PDF ↗
                                 </a>
                             )}
                         </div>
+                    </header>
+
+                    {/* Publication status and identifiers, on one line, the way a preprint carries them. */}
+                    {(essay.publishedIn || essay.orcid) && (
+                        <p className="mt-8 text-pretty text-xs leading-relaxed text-[var(--fg-dim)]">
+                            {essay.publishedIn}
+                            {essay.publishedIn && essay.orcid && " · "}
+                            {essay.orcid && (
+                                <a href={`https://orcid.org/${essay.orcid}`} target="_blank" rel="noopener noreferrer" className="link">
+                                    ORCID <span className="font-mono">{essay.orcid}</span>
+                                </a>
+                            )}
+                        </p>
                     )}
 
-                    <div className="mt-12 h-px w-full bg-[var(--rule)]" />
-                </header>
-
-                {/*
-                 * Only the summary: the paper's own abstract, or for a case study
-                 * the opening it starts with. The rest is in the PDF above. The
-                 * measure is capped at 68 characters, roughly where the eye stops
-                 * tracking reliably from the end of one line to the start of the
-                 * next; line-height is loose and the text sits at --fg-soft rather
-                 * than pure white, which is harsh over more than a few lines.
-                 */}
-                <section className="mx-auto mt-12 max-w-[68ch]" aria-labelledby="summary-heading">
-                    <h2 id="summary-heading" className="mb-5 font-mono text-sm font-medium text-[var(--fg)]">
-                        {summary.label}
-                    </h2>
-                    {summary.paragraphs.map((paragraph, i) => (
-                        <p
-                            key={i}
-                            className="mb-7 font-sans text-[1.0625rem] md:text-[1.125rem] leading-[1.8] text-[var(--fg-soft)]"
-                        >
-                            {paragraph}
-                        </p>
-                    ))}
-                </section>
-
-                {essay.keywords && essay.keywords.length > 0 && (
-                    <div className="mx-auto mt-10 max-w-[68ch] border-t border-[var(--rule)] pt-10">
-                        <h2 className="font-mono text-sm font-medium text-[var(--fg)]">
-                            Keywords
+                    {/*
+                     * Only the summary: the paper's own abstract, or for a case study
+                     * the opening it starts with. The rest is in the PDF above. The
+                     * measure is capped at 68 characters, roughly where the eye stops
+                     * tracking reliably from the end of one line to the start of the
+                     * next; line-height is loose and the text sits at --fg-soft rather
+                     * than pure white, which is harsh over more than a few lines.
+                     */}
+                    <section className="mt-10 border-t border-[var(--rule)] pt-10" aria-labelledby="summary-heading">
+                        <h2 id="summary-heading" className="mb-5 font-mono text-sm font-medium text-[var(--fg)]">
+                            {summary.label}
                         </h2>
-                        <ul className="mt-4 flex flex-wrap gap-2">
-                            {essay.keywords.map((word) => (
-                                <li
-                                    key={word}
-                                    className="border border-[var(--rule)] px-2.5 py-1 text-xs text-[var(--fg-muted)]"
-                                >
-                                    {word}
-                                </li>
-                            ))}
-                        </ul>
-                    </div>
+                        {summary.paragraphs.map((paragraph, i) => (
+                            <p key={i} className="mb-7 font-sans text-[1.0625rem] leading-[1.8] text-[var(--fg-soft)] md:text-[1.125rem]">
+                                {paragraph}
+                            </p>
+                        ))}
+                    </section>
+                </div>
+
+                {/* The thesis project gets its system as a bench you can work: drop the wearable, press its button. Wider than the text, so the small parts read. */}
+                {essay.slug === "lora-emergency-alert-system" && (
+                    <section className="mx-auto mb-12 max-w-[56rem]" aria-label="How the system works, as an interactive figure">
+                        <LoraFigure />
+                    </section>
                 )}
 
-                {/* Foot of the article */}
-                <div className="mx-auto mt-16 max-w-[68ch] border-t border-[var(--rule)] pt-10">
-                    <Link
-                        href="/#writing"
-                        className="link text-sm text-[var(--fg-muted)]"
-                    >
-                        ← All writing
-                    </Link>
+                <div className="mx-auto max-w-[68ch]">
+                    {/* Keywords as one line of words, not a cloud of chips. */}
+                    {essay.keywords && essay.keywords.length > 0 && (
+                        <section className="border-t border-[var(--rule)] pt-6" aria-labelledby="keywords-heading">
+                            <h2 id="keywords-heading" className="font-mono text-sm font-medium text-[var(--fg)]">
+                                Keywords
+                            </h2>
+                            {/* Each keyword kept whole (spaces and hyphens that don't break); the line breaks only between them. */}
+                            <p className="mt-2 text-pretty font-mono text-xs leading-relaxed text-[var(--fg-dim)]">
+                                {essay.keywords.map((word) => word.replaceAll(" ", " ").replaceAll("-", "‑")).join(" · ")}
+                            </p>
+                        </section>
+                    )}
 
+                    {/* The pieces either side, as plain links: newer on the left, older on the right, no empty box for a missing one. */}
                     {(newer || older) && (
-                        <nav className="mt-12 grid grid-cols-1 gap-px border border-[var(--rule)] bg-[var(--rule)] sm:grid-cols-2">
-                            {[
-                                { essay: newer, label: "Newer" },
-                                { essay: older, label: "Older" },
-                            ].map(({ essay: sibling, label }) =>
-                                sibling ? (
-                                    <Link
-                                        key={label}
-                                        href={`/writing/${sibling.slug}`}
-                                        className="flex flex-col gap-2 bg-[var(--surface)] p-6 transition-colors hover:bg-[var(--cloak)]"
-                                    >
-                                        <span className="text-xs text-[var(--fg-dim)]">
-                                            {label}
-                                        </span>
-                                        <span className="font-display text-lg font-bold leading-tight tracking-[-0.02em] text-[var(--fg-soft)]">
-                                            {sibling.title}
-                                        </span>
-                                    </Link>
-                                ) : (
-                                    <div key={label} className="hidden bg-[var(--surface)] sm:block" />
-                                )
+                        <nav aria-label="More writing" className="mt-14 grid gap-6 border-t border-[var(--rule)] pt-8 sm:grid-cols-2">
+                            {newer && (
+                                <Link href={`/writing/${newer.slug}`} className="group flex flex-col gap-1.5">
+                                    <span className="font-mono text-xs text-[var(--fg-dim)]">← Newer</span>
+                                    <span className="font-display text-lg font-bold leading-tight tracking-[-0.02em] text-[var(--fg-soft)] transition-colors group-hover:text-[var(--gold)]">
+                                        {newer.title}
+                                    </span>
+                                </Link>
+                            )}
+                            {older && (
+                                <Link href={`/writing/${older.slug}`} className="group flex flex-col gap-1.5 sm:col-start-2 sm:text-right">
+                                    <span className="font-mono text-xs text-[var(--fg-dim)]">Older →</span>
+                                    <span className="font-display text-lg font-bold leading-tight tracking-[-0.02em] text-[var(--fg-soft)] transition-colors group-hover:text-[var(--gold)]">
+                                        {older.title}
+                                    </span>
+                                </Link>
                             )}
                         </nav>
                     )}

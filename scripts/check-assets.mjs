@@ -1,6 +1,6 @@
 /*
  * Runs before every build (the "prebuild" script). Every quoted path in src/
- * to an image or PDF in public/ ("/certificates/….jpg", "/sera-phone.png",
+ * to an image or PDF in public/ ("/certificates/….jpg", "/frames/still-….jpg",
  * "….pdf") must exist: a typo there would otherwise build fine and ship as a
  * broken image. Paths assembled at runtime (the portrait's frames) aren't
  * quoted whole, so they aren't checked.

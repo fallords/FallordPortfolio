@@ -111,7 +111,6 @@ Catatan:
 │   │   ├── wide/001–181.jpg      potongan 1.4:1 (laptop)
 │   │   ├── full/001–181.jpg      potongan 16:9 (layar sangat lebar)
 │   │   └── still-*.jpg           frame 181 berwarna, untuk demo Design
-│   ├── sera-phone.png, cv-maker-phone.png   screenshot proyek di bagian Work
 │   └── *.pdf                     teks lengkap tulisan
 ├── src/
 │   ├── app/
@@ -124,7 +123,10 @@ Catatan:
 │   │   ├── not-found.tsx, error.tsx, global-error.tsx
 │   │   └── favicon.ico
 │   ├── components/               semua bagian halaman (lihat bagian 7)
-│   │   └── demos/                lima demo interaktif di "What I do"
+│   │   ├── demos/                lima demo interaktif di "What I do"
+│   │   ├── figures/lora/         figur isometrik interaktif di halaman tulisan LoRa
+│   │   ├── figures/thumbs/       thumbnail isometrik di Work (printer, lensa) dan Writing (wearable, pintu)
+│   │   └── iso/                  kit gambar isometrik (dari skill anatomy)
 │   ├── content/
 │   │   ├── certifications.ts     data sertifikat
 │   │   └── writing.ts            data tulisan
@@ -160,6 +162,7 @@ Error di dalam halaman ditangani `app/error.tsx`. Error di root layout ditangani
 - **Bagian halaman:** `About`, `Certifications`, `CertificateLightbox`, `CommandPalette`, `Header`, `IntroScreen`, `PageLoading`, `Portrait`, `Reveal`, `ReadingProgress`, `LocalTime`, `CopyEmail`, `GridOverlay`, `GridToggle`, `SwipeRow`.
 - **Penanganan error:** `ErrorBoundary`, `FallbackNotice`, `error.tsx`, `global-error.tsx`.
 - **Demo:** kelima komponen di `demos/`.
+- **Figur:** `LoraLive` di `figures/lora/live.tsx`, serta `CvLive`, `SeraLive`, `WearableLive` dan `DoorLive` di `figures/thumbs/live.tsx`. Gambar statisnya dibuat di server (`art.tsx` masing-masing) dan dikirim sebagai elemen.
 
 ## 6. Layout global
 
@@ -197,8 +200,11 @@ Urutan diatur di `app/page.tsx`.
 **Hero.** Di HP, potret ditaruh di atas (46svh) dan teks naik 112px menimpa bagian bawahnya yang memudar. Di laptop, potret menempel ke tepi kanan (62%), nama diletakkan melintasi sambungan, dan ada tiga fakta (Based in dengan jam WIB, Focus, Stack). Kalau potret gagal, kotaknya tetap ada dengan warna cloak.
 
 **Work.** Kedua proyek berdampingan sebagai dua kolom setara, dipisah garis tipis vertikal (mulai 768px), supaya mata membandingkan ke samping dan bukan membaca template yang sama dua kali ke bawah. Tiap kolom berisi:
-- screenshot dalam bingkai garis tipis (tanpa tiruan bar browser), dengan meta mono (tahun, jenis, titik Live), judul, dan subjudul di sebelahnya
-- deskripsi, yang mulai 1024px ikut di sebelah screenshot
+- thumbnail isometrik dalam bingkai garis tipis (rasio 625:985, link ke aplikasinya), dengan meta mono (tahun, jenis, titik Live), judul, dan subjudul di sebelahnya
+- deskripsi, yang mulai 1024px ikut di sebelah thumbnail
+- **Thumbnail CV Maker:** printer kecil yang mengeluarkan lembar A4 (yang menyala) dari slot atasnya, dengan layout CV tercetak. Dial di atasnya berputar ke salah satu dari tiga template (ATS Minimal, Modern Professional, Graduate), dan tiap lembar keluar dalam template yang ditunjuk. Lembar yang masih di dalam printer disembunyikan dengan clip di bidang slot.
+- **Thumbnail S.E.R.A.:** kartu chat di dudukan, dan lensa di rel tegak yang turun memindai gelembung chat. Di dalam lensa kartu tampil diperbesar (salinan wajah kartu, diskalakan di sekitar titik di belakang pusat lensa, di-clip ke kaca). Saat lensa melewati kalimat yang janggal, muncul garis bawah dan kotak merah (warna tanda S.E.R.A. sendiri). Tanda hilang saat lensa naik lagi.
+- Reduced motion: lembar CV diam dalam keadaan tercetak (ATS Minimal); lensa diam di kalimat pertama yang ditandai, dengan kedua tanda tampil.
 - fitur sebagai baris bergaris tipis, bukan kartu: di bawah 1024px nama fitur menyambung ke penjelasannya, dan mulai 1024px nama di kiri dan penjelasan di kanan
 - stack (mono) dan tombol "Open the app", yang sejajar di kedua kolom karena kolomnya flex dengan `mt-auto`
 
@@ -235,7 +241,42 @@ Cara kerjanya:
 
 Di HP ada strip thumbnail yang bisa digeser dan swipe di viewer. Di laptop, index ada di margin. Lightbox (`CertificateLightbox`) dirender lewat portal dan tetap terpasang saat tertutup (disembunyikan dengan `visibility`). Lightbox mendukung panah, Esc, swipe kiri dan kanan, tarik ke bawah untuk menutup, serta fokus yang pindah ke tombol Close dan kembali ke tombol pembuka. Nama sertifikat hanya dibacakan screen reader (`aria-live`) saat slideshow tidak berjalan sendiri.
 
-**Writing.** Cover bergaya halaman cetak, dengan ukuran huruf dalam satuan `cqw` (mengikuti lebar cover). Di laptop, ringkasan dan kata kunci ikut tampil. Di HP, tulisan ditampilkan sebagai daftar ringkas. Halaman tulisan (`/writing/[slug]`) hanya memuat ringkasan (abstract, atau paragraf pembuka untuk studi kasus), tombol PDF di bawah judul, kata kunci, dan tautan Newer/Older. Teks lengkap ada di PDF.
+**Writing.** Sebuah indeks bergaris, seperti tabel revisi di datasheet, bukan rak sampul. Tiap tulisan satu baris dengan garis tipis di bawahnya.
+- **Mulai 768px:** thumbnail di kolom margin 1–3; mulai kolom 4 satu baris fakta mono (tahun, bidang, lama baca), judul, dan satu kalimat `summary`; lalu `Read →` dan `PDF ↗` rata kanan di kolom 11–12.
+- **HP:** thumbnail selebar 34% di samping fakta dan judul, lalu ringkasan dan kedua link selebar penuh di bawahnya. Fakta patah hanya di antara fakta, dan titik pemisahnya ikut turun bersama fakta sesudahnya.
+- **Thumbnail (`figures/thumbs/`, daftar `thumbs` per slug di `Writing.tsx`):** gambar isometrik kecil yang bergerak pelan selama terlihat di layar, berbeda dari Fig 1 di halaman tulisan.
+  - **LoRa:** wearable-nya saja, di atas cutting mat. Cangkang terangkat dari clip, empat baut naik dari boss-nya, dan tutup depan (tombol merah, LED) melompat ke mat di sampingnya, sehingga isinya terlihat: ESP32-C3, MPU6050 (bagian yang menyala), RFM95W dengan coax ke antena, LiPo, TP4056, dan kabelnya. Lalu semuanya merapat lagi. Komponen dan bentuknya dari skripsi (bab 3.3.8); ukurannya kira-kira, tidak diukur.
+  - **Privacy:** pintu panel di kusennya menutup ke arah pembaca, lalu gerendelnya (bagian yang menyala) masuk ke keeper, ditahan, ditarik lagi, dan pintu terbuka. Pintu digambar ulang tiap frame (`door-view.ts`); kusen kanan, kepala kusen, dan keeper dirender dua kali dan ditukar, di belakang pintu saat terbuka dan di depannya saat tertutup.
+  - **Reduced motion:** wearable diam dalam keadaan terbongkar, pintu diam tertutup dan terkunci.
+  - **Link:** thumbnail juga membuka tulisan, tapi `tabIndex={-1}` dan `aria-hidden`, karena judulnya sudah link yang sama. Dibungkus `ErrorBoundary`; kalau gagal, kartunya tetap kosong di tempatnya.
+  - **Bobot:** keempat thumbnail (Work dan Writing) ikut di HTML dan payload RSC, jadi HTML beranda naik dari sekitar 120 KB (17 KB gzip) ke sekitar 485 KB (76 KB gzip).
+- **Sampul (`Cover`, diekspor dari `Writing.tsx`):** tidak dipakai di beranda lagi; hanya halaman tulisan yang menampilkannya. Bergaya halaman preprint cetak, dengan ukuran huruf dalam `cqw` mengikuti lebar sampul. Di bawah 12rem, subjudul dan ORCID disembunyikan.
+- **Yang tidak di beranda:** abstrak dan kata kunci hanya ada di halaman tulisan.
+
+**Halaman tulisan (`/writing/[slug]`)**, satu kolom selebar 68ch:
+- Di atas: "← All writing".
+- Header: sampul (mulai 640px) di samping meta satu baris, judul, subjudul, dan tombol PDF.
+- Satu baris status publikasi dan ORCID.
+- Ringkasan: abstract, atau paragraf pembuka untuk studi kasus.
+- Khusus tulisan LoRa: figur interaktif, lebih lebar dari teks (maksimal 56rem).
+- Kata kunci sebagai satu baris mono, tiap frasa tidak dipatah.
+- Link Newer (kiri) dan Older (kanan) tanpa kotak, dan tanpa ruang kosong kalau salah satunya tidak ada.
+
+Teks lengkap ada di PDF.
+
+**Figur LoRa (`components/figures/lora/`).** Sistem dari skripsi digambar sebagai satu meja kerja isometrik: wearable di drop stand, meter yang membaca magnitudo, receiver dengan tutup dibuka, dan HP staf di dudukannya.
+- **Interaksi:** klik atau tap wearable (atau tombol D/Enter) untuk menjatuhkannya; tombol merahnya (atau B/Spasi) mengirim paket tombol darurat. Tanpa input, ada tur otomatis. Animasi berhenti saat figur di luar layar. Dengan `prefers-reduced-motion`, tidak ada tur dan setiap kejadian langsung lompat ke keadaan akhirnya.
+- **Angka:** semuanya dari skripsi dan ada di `model.ts`: ambang 23,1 m/s², diam 9,82, puncak jatuh 58,25, tombol 10,28, RSSI −52 dBm (Dekat), alarm jatuh 30 detik bunyi ganda, tombol satu bunyi panjang, paket `1,JATUH,58.25`. Ritme bunyi dan lama perjalanan paket tidak ada di skripsi, jadi dibuat masuk akal dan singkat.
+- **File:**
+  - `view.ts`: tata letak dan kamera.
+  - `geometry.ts`: semua path statis, dihitung sekali saat build.
+  - `frame.ts`: yang digambar ulang tiap frame (jarum, kabel meter, gelombang radio, layar HP). Dipisah supaya `lathe.mjs` tidak ikut ke browser.
+  - `art.tsx`: komponen server yang merakit gambar.
+  - `live.tsx`: komponen client yang menggerakkannya, menulis atribut lewat ref, tanpa re-render per frame.
+  - `figure.tsx`: kartu, legenda, dan caption.
+  - `lora.css`: token kit dipetakan ke palet situs.
+- **Kit (`components/iso/`):** disalin dari skill anatomy. Satu perubahan: `useLoop` di `react/live.tsx` memperbarui ref-nya di `useLayoutEffect` dan `useEased` dihapus, karena aturan lint `react-hooks/refs`.
+- **HP:** di bawah 640px gambar diperbesar 124% dan tepinya dipotong, dan hint di sudut kartu boleh turun ke baris kedua.
 
 **Contact dan footer.** Contact memuat email besar dengan Geist tebal (dipecah dengan `<wbr>` setelah "@"), tombol "Copy address", serta LinkedIn dan Instagram. Footer satu baris di bawah garis tipis: hak cipta, kredit, tombol "Show grid", dan "Back to top". Nama besar di footer sudah dihapus.
 
@@ -369,7 +410,7 @@ frame-ancestors 'none'; upgrade-insecure-requests
 
 Lainnya:
 
-- **Image optimizer:** hanya `/frames/**`, `/certificates/**`, `/sera-phone.png`, dan `/cv-maker-phone.png`. Permintaan lain dijawab 400.
+- **Image optimizer:** hanya `/frames/**` dan `/certificates/**`. Permintaan lain dijawab 400.
 - **Dependency:** dicek dengan `npm audit`, yang melaporkan 0 kerentanan per Oktober 2026. Perbarui Next.js setiap ada patch keamanan.
 - **Rahasia:** tidak ada kunci atau token di repo. `.env*` dan `.claude/` diabaikan git.
 - `poweredByHeader: false`.
@@ -411,8 +452,7 @@ Lainnya:
 **Menambah atau mengubah proyek di Work:**
 
 1. Ubah array `projects` di `components/Works.tsx`.
-2. Simpan screenshot di `public/`. Mengganti file dengan nama yang sama juga boleh, karena gambar di luar `/frames` dicek ulang oleh browser.
-3. Tambahkan path screenshot ke `images.localPatterns` di `next.config.ts`. Kalau tidak, optimizer menjawab 400.
+2. Thumbnail-nya adalah gambar isometrik di `components/figures/thumbs/` (lihat `cv-view.ts`, `cv.ts` dan `CvThumb` di `art.tsx` sebagai contoh), dipasang di field `thumb`. Pakai viewBox 160×252 supaya cocok dengan bingkai 625:985.
 
 **Menambah tulisan:**
 
