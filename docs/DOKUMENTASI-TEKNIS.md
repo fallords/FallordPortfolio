@@ -104,6 +104,7 @@ Catatan:
 .
 ├── docs/                         dokumen ini
 ├── scripts/check-assets.mjs      dijalankan sebelum build: path gambar/PDF harus ada
+├── scripts/make-icons.mjs        membuat apple-icon.png dan favicon.ico dari icon.svg
 ├── public/
 │   ├── certificates/             scan sertifikat (JPEG, sisi terpanjang ±1600px)
 │   ├── frames/
@@ -121,7 +122,7 @@ Catatan:
 │   │   ├── opengraph-image.tsx   gambar share 1200×630
 │   │   ├── sitemap.ts, robots.ts
 │   │   ├── not-found.tsx, error.tsx, global-error.tsx
-│   │   └── favicon.ico
+│   │   └── icon.svg, apple-icon.png, favicon.ico   ikon situs: "F" putih dan titik emas di atas warna halaman. icon.svg adalah sumbernya; dua lainnya dibuat ulang dengan `node scripts/make-icons.mjs`
 │   ├── components/               semua bagian halaman (lihat bagian 7)
 │   │   ├── demos/                lima demo interaktif di "What I do"
 │   │   ├── figures/lora/         figur isometrik interaktif di halaman tulisan LoRa

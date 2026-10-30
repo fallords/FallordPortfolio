@@ -1,0 +1,6 @@
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 32 32">
+  <!-- The site's mark: an F and a gold full stop, on the page's own dark. Every edge sits on an even unit, so the 16px icon lands on whole pixels. -->
+  <rect width="32" height="32" rx="6" fill="#0d1011"/>
+  <path fill="#e7ebed" d="M6 6h16v6H12v2h6v6h-6v6H6z"/>
+  <rect x="20" y="20" width="6" height="6" fill="#bf9d5f"/>
+</svg>
