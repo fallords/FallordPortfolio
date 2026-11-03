@@ -17,7 +17,7 @@ const noopSubscribe = () => () => {};
 const isMac = () => /Mac|iPhone|iPad/.test(navigator.platform || navigator.userAgent);
 
 /** Sections that don't have their own link light up the one before them. */
-const OWNER: Record<string, string> = { certificates: "about" };
+const OWNER: Record<string, string> = { experience: "work", certificates: "about" };
 
 /**
  * Plain links, always visible. Four destinations don't need a menu button.

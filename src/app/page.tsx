@@ -1,5 +1,6 @@
 import Hero from "@/components/Hero";
 import Works from "@/components/Works";
+import Experience from "@/components/Experience";
 import About from "@/components/About";
 import Certifications from "@/components/Certifications";
 import Writing from "@/components/Writing";
@@ -15,6 +16,7 @@ export default function Home() {
             <main>
                 <Hero />
                 <Works />
+                <Experience />
                 {/* The two sections run in the browser; if one fails, it says so in its place and the rest stays. */}
                 <ErrorBoundary
                     fallback={

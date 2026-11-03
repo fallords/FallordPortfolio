@@ -130,6 +130,7 @@ Catatan:
 │   │   └── iso/                  kit gambar isometrik (dari skill anatomy)
 │   ├── content/
 │   │   ├── certifications.ts     data sertifikat
+│   │   ├── experience.ts         data pengalaman kerja (dari LinkedIn)
 │   │   └── writing.ts            data tulisan
 │   └── lib/
 │       ├── site.ts               domain, email, tautan sosial
@@ -188,6 +189,7 @@ Urutan diatur di `app/page.tsx`.
 |---|---|---|---|
 | Hero | | `Hero.tsx`, `Portrait.tsx`, `LocalTime.tsx` | teks di `Hero.tsx`, email di `site.ts` |
 | Work | `work` | `Works.tsx`, `SwipeRow.tsx` | array `projects` di `Works.tsx` |
+| Experience | `experience` | `Experience.tsx` | `content/experience.ts` |
 | What I do | `about` | `About.tsx`, `demos/*` | array `services` (termasuk `tools` per kemampuan) di `About.tsx` |
 | Certificates | `certificates` | `Certifications.tsx`, `CertificateLightbox.tsx` | `content/certifications.ts` |
 | Writing | `writing` | `Writing.tsx` | `content/writing.ts` |
@@ -196,9 +198,11 @@ Urutan diatur di `app/page.tsx`.
 
 **Kerangka section (`Section.tsx`).** Semua section di bawah hero memakai komponen ini dengan props `id`, `title`, `intro`, `meta`, `wide`, `className`, `introClassName`, dan `padding`. Section dibuka dengan header berjalan bergaya datasheet selebar 12 kolom: nama section dalam mono, garis tipis sampai tepi, lalu `meta` di ujung (misalnya "2 projects" atau "11 from 8 institutions"). Garis itu sekaligus pemisah antar-section, jadi tidak ada border di atas section. Header sengaja kecil supaya tiap section dibuka oleh isinya sendiri, bukan kata raksasa yang sama berulang. Section tidak bernomor, karena urutannya bukan langkah yang harus diikuti. Di grid 12 kolom, kolom 1–3 adalah margin (pada section `wide`: daftar tab, screenshot, cover, atau index) dan kolom 4–12 adalah konten. Padding vertikal bawaan 64px, menjadi 80px dari 1024px. Contact memakai `padding="py-16"` supaya ritme halaman tidak seragam.
 
-**Header.** Header menempel di atas (48px di HP, 56px di laptop). Link menuju `/#id`. Di beranda, link section yang sedang dibaca ditandai garis bawah emas (`aria-current="location"`): section aktif adalah yang bagian atasnya sudah melewati sepertiga layar, dan Certificates ikut menandai About. Di layar ≥768px ada tombol Ctrl/⌘ K.
+**Header.** Header menempel di atas (48px di HP, 56px di laptop). Link menuju `/#id`. Di beranda, link section yang sedang dibaca ditandai garis bawah emas (`aria-current="location"`): section aktif adalah yang bagian atasnya sudah melewati sepertiga layar, Experience ikut menandai Work, dan Certificates ikut menandai About. Di layar ≥768px ada tombol Ctrl/⌘ K.
 
 **Hero.** Di HP, potret ditaruh di atas (46svh) dan teks naik 112px menimpa bagian bawahnya yang memudar. Di laptop, potret menempel ke tepi kanan (62%), nama diletakkan melintasi sambungan, dan ada tiga fakta (Based in dengan jam WIB, Focus, Stack). Kalau potret gagal, kotaknya tetap ada dengan warna cloak.
+
+**Experience.** Riwayat kerja, terbaru di atas, sebagai log bergaris. Mulai 768px tanggal, jenis (Contract, Internship, Freelance) dan tempat bertumpuk di kolom margin 1–3; jabatan, instansi (dengan keterangan dalam kurung, misalnya nama Inggrisnya), satu kalimat, dan proyeknya sebagai baris bergaris seperti fitur di Work, mulai kolom 4. Di HP fakta-fakta itu satu baris mono di atas jabatan. Posisi yang masih berjalan (tanpa `end`) diberi titik hijau seperti proyek Live di Work; posisi yang mulai dan selesai di bulan yang sama hanya menampilkan bulan itu sekali. Data, termasuk tanggal, diambil dari LinkedIn; jabatan, nama instansi, jenis dan tanggal ditulis persis, deskripsinya diringkas.
 
 **Work.** Kedua proyek berdampingan sebagai dua kolom setara, dipisah garis tipis vertikal (mulai 768px), supaya mata membandingkan ke samping dan bukan membaca template yang sama dua kali ke bawah. Tiap kolom berisi:
 - thumbnail isometrik dalam bingkai garis tipis (rasio 625:985, link ke aplikasinya), dengan meta mono (tahun, jenis, titik Live), judul, dan subjudul di sebelahnya
