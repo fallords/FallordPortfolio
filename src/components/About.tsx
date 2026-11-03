@@ -34,7 +34,7 @@ const services = [
     },
     {
         title: "Design",
-        desc: "Before I write any code, I work out the layout, the screens, and what happens between them. Usually in Figma.",
+        desc: "Before I write any code, I work out the layout, the screens and what happens between them, usually in Figma.",
         tools: ["Figma"],
         meta: "this site's hero, wireframe → design",
         hint: "drag the slider",

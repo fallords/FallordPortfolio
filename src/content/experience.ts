@@ -34,7 +34,7 @@ export const experience: Role[] = [
         end: "Sep 2026",
         place: "Remote",
         summary:
-            "Evaluating AI models across different projects: testing their responses against set guidelines and quality criteria, for accuracy, relevance, instruction following, reasoning and whether the task got done, and comparing models side by side.",
+            "I tested AI models' responses on different projects against set guidelines and quality criteria: accuracy, relevance, instruction following, reasoning and whether the task got done. I also compared models side by side.",
     },
     {
         title: "Software Developer",
@@ -44,7 +44,7 @@ export const experience: Role[] = [
         start: "Mar 2026",
         end: "Sep 2026",
         place: "Remote",
-        summary: "A structured international internship in technology-driven innovation and digital transformation, learning through projects: software design and full-stack development.",
+        summary: "An international internship in digital transformation, run as project-based learning. I worked on software design and full-stack development.",
     },
     {
         title: "Software Engineer",
@@ -54,15 +54,15 @@ export const experience: Role[] = [
         start: "Aug 2025",
         end: "Nov 2025",
         place: "Bandung · On-site",
-        summary: "Web systems for the province's education sector, built with multidisciplinary teams for government use.",
+        summary: "I built web systems for the province's education sector with multidisciplinary teams, for government use.",
         projects: [
             {
                 name: "LMS Jabar",
-                desc: "A learning management system, designed, built and deployed from scratch in Next.js, prototyped in Figma and documented with DFDs and use case diagrams.",
+                desc: "A learning management system I designed, built and deployed from scratch in Next.js. I prototyped it in Figma and documented it with DFDs and use case diagrams.",
             },
             {
                 name: "Sipalawa",
-                desc: "The user interfaces and the technical documentation (DFDs, use case diagrams), working with cross-functional teams to bring design and implementation together.",
+                desc: "I built its user interfaces and wrote its technical documentation (DFDs, use case diagrams), working with cross-functional teams on design and implementation.",
             },
         ],
     },
@@ -75,6 +75,6 @@ export const experience: Role[] = [
         end: "Jul 2024",
         place: "Bandung · Hybrid",
         summary:
-            "The public side of the ministry's official website: a redesign with new content, bug fixes and new features, a colour palette in line with the agency's branding, and a layout that works on every screen size.",
+            "I worked on the public side of the ministry's official website: a redesign with new content, bug fixes, new features, a colour palette that matches the agency's branding, and a layout that works on every screen size.",
     },
 ];
