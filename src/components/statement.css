@@ -1,0 +1,100 @@
+/*
+ * The statement (Statement.tsx). At rest: a section with the statement set
+ * large and centred, its label above and its note below. Under [data-live]
+ * the stage is held for two screens while the camera flies into the mark.
+ */
+.zoom-track {
+  position: relative;
+}
+
+.zoom-stage {
+  position: relative;
+  display: grid;
+  place-items: center;
+  gap: 2rem;
+  padding: 6rem 1.25rem;
+  overflow: clip;
+}
+
+.zoom-label {
+  justify-self: start;
+  color: var(--fg);
+}
+
+.zoom-text {
+  max-width: 15ch;
+  font-size: clamp(2.5rem, 7.2vw, 8rem);
+  font-weight: 500;
+  line-height: 0.95;
+  letter-spacing: -0.045em;
+  text-align: center;
+  text-wrap: balance;
+  color: rgb(221 221 221 / var(--ink, 1));
+}
+
+.zoom-mark {
+  display: inline-block;
+  width: 0.8em;
+  height: 0.8em;
+  vertical-align: -0.08em;
+}
+
+.zoom-mark svg {
+  display: block;
+  width: 100%;
+  height: 100%;
+  overflow: visible;
+  stroke: var(--accent);
+  stroke-width: 9;
+  stroke-linecap: square;
+}
+
+.zoom-note {
+  max-width: 26rem;
+  justify-self: end;
+  color: var(--fg-dim);
+  text-align: right;
+}
+
+@media (min-width: 768px) {
+  .zoom-stage {
+    padding-inline: 1.75rem;
+  }
+}
+
+/* ------------------------------------------------------------ the held scene */
+
+.zoom-track[data-live] {
+  height: 300svh;
+}
+
+.zoom-track[data-live] .zoom-stage {
+  position: sticky;
+  top: 0;
+  height: 100svh;
+  padding: 0;
+  opacity: calc(1 - var(--gone, 0));
+}
+
+/* No will-change: the words must be redrawn at each size, not stretched as a bitmap, or they blur as the camera closes in. */
+.zoom-track[data-live] .zoom-text {
+  position: relative;
+}
+
+.zoom-track[data-live] .zoom-label {
+  position: absolute;
+  top: calc(var(--bar-h) + 1.5rem);
+  left: var(--edge-x, 1.25rem);
+}
+
+.zoom-track[data-live] .zoom-note {
+  position: absolute;
+  right: var(--edge-x, 1.25rem);
+  bottom: 2rem;
+}
+
+@media (min-width: 768px) {
+  .zoom-track[data-live] {
+    --edge-x: 1.75rem;
+  }
+}

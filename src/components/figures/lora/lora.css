@@ -1,8 +1,8 @@
 /*
  * The kit's dark tokens, retuned to this site's palette: the card is the
- * site's raised surface, the greys lean the same cool green-grey as its
- * Iron tokens, and the mono face is the site's Geist Mono. The Writing
- * thumbnails (figures/thumbs) share them.
+ * site's panel, the greys are its neutral ones, the red stays the red of
+ * the real button, and the labels use the site's monospace. The Work and
+ * Writing thumbnails (figures/thumbs) share them.
  */
 .iso.lr-figure,
 .iso.iso-thumb {
@@ -12,29 +12,29 @@
   --anatomy-strong: var(--fg);
   --anatomy-muted: var(--fg-dim);
   --anatomy-paper: var(--surface-card);
-  --anatomy-face: #1c2225;
-  --anatomy-top: #1d2326;
-  --anatomy-shade-0: #0f1315;
-  --anatomy-shade-1: #121618;
-  --anatomy-shade-2: #15191c;
-  --anatomy-shade-3: #181d20;
-  --anatomy-lit-top: #293135;
-  --anatomy-lit-shade: #1f2629;
-  --anatomy-hi: #d3dadd;
-  --anatomy-mid: #6b7579;
-  --anatomy-lo: #3e474b;
-  --anatomy-faint: #293135;
+  --anatomy-face: #1b1b1b;
+  --anatomy-top: #1d1d1d;
+  --anatomy-shade-0: #0e0e0e;
+  --anatomy-shade-1: #121212;
+  --anatomy-shade-2: #151515;
+  --anatomy-shade-3: #191919;
+  --anatomy-lit-top: #2a2a2a;
+  --anatomy-lit-shade: #202020;
+  --anatomy-hi: #d8d8d8;
+  --anatomy-mid: #737373;
+  --anatomy-lo: #444444;
+  --anatomy-faint: #2c2c2c;
   --anatomy-lit: #ffffff;
-  --anatomy-halo: #040607;
+  --anatomy-halo: #000000;
   --anatomy-dot: var(--fg);
-  --anatomy-red: #e5534b;
+  --anatomy-red: #ee4d63;
   --anatomy-green: var(--live);
   --anatomy-mono: var(--font-geist-mono), ui-monospace, monospace;
-  --lr-red-top: #b8423b;
-  --lr-red-side: #8f322c;
-  --lr-red-lit: #e5534b;
-  --lr-red-rim: #d0675f;
-  --lr-glass: #0a0d0e;
+  --lr-red-top: #b11226;
+  --lr-red-side: #7d0d1b;
+  --lr-red-lit: #ee4d63;
+  --lr-red-rim: #e06a7c;
+  --lr-glass: #080808;
 }
 
 .lr-figure .iso-figure {

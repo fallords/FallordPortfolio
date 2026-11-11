@@ -1,6 +1,7 @@
 import type { Metadata, Viewport } from "next";
-import { Geist, Geist_Mono } from "next/font/google";
+import { Geist_Mono, Inter } from "next/font/google";
 import "./globals.css";
+import "@/components/motion/motion.css";
 import { SITE_URL } from "@/lib/site";
 import Header from "@/components/Header";
 import GridOverlay from "@/components/GridOverlay";
@@ -8,15 +9,18 @@ import CommandPalette from "@/components/CommandPalette";
 import IntroScreen from "@/components/IntroScreen";
 import PageLoading from "@/components/PageLoading";
 import ErrorBoundary from "@/components/ErrorBoundary";
+import HudFrame from "@/components/HudFrame";
+import Crosshair from "@/components/Crosshair";
+import DecodeAll from "@/components/motion/DecodeAll";
 import { BOOT_SCRIPT } from "@/lib/intro";
 
-// Body and interface at 400, headings at 700 (the variable font carries both).
-const geist = Geist({
-  variable: "--font-geist",
+// Everything that is read, and the headings: one grotesque. Without its optical-size axis the font file is a fraction of the size.
+const text = Inter({
+  variable: "--font-text",
   subsets: ["latin"],
 });
 
-// Labels and data: section heads, years, counts, the clock, the frame counter, the wordmark.
+// The instrument's own voice: readouts, labels, the navigation, and real code.
 const geistMono = Geist_Mono({
   variable: "--font-geist-mono",
   subsets: ["latin"],
@@ -28,7 +32,7 @@ export const viewport: Viewport = {
   width: "device-width",
   initialScale: 1,
   viewportFit: "cover",
-  themeColor: "#0d1011",
+  themeColor: "#050505",
 };
 
 const TITLE = "Fadhlan Bani · Developer & designer";
@@ -70,7 +74,7 @@ export default function RootLayout({
         <script dangerouslySetInnerHTML={{ __html: BOOT_SCRIPT }} />
       </head>
       <body
-        className={`${geist.variable} ${geistMono.variable} font-sans antialiased`}
+        className={`${text.variable} ${geistMono.variable} font-sans antialiased`}
       >
         <IntroScreen />
         <Header />
@@ -85,6 +89,13 @@ export default function RootLayout({
         <ErrorBoundary>
           <CommandPalette />
         </ErrorBoundary>
+        <DecodeAll />
+        <ErrorBoundary>
+          <HudFrame />
+        </ErrorBoundary>
+        <Crosshair />
+        {/* Film grain over everything, the texture of the reference's renders (globals.css, .grain). */}
+        <div aria-hidden="true" className="grain" />
       </body>
     </html>
   );

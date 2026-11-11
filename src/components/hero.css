@@ -1,0 +1,262 @@
+/*
+ * The hero (Hero.tsx, HeroLight.tsx). The layout below is the whole thing at
+ * rest: one screen, the portrait across all of it, the dark with one light
+ * in it, the readouts top-left, the heading and its two actions bottom-left.
+ * The last block holds the stage for a screen of scroll, only where motion
+ * is welcome.
+ */
+.hero {
+  position: relative;
+  /* The stage runs to the very top, under the bar. */
+  margin-top: calc(-1 * var(--bar-h) - 1px);
+}
+
+.hero-stage {
+  position: relative;
+  height: 100svh;
+  min-height: 36rem;
+  overflow: clip;
+  background: var(--surface);
+}
+
+/* The portrait fills the stage; the canvas keeps his face in view (focalX). */
+.hero-portrait {
+  position: absolute;
+  inset: 0;
+  background: none;
+}
+
+.hero-caption {
+  top: calc(var(--bar-h) + 1rem);
+  right: 1.25rem;
+}
+
+/* ------------------------------------------------------------ the light */
+
+.hero-light {
+  --lx: 50%;
+  --ly: 38%;
+  --open: 1;
+  position: absolute;
+  inset: 0;
+  z-index: 1;
+  pointer-events: none;
+}
+
+/*
+ * The dark: clear where the light is, closing in around it, and almost
+ * black at the edges; it opens as the page scrolls (--open). Under it, a
+ * ground for the words at the foot of the stage.
+ */
+.hero-dark {
+  position: absolute;
+  inset: 0;
+  background:
+    linear-gradient(to top, var(--surface) 0, rgb(5 5 5 / 0.85) 18%, transparent 52%),
+    radial-gradient(
+      circle at var(--lx) var(--ly),
+      transparent 0,
+      rgb(5 5 5 / calc(0.5 - var(--open) * 0.3)) calc(9vmax + var(--open) * 16vmax),
+      rgb(5 5 5 / calc(0.97 - var(--open) * 0.42)) calc(30vmax + var(--open) * 34vmax)
+    );
+}
+
+/* Shafts of light from the same point, fading with distance. */
+.hero-rays {
+  position: absolute;
+  inset: 0;
+  background: repeating-conic-gradient(from 0deg at var(--lx) var(--ly), rgb(255 255 255 / 0.07) 0deg 1.1deg, transparent 1.1deg 7.5deg);
+  mask-image: radial-gradient(circle at var(--lx) var(--ly), #000 0, transparent calc(26vmax + var(--open) * 14vmax));
+}
+
+/* The reticle tracking the light, with where it is read out beside it. */
+.hero-track {
+  position: absolute;
+  top: 0;
+  left: 0;
+  width: 8rem;
+  aspect-ratio: 1;
+  translate: calc(var(--lx) - 50%) calc(var(--ly) - 50%);
+}
+
+.hero-track svg {
+  width: 100%;
+  height: 100%;
+  overflow: visible;
+  stroke: rgb(221 221 221 / 0.35);
+  stroke-width: 1;
+}
+
+.hero-track svg * {
+  vector-effect: non-scaling-stroke;
+}
+
+.hero-track-mark {
+  stroke: var(--accent);
+}
+
+.hero-coords {
+  position: absolute;
+  top: calc(100% + 0.5rem);
+  left: 50%;
+  translate: -50% 0;
+  white-space: nowrap;
+  color: var(--accent);
+}
+
+/* ------------------------------------------------------------ the words */
+
+.hero-code {
+  position: absolute;
+  z-index: 2;
+  top: calc(var(--bar-h) + 1rem);
+  left: 1.25rem;
+  display: grid;
+  gap: 0.25rem;
+  /* The frame counter has the other corner. */
+  max-width: 62%;
+  color: rgb(221 221 221 / 0.55);
+}
+
+.hero-code-in {
+  padding-left: 0.75rem;
+}
+
+/* A phone has room beside the frame counter for the opening lines and the status, not for focus and stack (What I do lists them). */
+@media (max-width: 767px) {
+  .hero-code-in {
+    display: none;
+  }
+}
+
+.hero-foot {
+  position: absolute;
+  z-index: 2;
+  inset: auto 1.25rem 1.5rem 1.25rem;
+  display: grid;
+  gap: 0.875rem;
+}
+
+.hero-title {
+  font-size: clamp(2.25rem, 10.6vw, 3rem);
+  text-wrap: balance;
+}
+
+.hero-next {
+  display: grid;
+  gap: 1rem;
+}
+
+.hero-hint {
+  display: none;
+}
+
+@media (min-width: 768px) {
+  .hero-caption {
+    top: auto;
+    right: 1.75rem;
+    bottom: 4.25rem;
+  }
+
+  .hero-track {
+    width: 11rem;
+  }
+
+  .hero-code {
+    top: calc(var(--bar-h) + 1.75rem);
+    left: 1.75rem;
+    max-width: 32rem;
+  }
+
+  .hero-foot {
+    inset: auto auto 2.25rem 1.75rem;
+    width: min(56rem, 62%);
+    gap: 1.25rem;
+  }
+
+  .hero-title {
+    font-size: clamp(3rem, 5.4vw, 6.25rem);
+    text-wrap: wrap;
+  }
+
+  .hero-next {
+    grid-template-columns: minmax(0, 20rem) auto;
+    align-items: end;
+    justify-content: start;
+    gap: 2rem;
+  }
+}
+
+@media (prefers-reduced-motion: no-preference) {
+  /* The heading's words rise out of their masks one after another as the page opens; they wait under the intro. */
+  .hero-title .split-m > span {
+    animation: split-rise 1000ms var(--ease-expo) both;
+    animation-delay: calc(140ms + var(--i) * 45ms);
+  }
+
+  html[data-intro="show"] .hero-title .split-m > span {
+    animation-play-state: paused;
+  }
+
+  /* Two screens tall: the stage is held for one screen of scroll, the length of the head turn. */
+  .hero {
+    height: 200svh;
+  }
+
+  .hero-stage {
+    position: sticky;
+    top: 0;
+  }
+
+  @media (min-width: 768px) {
+    .hero-hint {
+      position: absolute;
+      z-index: 2;
+      right: 1.75rem;
+      bottom: 2.25rem;
+      display: block;
+      color: var(--fg-dim);
+    }
+  }
+
+  @supports ((animation-timeline: scroll()) and (animation-range: 0svh 100svh)) {
+    /* Wide and a quarter-turn off as the page opens; closed and level by the time he looks at you. */
+    @keyframes hero-reticle-close {
+      from {
+        rotate: -90deg;
+        scale: 1.6;
+      }
+    }
+
+    /* The picture itself comes a step closer over the same stretch. */
+    @keyframes hero-push {
+      from {
+        scale: 1.08;
+      }
+    }
+
+    @keyframes hero-hint-out {
+      to {
+        opacity: 0;
+      }
+    }
+
+    .hero-track svg {
+      animation: hero-reticle-close auto linear both;
+      animation-timeline: scroll(root block);
+      animation-range: 0svh 100svh;
+    }
+
+    .hero-portrait canvas {
+      animation: hero-push auto linear both;
+      animation-timeline: scroll(root block);
+      animation-range: 0svh 100svh;
+    }
+
+    .hero-hint {
+      animation: hero-hint-out auto linear both;
+      animation-timeline: scroll(root block);
+      animation-range: 10svh 40svh;
+    }
+  }
+}

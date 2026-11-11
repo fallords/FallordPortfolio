@@ -1,53 +1,86 @@
-/* Hallmark · genre: modern-minimal · macrostructure: Workbench · tone: technical
- * theme: preserved (Iron / Cloak / Gold) · type: Geist 700 display + Geist 400 body + Geist Mono labels
- * section heads: running header (label · rule · count) · enrichment: none (the portrait stays)
- * nav: kept bar, mono wordmark · footer: Ft2 inline single line
+/*
+ * The page as an instrument. The look is studied from a reference the owner
+ * chose (zrk.tech, by Qream): a near-black ground with a fine dot grid, one
+ * signal colour (green here, where the reference has orange), a medium grotesque set tight for everything said aloud and
+ * a monospace for everything the instrument reads out, a fixed bar with a
+ * strip that fills as the page is read, numbered chapters, and subjects held
+ * on stage while the scroll works them. What is shown is this site's own:
+ * the portrait's head turn, the isometric machines, the demos.
  */
 @import "tailwindcss";
 
 /*
- * Three materials, each with one job.
- *   Iron   — every surface and all text.
- *   Cloak  — the portrait, selection, and hover fills. Nothing else.
- *   Gold   — what you are pointing at: focus, the active item, progress
- *            lines, the "try this" hints. Never decoration, never a numeral.
- * Every colour on the site is a token here, the few outside the three
- * materials included, so none is written straight into a component.
+ * One ground, one ink, one accent.
+ *   Ground: near-black, with two steps up for panels that sit on it.
+ *   Ink:    a soft white; muted and dim are for secondary notes, faint for
+ *           the chapter numerals and the empty strip.
+ *   Green:  what is live, what you are pointing at, and the one action, a
+ *           signal green (the owner's choice over the reference's orange).
+ *           It passes contrast as text on the ground (about 11:1), and the
+ *           near-black ink passes on it.
+ * The older token names are kept, with these values, so every component
+ * follows without being touched.
  */
 :root {
-  --surface: #0d1011;
-  --surface-card: #13171a;
-  --surface-raised: #1a1f22;
+  --surface: #050505;
+  --surface-card: #0b0b0b;
+  --surface-raised: #161616;
 
-  --fg: #e7ebed;
-  --fg-soft: #c2c9cc;
-  --fg-muted: #8f999d;
-  --fg-dim: #78838a;
-  --fg-faint: #3f474b;
+  --fg: #dddddd;
+  --fg-soft: #c2c2c2;
+  --fg-muted: #9a9a9a;
+  --fg-dim: #808080;
+  --fg-faint: #262626;
 
-  --rule: rgba(214, 226, 232, 0.09);
-  --rule-strong: rgba(214, 226, 232, 0.18);
+  --rule: rgba(221, 221, 221, 0.1);
+  --rule-strong: rgba(221, 221, 221, 0.2);
 
-  --cloak: #14261c;
-  --cloak-bright: #2f5a44;
-  --gold: #bf9d5f;
+  --green: #3ee07c;
+  --accent: var(--green);
+  --accent-ink: #050505;
+  --accent-text: var(--accent);
+  --accent-wash: rgba(62, 224, 124, 0.06);
+  --accent-line: rgba(62, 224, 124, 0.3);
+
+  /* The inverse field: the paper of the writing covers. */
+  --field: #dddddd;
+  --field-ink: #050505;
+
+  --cloak: #080808;
+  --cloak-bright: #555555;
+  /* What you are pointing at (hover, the active item). */
+  --gold: var(--accent);
 
   /* The status dot and its word: a project that is live. */
-  --live: #5fbf8a;
-  /* The writing covers: the one light surface, printed paper and its ink. */
-  --paper: #ebe6da;
-  --ink: #1c1d1e;
+  --live: var(--accent);
+  --paper: var(--field);
+  --ink: var(--field-ink);
   /* Syntax colours in the Code demo. */
-  --syntax-string: #8fbf9f;
-  --syntax-type: #9fb6c6;
-  --syntax-number: #c9a3c9;
+  --syntax-string: #c9c9c9;
+  --syntax-type: #a3a3a3;
+  --syntax-number: var(--accent);
+
+  /* The steps of running text; headings take their size where they are used. */
+  --step-small: clamp(0.8125rem, 0.79rem + 0.1vw, 0.875rem);
+  --step-body: clamp(1.0625rem, 1rem + 0.25vw, 1.1875rem);
+  --step-lead: clamp(1.25rem, 1.1rem + 0.7vw, 1.625rem);
+  --step-head: clamp(2rem, 1.3rem + 3.2vw, 4rem);
+
+  /* The bar at the top: every screen that is held on stage sits under it. */
+  --bar-h: 3rem;
+}
+
+@media (min-width: 768px) {
+  :root {
+    --bar-h: 3.5rem;
+  }
 }
 
 @theme inline {
-  --font-sans: var(--font-geist);
+  --font-sans: var(--font-text);
   --font-mono: var(--font-geist-mono);
-  /* Headings: the body face at 700, set tight. A token of its own so it can change in one place. */
-  --font-display: var(--font-geist);
+  --font-code: var(--font-geist-mono);
+  --font-display: var(--font-text);
 }
 
 html {
@@ -58,9 +91,9 @@ html {
   scroll-padding-top: 4.5rem;
   /*
    * A tap on a phone flashes the thing tapped. The default flash is a grey-blue
-   * box from the browser's own palette; this is the site's gold, faint.
+   * box from the browser's own palette; this is the site's ink, faint.
    */
-  -webkit-tap-highlight-color: rgba(191, 157, 95, 0.14);
+  -webkit-tap-highlight-color: rgba(221, 221, 221, 0.12);
 }
 
 /*
@@ -76,9 +109,12 @@ html {
 }
 
 body {
-  background: var(--surface);
+  /* The ground of every screen: a fine grid of dots, the paper an instrument plots on. */
+  background:
+    radial-gradient(circle, rgba(221, 221, 221, 0.075) 0.75px, transparent 1.25px) 0 0 / 20px 20px,
+    var(--surface);
   color: var(--fg);
-  font-family: var(--font-geist), ui-sans-serif, system-ui, sans-serif;
+  font-family: var(--font-text), ui-sans-serif, system-ui, sans-serif;
   overflow-x: clip;
 }
 
@@ -93,12 +129,12 @@ button:not(:disabled),
 }
 
 ::selection {
-  background: var(--cloak-bright);
-  color: #fff;
+  background: var(--accent);
+  color: var(--accent-ink);
 }
 
 :focus-visible {
-  outline: 1px solid var(--gold);
+  outline: 2px solid var(--fg);
   outline-offset: 3px;
 }
 
@@ -137,6 +173,248 @@ button:not(:disabled),
   }
 }
 
+/* The viewport's corner arms, registered so they can grow smoothly under the pointer. */
+@property --arm {
+  syntax: "<length>";
+  inherits: true;
+  initial-value: 0.625rem;
+}
+
+/*
+ * The site's own components, in Tailwind's components layer so a utility on
+ * the same element (hidden, a size, a leading) still wins.
+ */
+@layer components {
+  /*
+   * Display type: headings and the large numerals. The grotesque at 500, in
+   * sentence case, set tight; the size comes from where it is used.
+   */
+  .display {
+    font-family: var(--font-text), ui-sans-serif, system-ui, sans-serif;
+    font-weight: 500;
+    font-optical-sizing: auto;
+    letter-spacing: -0.035em;
+    line-height: 0.94;
+  }
+
+  /* A readout: what the instrument says about itself, in its monospace capitals. */
+  .label {
+    font-family: var(--font-geist-mono), ui-monospace, monospace;
+    font-size: 0.75rem;
+    line-height: 1.5;
+    letter-spacing: 0.04em;
+    text-transform: uppercase;
+  }
+
+  /* Buttons inside a readout read out too (the browser gives them no text-transform of their own). */
+  .label :is(button, kbd) {
+    text-transform: inherit;
+  }
+
+  /* A tag: a readout on a filled chip. data-solid is the one that names the thing itself. */
+  .tag {
+    display: inline-flex;
+    align-items: center;
+    height: 1.25rem;
+    padding-inline: 0.4rem;
+    background: var(--surface-raised);
+    color: var(--fg-soft);
+  }
+
+  .tag[data-solid] {
+    background: var(--fg);
+    color: var(--surface);
+  }
+
+  /*
+   * The action: a green readout in a box of its own colour, filled when it
+   * is pointed at. data-solid is filled from the start, for the one action a
+   * screen leads with. 44px or taller either way.
+   */
+  .action {
+    display: inline-flex;
+    min-height: 2.75rem;
+    align-items: center;
+    justify-content: center;
+    gap: 0.5rem;
+    padding-inline: 1.125rem;
+    border: 1px solid var(--accent-line);
+    background: var(--accent-wash);
+    color: var(--accent);
+    font-family: var(--font-geist-mono), ui-monospace, monospace;
+    font-size: 0.75rem;
+    letter-spacing: 0.04em;
+    text-transform: uppercase;
+    white-space: nowrap;
+    transition:
+      background-color 150ms,
+      border-color 150ms,
+      color 150ms,
+      translate 150ms;
+  }
+
+  .action:hover,
+  .action[data-solid] {
+    border-color: var(--accent);
+    background: var(--accent);
+    color: var(--accent-ink);
+  }
+
+  .action[data-solid]:hover {
+    border-color: var(--fg);
+    background: var(--fg);
+  }
+
+  .action:active {
+    translate: 0 1px;
+  }
+
+  /*
+   * Every action carries four small corners, the way the reference marks its
+   * buttons; pointed at or focused, they step out and grow, like a target
+   * being bracketed.
+   */
+  .action {
+    position: relative;
+  }
+
+  .action::before {
+    --arm: 0.25rem;
+    content: "";
+    position: absolute;
+    inset: 0;
+    pointer-events: none;
+    background:
+      linear-gradient(var(--corner, var(--accent)), var(--corner, var(--accent))) top left / var(--arm) 1px,
+      linear-gradient(var(--corner, var(--accent)), var(--corner, var(--accent))) top left / 1px var(--arm),
+      linear-gradient(var(--corner, var(--accent)), var(--corner, var(--accent))) top right / var(--arm) 1px,
+      linear-gradient(var(--corner, var(--accent)), var(--corner, var(--accent))) top right / 1px var(--arm),
+      linear-gradient(var(--corner, var(--accent)), var(--corner, var(--accent))) bottom left / var(--arm) 1px,
+      linear-gradient(var(--corner, var(--accent)), var(--corner, var(--accent))) bottom left / 1px var(--arm),
+      linear-gradient(var(--corner, var(--accent)), var(--corner, var(--accent))) bottom right / var(--arm) 1px,
+      linear-gradient(var(--corner, var(--accent)), var(--corner, var(--accent))) bottom right / 1px var(--arm);
+    background-repeat: no-repeat;
+    transition:
+      --arm 300ms cubic-bezier(0.22, 1, 0.36, 1),
+      inset 300ms cubic-bezier(0.22, 1, 0.36, 1);
+  }
+
+  .action:hover::before,
+  .action:focus-visible::before {
+    --arm: 0.5rem;
+    inset: -0.3125rem;
+  }
+
+  /* On a filled action the corners are the ink colour, so they still show on the green. */
+  .action[data-solid]::before {
+    --corner: var(--fg);
+  }
+
+  /*
+   * A viewport: the frame anything on show sits in. A hairline box on the
+   * panel tone with green brackets at its corners, drawn by one pseudo-element
+   * so the frame needs no extra markup.
+   */
+  .viewport {
+    position: relative;
+    border: 1px solid var(--rule);
+    background: var(--surface-card);
+  }
+
+  .viewport::after {
+    content: "";
+    position: absolute;
+    inset: -1px;
+    z-index: 2;
+    pointer-events: none;
+    background:
+      linear-gradient(var(--accent), var(--accent)) top left / var(--arm) 1px,
+      linear-gradient(var(--accent), var(--accent)) top left / 1px var(--arm),
+      linear-gradient(var(--accent), var(--accent)) top right / var(--arm) 1px,
+      linear-gradient(var(--accent), var(--accent)) top right / 1px var(--arm),
+      linear-gradient(var(--accent), var(--accent)) bottom left / var(--arm) 1px,
+      linear-gradient(var(--accent), var(--accent)) bottom left / 1px var(--arm),
+      linear-gradient(var(--accent), var(--accent)) bottom right / var(--arm) 1px,
+      linear-gradient(var(--accent), var(--accent)) bottom right / 1px var(--arm);
+    background-repeat: no-repeat;
+    transition: --arm 300ms cubic-bezier(0.22, 1, 0.36, 1);
+  }
+
+  a.viewport:hover,
+  button.viewport:hover {
+    --arm: 1.375rem;
+  }
+
+  /*
+   * The strip in the bar: a spectrum of bars of uneven height, filled with
+   * green from the left as far as the page has been read (--read, 0 to 1,
+   * set by Header), the bar at the edge of the reading lit brighter. On a
+   * phone it is a plain line along the bar's bottom edge.
+   */
+  .strip {
+    position: absolute;
+    inset: auto 0 -1px 0;
+    height: 2px;
+    background: var(--rule);
+  }
+
+  .strip > span {
+    position: absolute;
+    inset: 0;
+    background: var(--accent);
+    transform-origin: left;
+    scale: var(--read, 0) 1;
+  }
+
+  .strip-bars {
+    display: none;
+  }
+
+  @media (min-width: 768px) {
+    .strip {
+      position: relative;
+      inset: auto;
+      flex: 1;
+      min-width: 0;
+      height: 1.5rem;
+      background: none;
+    }
+
+    .strip > span {
+      display: none;
+    }
+
+    .strip-bars {
+      position: absolute;
+      inset: 0;
+      display: block;
+      width: 100%;
+      height: 100%;
+      fill: var(--rule-strong);
+    }
+
+    /* Clipped rather than scaled, so the filled bars keep their places. */
+    .strip-fill {
+      fill: var(--accent);
+      clip-path: inset(0 calc((1 - var(--read, 0)) * 100%) 0 0);
+    }
+  }
+
+  /* A chapter's numeral: very large and barely there, beside the heading it numbers. */
+  .chapter-num {
+    font-family: var(--font-text), ui-sans-serif, system-ui, sans-serif;
+    font-weight: 500;
+    font-size: clamp(4.5rem, 13vw, 12.5rem);
+    line-height: 1;
+    /* The digits stand on the row's bottom edge, not on the empty foot of their line. */
+    margin-bottom: -0.13em;
+    letter-spacing: -0.06em;
+    color: var(--fg-faint);
+    font-variant-numeric: tabular-nums;
+    user-select: none;
+  }
+}
+
 /*
  * Page container and the 12-column grid every section sits on. The page runs
  * edge to edge (viewport-fit=cover), so on a phone held sideways the padding
@@ -145,7 +423,6 @@ button:not(:disabled),
 .shell {
   --gutter: 1.25rem;
   width: 100%;
-  max-width: 1280px;
   margin-inline: auto;
   padding-left: max(var(--gutter), env(safe-area-inset-left));
   padding-right: max(var(--gutter), env(safe-area-inset-right));
@@ -153,7 +430,7 @@ button:not(:disabled),
 
 @media (min-width: 768px) {
   .shell {
-    --gutter: 2.5rem;
+    --gutter: 1.75rem;
   }
 }
 
@@ -198,17 +475,76 @@ html[data-intro="leaving"] .intro {
   display: flex;
 }
 
-html[data-intro="leaving"] .intro {
-  opacity: 0;
-  visibility: hidden;
+/* The start-up screen: corners, the name at the top, the line across the middle, the percentage at the foot. */
+.intro-corner {
+  position: absolute;
+  width: 1rem;
+  height: 1rem;
+  border: 0 solid var(--fg);
+  opacity: 0.25;
 }
+
+.intro-corner[data-at="tl"] { top: 1rem; left: 1rem; border-top-width: 1px; border-left-width: 1px; }
+.intro-corner[data-at="tr"] { top: 1rem; right: 1rem; border-top-width: 1px; border-right-width: 1px; }
+.intro-corner[data-at="bl"] { bottom: 1rem; left: 1rem; border-bottom-width: 1px; border-left-width: 1px; }
+.intro-corner[data-at="br"] { bottom: 1rem; right: 1rem; border-bottom-width: 1px; border-right-width: 1px; }
 
 .intro-name {
-  transition: transform 500ms cubic-bezier(0.22, 1, 0.36, 1);
+  position: absolute;
+  top: 1rem;
+  left: 50%;
+  translate: -50% 0;
+  color: var(--fg);
 }
 
-html[data-intro="leaving"] .intro-name {
-  transform: translateY(-10px);
+.intro-line {
+  display: flex;
+  align-items: center;
+  gap: 1rem;
+  width: min(32rem, calc(100% - 3rem));
+  margin-inline: auto;
+  color: var(--fg);
+}
+
+.intro-track {
+  position: relative;
+  flex: 1;
+  height: 0.5rem;
+}
+
+.intro-track::before {
+  content: "";
+  position: absolute;
+  inset: 50% 0 auto;
+  height: 1px;
+  background: var(--rule-strong);
+}
+
+.intro-square {
+  position: absolute;
+  top: 0;
+  left: calc(var(--p, 0) * (100% - 0.5rem));
+  width: 0.5rem;
+  height: 0.5rem;
+  background: var(--accent);
+  transition: left 300ms ease-out;
+}
+
+.intro-creep {
+  position: absolute;
+  inset: 50% 0 auto;
+  height: 1px;
+  background: var(--accent);
+  opacity: 0.5;
+  transform-origin: left;
+}
+
+.intro-percent {
+  position: absolute;
+  bottom: 1rem;
+  left: 50%;
+  translate: -50% 0;
+  color: var(--fg-dim);
 }
 
 /* Moves the intro's line before the app can report real progress. */
@@ -228,6 +564,72 @@ html[data-intro="leaving"] .intro-name {
 /* The hero's entrance waits under the intro and plays as it lifts. */
 html[data-intro="show"] .rise {
   animation-play-state: paused;
+}
+
+/*
+ * Film grain: a small noise tile over the whole screen, barely there. It
+ * holds still: a moving full-screen layer costs every frame, for little.
+ * Above the page and the bar, under dialogs; it never takes the pointer.
+ */
+.grain {
+  position: fixed;
+  inset: -6rem;
+  z-index: 45;
+  pointer-events: none;
+  background: url("/noise.png");
+  opacity: 0.045;
+}
+
+/*
+ * The crosshair pointer (Crosshair.tsx): the system arrow is hidden only
+ * once the crosshair is running, and comes back over anything typed into.
+ */
+.crosshair {
+  display: none;
+}
+
+html.has-crosshair,
+html.has-crosshair * {
+  cursor: none !important;
+}
+
+html.has-crosshair :is(input, textarea, select, [contenteditable="true"]) {
+  cursor: text !important;
+}
+
+html.has-crosshair .crosshair {
+  position: fixed;
+  top: 0;
+  left: 0;
+  z-index: 200;
+  display: block;
+  width: 1.5rem;
+  height: 1.5rem;
+  margin: -0.75rem 0 0 -0.75rem;
+  pointer-events: none;
+  mix-blend-mode: difference;
+  color: #fff;
+}
+
+.crosshair svg {
+  width: 100%;
+  height: 100%;
+  stroke: currentColor;
+  stroke-width: 1.25;
+  fill: currentColor;
+  transition:
+    rotate 300ms cubic-bezier(0.22, 1, 0.36, 1),
+    scale 300ms cubic-bezier(0.22, 1, 0.36, 1);
+}
+
+.crosshair[data-press] svg {
+  rotate: 45deg;
+  scale: 1.35;
+}
+
+.crosshair[data-away],
+.crosshair[data-hidden] {
+  opacity: 0;
 }
 
 /* Between pages (PageLoading): fills the view under the sticky header. */
@@ -443,5 +845,30 @@ html[data-js] .reveal:not([data-shown]) {
   /* Run once, it would end off the rule; hold it still at the start instead. */
   .loading-bar {
     animation-name: none !important;
+  }
+}
+
+/*
+ * Scroll entrances, tied to the scroll position itself (CSS scroll-driven
+ * animations), so they run forwards and backwards with the page. They are
+ * decoration: where the browser has no support, or motion is turned down,
+ * everything is simply in place. The second @supports test filters out
+ * browsers with only part of the feature.
+ */
+@media (prefers-reduced-motion: no-preference) {
+  @supports ((animation-timeline: view()) and (animation-range: entry)) {
+    @keyframes enter-rise {
+      from {
+        opacity: 0;
+        translate: 0 3.5rem;
+      }
+    }
+
+    /* A fixed stretch of scroll from the moment the element's top edge comes in, whatever its height. */
+    .enter-rise {
+      animation: enter-rise auto cubic-bezier(0.2, 0.7, 0.2, 1) backwards;
+      animation-timeline: view();
+      animation-range: cover 0% cover 38vh;
+    }
   }
 }

@@ -1,18 +1,11 @@
 "use client";
 
-import { useCallback, useEffect, useRef, useState, useSyncExternalStore } from "react";
+import { useCallback, useState, type CSSProperties } from "react";
 import Image from "next/image";
 import Section from "./Section";
 import CertificateLightbox from "./CertificateLightbox";
 import { certifications, type Certification } from "@/content/certifications";
-import useSwipe from "@/lib/useSwipe";
-import useScrollFade from "@/lib/useScrollFade";
-import SwipeHint from "./SwipeHint";
-
-/** How long each certificate is on show before the next one slides in. */
-const ADVANCE_MS = 5000;
-const SLIDE_MS = 700;
-const SLIDE = `${SLIDE_MS}ms cubic-bezier(0.65, 0, 0.35, 1) both`;
+import "./certifications.css";
 
 /*
  * Fields grouped into the four areas they actually cover. Anything with a
@@ -32,7 +25,7 @@ const grouped = (() => {
         ...GROUPS.map((g) => ({ label: g.label, items: certifications.filter((c) => g.fields.includes(c.field ?? "")) })),
         { label: "Other", items: certifications.filter((c) => !known.has(c.field ?? "")) },
     ].filter((g) => g.items.length > 0);
-    // One running index across groups: the order they are listed is the order they play.
+    // One running index across groups: the order they are listed is the order the full-size view steps through.
     let i = 0;
     return all.map((g) => ({ ...g, items: g.items.map((cert) => ({ cert, index: i++ })) }));
 })();
@@ -42,106 +35,32 @@ const TOTAL = ORDERED.length;
 const ISSUERS = new Set(ORDERED.map((c) => c.issuer)).size;
 const YEARS = ORDERED.map((c) => Number(c.year)).filter(Boolean);
 const SPAN = YEARS.length ? `${Math.min(...YEARS)}–${Math.max(...YEARS)}` : "";
-
-const motionQuery = "(prefers-reduced-motion: reduce)";
-const subscribeMotion = (cb: () => void) => {
-    const mq = window.matchMedia(motionQuery);
-    mq.addEventListener("change", cb);
-    return () => mq.removeEventListener("change", cb);
-};
+const code = (i: number) => `C-${String(i + 1).padStart(2, "0")}`;
 
 /**
- * An exhibit rather than a grid: one certificate large enough to read, the
- * full index beside it grouped by field, sliding on to the next by itself.
+ * The certificates as a wall of evidence, the way the reference shows its
+ * photographs: every one in a green-washed frame with a field of crosses
+ * over it, its code and issuer read out on the frame. Pointing at one (or
+ * focusing it) washes the green off and shows it as it is; pressing it
+ * opens it full size, from where the arrow keys step through all of them.
+ * One grid, ordered by field; the last tile is the readout of the fields
+ * with their counts, which also closes the grid's last row.
  *
- * The advance is driven by the progress bar's own CSS animation — when it
- * finishes, the next certificate slides in. Pausing is then just
- * `animation-play-state: paused`: by the Pause button (moving content must
- * be stoppable — WCAG 2.2.2), while the full-size view is open, while the
- * section is off screen, and always under reduced motion.
- *
- * It also pauses while keyboard focus is inside the section, so nothing
- * slides away from someone tabbing through it. Only keyboard focus
- * (`:focus-visible`): a mouse click on an arrow leaves focus inside too, and
- * when that paused it, the slideshow looked like it never moved at all. It
- * deliberately does not pause on hover, for the same reason.
+ * Each frame opens from the top as it comes up the screen (motion.css,
+ * `.open-frame`), a beat after the one before it.
  */
 export default function Certifications() {
-    const rootRef = useRef<HTMLDivElement>(null);
-    const stripRef = useRef<HTMLUListElement>(null);
-    /*
-     * `prev` and `dir` describe the slide in progress: `active` comes in from
-     * the `dir` side, `prev` leaves to the other. Everything else is hidden,
-     * so jumping several places at once never sweeps other certificates
-     * across the viewer.
-     */
-    const [slide, setSlide] = useState({ active: 0, prev: -1, dir: 1 as 1 | -1, instant: false });
-    const { active, prev, dir, instant } = slide;
-    /*
-     * A change that lands while the previous slide is still moving switches
-     * instantly. Otherwise the slide that was halfway in would restart its
-     * exit from the centre — a visible jump when the arrows are clicked fast.
-     */
-    const lastChange = useRef(0);
-    const isMidSlide = () => {
-        const now = performance.now();
-        const mid = now - lastChange.current < SLIDE_MS;
-        lastChange.current = now;
-        return mid;
-    };
-    const [userPaused, setUserPaused] = useState(false);
-    const [visible, setVisible] = useState(false);
+    const [active, setActive] = useState(0);
     const [open, setOpen] = useState(false);
-    const [keyboardInside, setKeyboardInside] = useState(false);
-    const reduced = useSyncExternalStore(subscribeMotion, () => window.matchMedia(motionQuery).matches, () => true);
-
-    const paused = userPaused || !visible || open || keyboardInside || reduced || TOTAL < 2;
-    const cert = ORDERED[active];
-
-    const step = useCallback((d: 1 | -1) => {
-        if (TOTAL < 2) return;
-        const quick = isMidSlide();
-        setSlide((s) => ({ active: (s.active + d + TOTAL) % TOTAL, prev: s.active, dir: d, instant: quick }));
-    }, []);
-    const select = (i: number) => {
-        if (i === active) return;
-        const quick = isMidSlide();
-        setSlide((s) => ({ active: i, prev: s.active, dir: i > s.active ? 1 : -1, instant: quick }));
-    };
     const onClose = useCallback(() => setOpen(false), []);
-    // On a phone the viewer swipes like a photo gallery.
-    const swipe = useSwipe({ onLeft: () => step(1), onRight: () => step(-1) });
-    const stripEdges = useScrollFade(stripRef);
-
-    useEffect(() => {
-        const el = rootRef.current;
-        if (!el) return;
-        const io = new IntersectionObserver(([entry]) => setVisible(entry.isIntersecting), { threshold: 0.25 });
-        io.observe(el);
-        return () => io.disconnect();
-    }, []);
-
-    // Keep the active thumbnail in view on the phone strip. Scrolls the strip
-    // only — scrollIntoView could drag the whole page along with it.
-    useEffect(() => {
-        const strip = stripRef.current;
-        const thumb = strip?.children[active] as HTMLElement | undefined;
-        if (!strip || !thumb || !visible) return;
-        // Measured against the strip itself, not offsetLeft — that is relative
-        // to whichever ancestor happens to be positioned, so it only lined up
-        // by coincidence of the current layout.
-        const left = thumb.getBoundingClientRect().left - strip.getBoundingClientRect().left + strip.scrollLeft - 20;
-        strip.scrollTo({ left, behavior: reduced ? "auto" : "smooth" });
-    }, [active, visible, reduced]);
+    const step = useCallback((d: 1 | -1) => setActive((i) => (i + d + TOTAL) % TOTAL), []);
 
     if (TOTAL === 0) return null;
-
-    const arrow =
-        "flex h-[44px] w-[44px] items-center justify-center border border-[var(--rule-strong)] text-[var(--fg-soft)] transition-colors hover:border-[var(--gold)] hover:text-[var(--fg)]";
 
     return (
         <Section
             id="certificates"
+            index="04"
             title="Certificates"
             meta={
                 <>
@@ -150,200 +69,74 @@ export default function Certifications() {
             }
             wide
         >
-            {/*
-             * lg and up: the index sits in the margin (columns 1–3), the viewer
-             * takes columns 4–12. Below lg the margin is
-             * too narrow for a list, so it is one column with a thumbnail strip.
-             */}
-            <div
-                ref={rootRef}
-                onFocus={(e) => (e.target as Element).matches(":focus-visible") && setKeyboardInside(true)}
-                onBlur={(e) => !e.currentTarget.contains(e.relatedTarget as Node | null) && setKeyboardInside(false)}
-                className="grid grid-cols-1 gap-x-6 gap-y-8 md:grid-cols-12"
-            >
-                {/* Viewer */}
-                <div className="md:col-span-9 md:col-start-4 lg:row-start-1">
-                    <button
-                        type="button"
-                        {...swipe.handlers}
-                        onClick={() => !swipe.swiped() && setOpen(true)}
-                        aria-label={`View ${cert.name} full size`}
-                        style={{ touchAction: "pan-y" }}
-                        className="group relative block aspect-[3/2] w-full overflow-hidden sm:aspect-[4/3] border border-[var(--rule)] bg-[var(--surface-raised)] transition-colors hover:border-[var(--rule-strong)] lg:aspect-[16/10]"
-                    >
-                        {ORDERED.map((c, i) => {
-                            const role = i === active ? "in" : i === prev ? "out" : "idle";
-                            const animation = instant
-                                ? "none"
-                                : role === "in" && prev !== -1
-                                    ? `slide-in-${dir > 0 ? "right" : "left"} ${SLIDE}`
-                                    : role === "out"
-                                      ? `slide-out-${dir > 0 ? "left" : "right"} ${SLIDE}`
-                                      : "none";
-                            return (
-                                <span
-                                    key={c.name}
-                                    aria-hidden={role !== "in"}
-                                    className="absolute inset-0"
-                                    style={{
-                                        animation,
-                                        // With no slide to play, the outgoing one would sit on top at centre.
-                                        visibility: role === "idle" || (instant && role === "out") ? "hidden" : "visible",
-                                    }}
-                                >
-                                    {c.image && (
-                                        <Image
-                                            src={c.image}
-                                            alt={role === "in" ? `Certificate: ${c.name}, ${c.issuer}` : ""}
-                                            fill
-                                            sizes="(max-width: 768px) 92vw, 700px"
-                                            className="object-contain p-3 drop-shadow-[0_14px_28px_rgba(0,0,0,0.6)] sm:p-5 md:p-10"
-                                        />
-                                    )}
-                                </span>
-                            );
-                        })}
-                        {/* Revealed on hover with a mouse; always there on a touch screen, which also gets the swipe. */}
-                        <span className="absolute bottom-3 right-4 border border-[var(--rule-strong)] bg-[var(--surface)]/80 px-1.5 py-0.5 text-xs text-[var(--fg-muted)] transition-opacity [@media(hover:hover)]:opacity-0 [@media(hover:hover)]:group-hover:opacity-100">
-                            <span className="[@media(hover:none)]:hidden">Open full size ↗</span>
-                            <span className="[@media(hover:hover)]:hidden">← swipe → · tap to enlarge</span>
-                        </span>
-                    </button>
-
-                    {/* Progress — its animationend is the timer. */}
-                    <div className="relative h-px overflow-hidden bg-[var(--rule)]">
-                        {!reduced && (
-                            <span
-                                key={active}
-                                className="absolute inset-0 origin-left bg-[var(--gold)]"
-                                style={{
-                                    animation: `progress ${ADVANCE_MS}ms linear forwards`,
-                                    animationPlayState: paused ? "paused" : "running",
+            <ul className="cert-grid">
+                {grouped.map((group) =>
+                    group.items.map(({ cert, index }, k) => (
+                        <li key={cert.name} data-reveal className="cert-card" style={{ "--k": index % 4 } as CSSProperties}>
+                            <button
+                                type="button"
+                                onClick={() => {
+                                    setActive(index);
+                                    setOpen(true);
                                 }}
-                                onAnimationEnd={() => step(1)}
-                            />
-                        )}
-                    </div>
-
-                    {/*
-                     * Phone: the controls get their own row above the name, so
-                     * the name has the full width instead of wrapping to four
-                     * lines beside three buttons. From sm up they sit side by side.
-                     */}
-                    <div className="mt-4 flex flex-col gap-4 sm:mt-5 sm:flex-row sm:items-start sm:justify-between sm:gap-6">
-                        {/* Read out only when it isn't advancing by itself, or a screen reader hears a new name every 5s. */}
-                        <div className="min-w-0" aria-live={paused ? "polite" : "off"}>
-                            <p className="text-base leading-snug text-[var(--fg)] sm:text-lg">{cert.name}</p>
-                            <p className="mt-1 text-sm text-[var(--fg-dim)]">
-                                {cert.issuer} · <span className="font-mono">{cert.year}</span>
-                                {cert.field && <> · {cert.field}</>}
+                                aria-label={`View ${cert.name} full size`}
+                                className="cert-frame viewport open-frame"
+                            >
+                                {cert.image && (
+                                    <Image src={cert.image} alt="" fill sizes="(max-width: 768px) 45vw, 340px" className="cert-img object-contain" />
+                                )}
+                                <span aria-hidden="true" className="cert-wash" />
+                                <svg aria-hidden="true" className="cert-marks" width="100%" height="100%">
+                                    <rect width="100%" height="100%" fill="url(#cert-cross)" />
+                                </svg>
+                                <span aria-hidden="true" data-decode className="cert-code label">
+                                    {code(index)} <span className="text-[var(--fg-dim)]">/ {cert.year}</span>
+                                </span>
+                            </button>
+                            <p className="mt-3 text-pretty text-sm leading-snug text-[var(--fg)] md:text-[15px]">{cert.name}</p>
+                            <p className="label mt-1.5 text-[var(--fg-dim)]">
+                                {k === 0 && <span className="sr-only">{group.label}: </span>}
+                                {cert.issuer}
                                 {cert.url && (
                                     <>
                                         {" · "}
-                                        <a href={cert.url} target="_blank" rel="noopener noreferrer" className="link text-[var(--fg-muted)]">
+                                        <a href={cert.url} target="_blank" rel="noopener noreferrer" className="link text-[var(--accent)]">
                                             Verify ↗
                                         </a>
                                     </>
                                 )}
                             </p>
-                        </div>
-                        <div className="order-first flex shrink-0 items-center justify-between gap-3 sm:order-none sm:justify-start">
-                            <span className="font-mono text-xs tabular-nums text-[var(--fg-dim)]">
-                                {active + 1} / {TOTAL}
-                            </span>
-                            <span className="flex gap-2 sm:gap-3">
-                            {!reduced && (
-                                <button
-                                    type="button"
-                                    onClick={() => setUserPaused((p) => !p)}
-                                    aria-label={userPaused ? "Resume slideshow" : "Pause slideshow"}
-                                    aria-pressed={userPaused}
-                                    className={`${arrow} font-mono text-xs`}
-                                >
-                                    {userPaused ? "▶" : "❚❚"}
-                                </button>
-                            )}
-                            <button type="button" onClick={() => step(-1)} aria-label="Previous certificate" className={arrow}>
-                                ←
-                            </button>
-                            <button type="button" onClick={() => step(1)} aria-label="Next certificate" className={arrow}>
-                                →
-                            </button>
-                            </span>
-                        </div>
-                    </div>
-
-                    {/* Phone: a strip of thumbnails in place of the index. */}
-                    <div className="mt-6 flex items-baseline justify-between gap-4 lg:hidden">
-                        <p className="text-xs text-[var(--fg-dim)]">All {TOTAL} · tap one to show it</p>
-                        <SwipeHint edges={stripEdges} />
-                    </div>
-                    <ul ref={stripRef} className="scroll-fade -mx-5 mt-3 flex gap-3 overflow-x-auto px-5 pb-1 [scrollbar-width:none] md:mx-0 md:px-0 lg:hidden [&::-webkit-scrollbar]:hidden">
-                        {ORDERED.map((c, i) => (
-                            <li key={c.name} className="shrink-0">
-                                <button
-                                    type="button"
-                                    onClick={() => select(i)}
-                                    aria-label={c.name}
-                                    aria-current={i === active}
-                                    className={`relative block aspect-[4/3] w-24 border bg-[var(--surface-raised)] transition-colors ${
-                                        i === active ? "border-[var(--gold)]" : "border-[var(--rule)]"
-                                    }`}
-                                >
-                                    {c.image && <Image src={c.image} alt="" fill sizes="96px" className="object-contain p-1.5" />}
-                                </button>
-                            </li>
+                        </li>
+                    ))
+                )}
+                {/* The readout: the fields and how many in each. */}
+                <li className="cert-readout-tile">
+                    <p className="label text-[var(--accent)]">By field</p>
+                    <dl className="mt-4 grid gap-2">
+                        {grouped.map((group) => (
+                            <div key={group.label} className="label flex justify-between gap-4 border-b border-[var(--rule)] pb-2">
+                                <dt className="text-[var(--fg)]">{group.label}</dt>
+                                <dd className="tabular-nums text-[var(--fg-dim)]">{String(group.items.length).padStart(2, "0")}</dd>
+                            </div>
                         ))}
-                    </ul>
-                </div>
+                    </dl>
+                    <p className="label mt-4 text-[var(--fg-dim)]">
+                        {TOTAL} certificates · {ISSUERS} institutions · {SPAN}
+                    </p>
+                </li>
+            </ul>
 
-                {/* Index, grouped by field */}
-                <nav aria-label="Certificate index" className="hidden lg:col-span-3 lg:col-start-1 lg:row-start-1 lg:block">
-                    {grouped.map((group) => (
-                        <div key={group.label} className="mb-6 last:mb-0">
-                            <p className="flex justify-between text-xs text-[var(--fg-dim)]">
-                                <span>{group.label}</span>
-                                <span className="font-mono">{group.items.length}</span>
-                            </p>
-                            <ul className="mt-2 border-t border-[var(--rule)]">
-                                {group.items.map(({ cert: c, index }) => {
-                                    const isActive = index === active;
-                                    return (
-                                        <li key={c.name} className="border-b border-[var(--rule)]">
-                                            <button
-                                                type="button"
-                                                onClick={() => select(index)}
-                                                aria-current={isActive}
-                                                className={`relative grid w-full grid-cols-[1fr_auto] gap-3 py-2 pl-3.5 text-left text-[13px] transition-colors ${
-                                                    isActive ? "text-[var(--fg)]" : "text-[var(--fg-muted)] hover:text-[var(--fg-soft)]"
-                                                }`}
-                                            >
-                                                <span
-                                                    aria-hidden="true"
-                                                    className={`absolute inset-y-2 left-0 w-0.5 transition-colors ${
-                                                        isActive ? "bg-[var(--gold)]" : "bg-transparent"
-                                                    }`}
-                                                />
-                                                <span className="leading-snug">{c.name}</span>
-                                                <span className="font-mono text-xs leading-5 text-[var(--fg-dim)]">{c.year}</span>
-                                            </button>
-                                        </li>
-                                    );
-                                })}
-                            </ul>
-                        </div>
-                    ))}
-                </nav>
-            </div>
+            {/* One pattern of crosses for every frame. */}
+            <svg aria-hidden="true" width="0" height="0" className="absolute">
+                <defs>
+                    <pattern id="cert-cross" width="64" height="64" patternUnits="userSpaceOnUse" x="-32" y="-32">
+                        {/* A pattern takes its colours where it is defined, not where it is used, so they are set here. */}
+                        <path d="M32 27v10M27 32h10" stroke="#ffffff" strokeOpacity="0.4" />
+                    </pattern>
+                </defs>
+            </svg>
 
-            <CertificateLightbox
-                cert={cert}
-                open={open}
-                index={active}
-                total={TOTAL}
-                onClose={onClose}
-                onStep={step}
-            />
+            <CertificateLightbox cert={ORDERED[active]} open={open} index={active} total={TOTAL} onClose={onClose} onStep={step} />
         </Section>
     );
 }

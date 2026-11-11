@@ -1,32 +1,26 @@
 import type { ReactNode } from "react";
+import { Chars, Roll } from "./motion/Split";
+import Decode from "./motion/Decode";
 
 /**
  * Every section below the hero shares one skeleton on the 12-column grid.
  *
- *   Columns 1–3  the margin: inside wide sections, the things that hang
- *                beside the content — an index list, a screenshot, a cover.
- *   Columns 4–12 the content: the text and the main visual, all starting on
- *                the same line.
+ * It opens as a chapter: its number very large and barely there, and
+ * beside it a readout (a count, a span of years) over its name in the
+ * display face, the whole head closed by a hairline. As the head comes up
+ * the scroll works it (motion.css): the number's digits roll up to their
+ * value, the name's letters rise out of their masks, the readout decodes
+ * itself, and a green line runs along the rule.
  *
- * It opens with a running head across all twelve columns, the way a datasheet
- * heads its pages: the name in mono, a hairline to the far edge, and a count
- * at the end. The hairline is also the divider between sections, so there is
- * no border above. The head stays small on purpose: each section leads with
- * its own content (a project's name, a demo, a certificate, the address), not
- * the same giant word every time.
+ * `wide` hands a section all twelve columns; otherwise its content starts
+ * at column 4, the line the text of the page shares.
  *
- * `wide` hands a section all twelve columns so it can use the margin; its
- * content must still start at column 4 to stay on that line.
- *
- * On a phone the chrome is kept tight: each section is meant to fit on one
- * screen there, and every pixel of chrome is a pixel the content doesn't get.
- * The padding is the exception: 64px either side, so one section doesn't run
- * straight into the next. It stays 64px on a tablet, and grows only to 80px
- * from lg. A section can set its own (`padding`), so the page doesn't repeat
- * one rhythm from top to bottom.
+ * A section can set its own vertical padding (`padding`), so the page
+ * doesn't repeat one rhythm from top to bottom.
  */
 export default function Section({
     id,
+    index,
     title,
     intro,
     meta,
@@ -34,9 +28,11 @@ export default function Section({
     children,
     className = "",
     introClassName = "",
-    padding = "py-16 lg:py-20",
+    padding = "py-20 lg:py-28",
 }: {
     id?: string;
+    /** The chapter's number, as it is printed: "01". */
+    index?: string;
     title: string;
     intro?: ReactNode;
     /** The note at the end of the running head: a count, a span of years. */
@@ -52,15 +48,26 @@ export default function Section({
     return (
         <section id={id} className={className}>
             <div className={`shell grid-12 ${padding}`}>
-                <div className="col-span-4 flex items-baseline gap-3 font-mono text-sm md:col-span-12 md:gap-4">
-                    <h2 className="shrink-0 font-medium text-[var(--fg)]">{title}</h2>
-                    <span aria-hidden="true" className="h-px min-w-6 flex-1 self-center bg-[var(--rule-strong)]" />
-                    {meta && <p className="text-right text-[var(--fg-dim)]">{meta}</p>}
+                <div data-reveal className="relative col-span-4 flex items-end gap-x-5 border-b border-[var(--rule)] pb-5 md:col-span-12 md:gap-x-8 md:pb-7">
+                    {index && (
+                        <span aria-hidden="true" className="chapter-num">
+                            <Roll value={index} />
+                        </span>
+                    )}
+                    <div className="min-w-0 pb-[0.12em]">
+                        {meta && (
+                            <p className="label text-[var(--fg-dim)]">{typeof meta === "string" ? <Decode text={meta} /> : meta}</p>
+                        )}
+                        <h2 className="display mt-1.5 text-[clamp(2rem,4.4vw,4rem)] text-[var(--fg)]">
+                            <Chars text={title} />
+                        </h2>
+                    </div>
+                    <span aria-hidden="true" className="rule-sweep absolute inset-x-0 -bottom-px h-px bg-[var(--accent)] opacity-0" />
                 </div>
 
                 {intro && (
                     <p
-                        className={`col-span-4 mt-4 max-w-[36rem] text-[15px] leading-relaxed text-[var(--fg-muted)] md:col-span-6 md:col-start-4 md:mt-8 md:text-lg ${introClassName}`}
+                        className={`enter-rise col-span-4 mt-5 max-w-[40rem] text-pretty text-[length:var(--step-lead)] leading-[1.35] text-[var(--fg)] md:col-span-8 md:col-start-4 md:mt-8 ${introClassName}`}
                     >
                         {intro}
                     </p>

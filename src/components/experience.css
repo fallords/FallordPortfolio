@@ -1,0 +1,105 @@
+/*
+ * The log (Experience.tsx). At rest every role is in full ink with its
+ * number in the faint tone; the focus that follows the scroll only exists
+ * where scroll-driven animations do and motion is welcome.
+ */
+.xp-row {
+  padding-block: 2rem;
+  border-bottom: 1px solid var(--rule);
+}
+
+.xp-side {
+  display: flex;
+  align-items: flex-end;
+  gap: 1rem;
+  margin-bottom: 1rem;
+}
+
+.xp-num {
+  font-size: 3.25rem;
+  font-weight: 500;
+  line-height: 0.8;
+  letter-spacing: -0.06em;
+  color: var(--fg-faint);
+  font-variant-numeric: tabular-nums;
+}
+
+.xp-facts {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 0.125rem 0.75rem;
+  color: var(--fg-dim);
+}
+
+@media (min-width: 768px) {
+  .xp-row {
+    display: grid;
+    grid-template-columns: repeat(12, minmax(0, 1fr));
+    column-gap: 1.5rem;
+    padding-block: 3rem;
+  }
+
+  /* Pinned beside its role while the role is read; the next row pushes it on. */
+  .xp-side {
+    grid-column: 1 / span 3;
+    position: sticky;
+    top: calc(var(--bar-h) + 2rem);
+    align-self: start;
+    display: grid;
+    gap: 1.25rem;
+    margin: 0;
+  }
+
+  .xp-num {
+    font-size: clamp(4rem, 8vw, 7.5rem);
+  }
+
+  .xp-facts {
+    display: grid;
+    gap: 0.25rem;
+  }
+
+  .xp-body {
+    grid-column: 4 / span 9;
+    min-width: 0;
+  }
+}
+
+@media (prefers-reduced-motion: no-preference) {
+  @supports ((animation-timeline: view()) and (animation-range: cover 0% cover 100%)) {
+    @keyframes xp-focus {
+      0%,
+      100% {
+        opacity: 0.45;
+      }
+      32%,
+      62% {
+        opacity: 1;
+      }
+    }
+
+    @keyframes xp-num {
+      0%,
+      100% {
+        color: var(--fg-faint);
+      }
+      32%,
+      62% {
+        color: var(--accent);
+      }
+    }
+
+    .xp-body,
+    .xp-facts {
+      animation: xp-focus linear both;
+      animation-timeline: --reveal;
+      animation-range: cover 0% cover 100%;
+    }
+
+    .xp-num {
+      animation: xp-num linear both;
+      animation-timeline: --reveal;
+      animation-range: cover 0% cover 100%;
+    }
+  }
+}

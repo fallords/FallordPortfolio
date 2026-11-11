@@ -1,0 +1,32 @@
+/*
+ * The footer as a field of the page's green (Footer.tsx). The tokens are
+ * swapped for it, so everything in it that reads ink, rules or accent turns
+ * black on green without being touched.
+ */
+.footer-field {
+  --fg: var(--field-ink);
+  --fg-soft: rgb(5 5 5 / 0.85);
+  --fg-muted: rgb(5 5 5 / 0.75);
+  --fg-dim: rgb(5 5 5 / 0.66);
+  --fg-faint: rgb(5 5 5 / 0.16);
+  --rule: rgb(5 5 5 / 0.22);
+  --rule-strong: rgb(5 5 5 / 0.4);
+  --gold: var(--field-ink);
+  --accent: var(--field-ink);
+  background: var(--green);
+  color: var(--fg);
+}
+
+.footer-field ::selection {
+  background: var(--field-ink);
+  color: var(--green);
+}
+
+.footer-head {
+  color: var(--fg-dim);
+}
+
+/* The grid toggle is a button among links here: the same size and ink. */
+.footer-field button {
+  color: var(--fg);
+}

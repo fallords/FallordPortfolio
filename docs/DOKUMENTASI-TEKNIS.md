@@ -41,7 +41,7 @@ Situs portofolio satu halaman (beranda) ditambah halaman per tulisan. Semua hala
 Prinsip yang dipegang di seluruh kode:
 
 - **HP dulu.** Setiap section dirancang muat kira-kira satu layar HP. Yang bisa digeser atau terpotong selalu diberi petunjuk.
-- **Tiga material warna.** Iron (permukaan dan teks), Cloak (hijau tua: potret, Contact, footer), Gold (yang sedang ditunjuk: fokus, item aktif, garis progres).
+- **Halaman sebagai instrumen.** Gaya visualnya dipelajari dari referensi pilihan pemilik situs (zrk.tech, karya Qream, Awwwards SOTD 9 Nov 2026): latar hampir hitam dengan grid titik halus, satu hijau sinyal, grotesk medium yang rapat untuk judul, monospace kapital untuk semua readout, bar atas dengan strip yang terisi selama halaman dibaca, bab bernomor, dan subjek yang ditahan di layar sementara scroll mengerjakannya. Isinya tetap milik situs ini: potret yang menoleh, mesin isometrik, dan demo.
 - **Ringan dan tahan gagal.** Bagian yang gagal diganti pesan di tempatnya sendiri, dan halaman tetap terbaca tanpa JavaScript.
 - **Isi asli saja.** Data proyek, sertifikat, dan tulisan diambil dari dokumen aslinya, bukan teks karangan.
 
@@ -53,7 +53,7 @@ Prinsip yang dipegang di seluruh kode:
 | UI | React, dengan React Compiler (`reactCompiler: true`) | 19.2.8 |
 | Bahasa | TypeScript, mode `strict` | 5.9 |
 | Styling | Tailwind CSS 4 (lewat `@tailwindcss/postcss`) dan token CSS di `globals.css` | 4.2 |
-| Font | `next/font/google`, di-host sendiri: Geist, Geist Mono | |
+| Font | `next/font/google`, di-host sendiri: Inter (tanpa sumbu `opsz`, demi ukuran file), Geist Mono | |
 | Gambar | `next/image`, format AVIF lalu WebP | |
 | Gambar share | `next/og` (`ImageResponse`), dibuat saat build | |
 | Lint | ESLint 9 dengan `eslint-config-next` (core-web-vitals dan typescript) | 9.39 |
@@ -170,8 +170,8 @@ Error di dalam halaman ditangani `app/error.tsx`. Error di root layout ditangani
 
 `app/layout.tsx` berisi:
 
-- **Font:** dua keluarga. Geist 400 untuk teks dan antarmuka, Geist 700 yang dirapatkan untuk judul (token `--font-display`, kelas `font-display`), dan Geist Mono untuk label dan data (header section, tahun, jumlah, jam, penghitung frame, kode, dan wordmark di header). Judul selalu tegak, tanpa italic. Keduanya di-host sendiri oleh `next/font` sebagai variabel CSS `--font-geist` dan `--font-geist-mono`. Cormorant Garamond sudah dihapus.
-- **Viewport:** `themeColor #0d1011`, `viewportFit: cover`, dan zoom tidak dikunci.
+- **Font:** dua keluarga. Inter 400 untuk teks dan Inter 500 yang dirapatkan (−0.035em) untuk judul dan angka besar (kelas `.display`; token `--font-display` sekarang menunjuk ke Inter juga). Geist Mono kapital untuk semua readout (kelas `.label`: navigasi, meta section, tanggal, stack, penghitung frame, tombol) dan untuk kode. Variabel CSS-nya `--font-text` dan `--font-geist-mono`. Imbue dan Albert Sans dari percobaan sebelumnya sudah dihapus.
+- **Viewport:** `themeColor #050505`, `viewportFit: cover`, dan zoom tidak dikunci.
 - **Metadata:** judul "Fadhlan Bani · Developer & designer", deskripsi, canonical `/`, Open Graph, Twitter card, dan `robots: index, follow`.
 - **Boot script** (`BOOT_SCRIPT` dari `lib/intro.ts`) sebagai `<script>` inline di `<head>`. Lihat bagian 10.
 - **Isi `<body>`:**
@@ -188,30 +188,25 @@ Urutan diatur di `app/page.tsx`.
 | Section | `id` | Komponen | Sumber data |
 |---|---|---|---|
 | Hero | | `Hero.tsx`, `Portrait.tsx`, `LocalTime.tsx` | teks di `Hero.tsx`, email di `site.ts` |
-| Work | `work` | `Works.tsx`, `SwipeRow.tsx` | array `projects` di `Works.tsx` |
+| In short | `brief` | `Statement.tsx` | teks di `Statement.tsx` |
+| Work | `work` | `Works.tsx`, `WorkStage.tsx` | array `projects` di `Works.tsx` |
 | Experience | `experience` | `Experience.tsx` | `content/experience.ts` |
+| In numbers | `numbers` | `Figures.tsx` | array `figures` di `app/page.tsx`, dihitung dari konten |
 | What I do | `about` | `About.tsx`, `demos/*` | array `services` (termasuk `tools` per kemampuan) di `About.tsx` |
 | Certificates | `certificates` | `Certifications.tsx`, `CertificateLightbox.tsx` | `content/certifications.ts` |
-| Writing | `writing` | `Writing.tsx` | `content/writing.ts` |
-| Contact | `contact` | `Contact.tsx`, `CopyEmail.tsx` | `lib/site.ts` |
+| Writing | `writing` | `Writing.tsx` | `content/writing.ts` (spread besar bergantian kiri-kanan: gambar kerja di satu sisi, judul dan tombol di sisi lain) |
+| Contact | `contact` | `Contact.tsx`, `ContactForm.tsx`, `CopyEmail.tsx` | `lib/site.ts` |
 | Footer | | `Footer.tsx`, `GridToggle.tsx` | |
 
-**Kerangka section (`Section.tsx`).** Semua section di bawah hero memakai komponen ini dengan props `id`, `title`, `intro`, `meta`, `wide`, `className`, `introClassName`, dan `padding`. Section dibuka dengan header berjalan bergaya datasheet selebar 12 kolom: nama section dalam mono, garis tipis sampai tepi, lalu `meta` di ujung (misalnya "2 projects" atau "11 from 8 institutions"). Garis itu sekaligus pemisah antar-section, jadi tidak ada border di atas section. Header sengaja kecil supaya tiap section dibuka oleh isinya sendiri, bukan kata raksasa yang sama berulang. Section tidak bernomor, karena urutannya bukan langkah yang harus diikuti. Di grid 12 kolom, kolom 1–3 adalah margin (pada section `wide`: daftar tab, screenshot, cover, atau index) dan kolom 4–12 adalah konten. Padding vertikal bawaan 64px, menjadi 80px dari 1024px. Contact memakai `padding="py-16"` supaya ritme halaman tidak seragam.
+**Kerangka section (`Section.tsx`).** Semua section di bawah hero memakai komponen ini dengan props `id`, `index`, `title`, `intro`, `meta`, `wide`, `className`, `introClassName`, dan `padding`. Section dibuka sebagai bab: nomornya (`index`, "01" sampai "06") sangat besar dan nyaris tak terlihat (`.chapter-num`, warna `--fg-faint`), di sebelahnya `meta` sebagai readout mono di atas judul dalam `.display`, lalu satu garis tipis menutup kepala bab. Di grid 12 kolom, kolom 1–3 adalah margin (pada section `wide`: daftar tab, screenshot, cover, atau index) dan kolom 4–12 adalah konten. Padding vertikal bawaan 80px, menjadi 128px dari 1024px.
 
-**Header.** Header menempel di atas (48px di HP, 56px di laptop). Link menuju `/#id`. Di beranda, link section yang sedang dibaca ditandai garis bawah emas (`aria-current="location"`): section aktif adalah yang bagian atasnya sudah melewati sepertiga layar, Experience ikut menandai Work, dan Certificates ikut menandai About. Di layar ≥768px ada tombol Ctrl/⌘ K.
+**Header.** Bar atas menempel (48px di HP, 56px di laptop, token `--bar-h`). Isinya: kotak hijau dan nama, readout "Indonesia, jam WIB" di atas link mono, strip bar halus yang terisi hijau sejauh halaman sudah dibaca (`.strip`, nilai `--read` 0–1 ditulis langsung oleh `Header` tiap frame scroll) dengan angka persennya, tombol Ctrl/⌘ K (≥1024px), dan tombol Contact (≥768px; di HP Contact tetap link keempat). Di HP strip menjadi garis 2px di tepi bawah bar. Di atas hero bar tidak punya latar. Link section yang sedang dibaca berwarna hijau (`aria-current="location"`): section aktif adalah yang bagian atasnya sudah melewati sepertiga layar, Experience ikut menandai Work, dan Certificates ikut menandai About.
 
-**Hero.** Di HP, potret ditaruh di atas (46svh) dan teks naik 112px menimpa bagian bawahnya yang memudar. Di laptop, potret menempel ke tepi kanan (62%), nama diletakkan melintasi sambungan, dan ada tiga fakta (Based in dengan jam WIB, Focus, Stack). Kalau potret gagal, kotaknya tetap ada dengan warna cloak.
+**Hero (`Hero.tsx`, `HeroLight.tsx`, `hero.css`).** Panggung gelap selebar layar dengan potret di seluruhnya (`focalX={0}`, jadi di layar lebar wajah bergeser ke kanan judul). Satu cahaya menembus gelap (`HeroLight`): di laptop mengikuti pointer, tanpa pointer berputar pelan di sekitar wajah; berkas cahaya (`repeating-conic-gradient`, berputar 60 detik) memancar dari titik itu, dan reticle pelacak mengikuti cahaya dengan jeda sambil membaca koordinatnya. Tiga variabel di satu lapisan (`--lx`, `--ly`, `--open`) mengatur semuanya, ditulis sekali per frame selama hero terlihat. Panggung ditahan satu layar scroll: potret menoleh dari profil ke kamera (`Portrait` dengan `scrub`), gelapnya membuka sampai seluruh panggung terang, reticle menutup dan lurus, dan gambar sedikit mendekat. Readout di kiri atas; tag `_Portfolio 2026`, judul (kata-katanya naik saat muat), satu kalimat, dan dua tombol di kiri bawah. Dengan reduced motion: satu layar, potret diam menghadap kamera, cahaya terbuka penuh.
 
 **Experience.** Riwayat kerja, terbaru di atas, sebagai log bergaris. Mulai 768px tanggal, jenis (Contract, Internship, Freelance) dan tempat bertumpuk di kolom margin 1–3; jabatan, instansi (dengan keterangan dalam kurung, misalnya nama Inggrisnya), satu kalimat, dan proyeknya sebagai baris bergaris seperti fitur di Work, mulai kolom 4. Di HP fakta-fakta itu satu baris mono di atas jabatan. Posisi yang masih berjalan (tanpa `end`) diberi titik hijau seperti proyek Live di Work; posisi yang mulai dan selesai di bulan yang sama hanya menampilkan bulan itu sekali. Data, termasuk tanggal, diambil dari LinkedIn; jabatan, nama instansi, jenis dan tanggal ditulis persis, deskripsinya diringkas.
 
-**Work.** Kedua proyek berdampingan sebagai dua kolom setara, dipisah garis tipis vertikal (mulai 768px), supaya mata membandingkan ke samping dan bukan membaca template yang sama dua kali ke bawah. Tiap kolom berisi:
-- thumbnail isometrik dalam bingkai garis tipis (rasio 625:985, link ke aplikasinya), dengan meta mono (tahun, jenis, titik Live), judul, dan subjudul di sebelahnya
-- deskripsi, yang mulai 1024px ikut di sebelah thumbnail
-- **Thumbnail CV Maker:** printer kecil yang mengeluarkan lembar A4 (yang menyala) dari slot atasnya, dengan layout CV tercetak. Dial di atasnya berputar ke salah satu dari tiga template (ATS Minimal, Modern Professional, Graduate), dan tiap lembar keluar dalam template yang ditunjuk. Lembar yang masih di dalam printer disembunyikan dengan clip di bidang slot.
-- **Thumbnail S.E.R.A.:** kartu chat di dudukan, dan lensa di rel tegak yang turun memindai gelembung chat. Di dalam lensa kartu tampil diperbesar (salinan wajah kartu, diskalakan di sekitar titik di belakang pusat lensa, di-clip ke kaca). Saat lensa melewati kalimat yang janggal, muncul garis bawah dan kotak merah (warna tanda S.E.R.A. sendiri). Tanda hilang saat lensa naik lagi.
-- Reduced motion: lembar CV diam dalam keadaan tercetak (ATS Minimal); lensa diam di kalimat pertama yang ditandai, dengan kedua tanda tampil.
-- fitur sebagai baris bergaris tipis, bukan kartu: di bawah 1024px nama fitur menyambung ke penjelasannya, dan mulai 1024px nama di kiri dan penjelasan di kanan
-- stack (mono) dan tombol "Open the app", yang sejajar di kedua kolom karena kolomnya flex dengan `mt-auto`
+**Work (`Works.tsx`, `WorkStage.tsx`, `work-stage.css`).** Tiga proyek (CV Maker, S.E.R.A., Fall Alert Wearable). Di layar ≥1024px dan ≥600px tingginya, dengan motion diizinkan, panggung ditahan satu layar per proyek sebagai adegan HUD: kata-kata di kiri (judul besar, deskripsi, stack, tombol), dan di kanan mesin isometrik melayang di gelap di dalam cincin pindai yang berputar, dengan nomor proyek besar di belakangnya dan readout "Fig 0n" serta tahun/jenis/Live di sudut. Mesin yang tampil terurai jadi bagiannya dan mesin berikutnya merakit diri. Fitur proyek (`features` di `StageItem`, dirender sekali) menjadi callout di empat sudut sekitar cincin mulai 1280px, masing-masing dengan garis penunjuk hijau dan muncul setelah mesin terakit; di 1024–1279px fitur jadi baris ringkas di bawah kata-kata. Proyek yang tampil ditandai `data-active` di `<article>`-nya. Di tablet mesin dan teks berdampingan; di HP ketiganya baris yang digeser, satu proyek per layar.
 
 Di HP, satu proyek per layar (kartu 88% lebar, snap) yang digeser lewat `SwipeRow`.
 
@@ -283,7 +278,45 @@ Teks lengkap ada di PDF.
 - **Kit (`components/iso/`):** disalin dari skill anatomy. Satu perubahan: `useLoop` di `react/live.tsx` memperbarui ref-nya di `useLayoutEffect` dan `useEased` dihapus, karena aturan lint `react-hooks/refs`.
 - **HP:** di bawah 640px gambar diperbesar 124% dan tepinya dipotong, dan hint di sudut kartu boleh turun ke baris kedua.
 
-**Contact dan footer.** Contact memuat email besar dengan Geist tebal (dipecah dengan `<wbr>` setelah "@"), tombol "Copy address", serta LinkedIn dan Instagram. Footer satu baris di bawah garis tipis: hak cipta, kredit, tombol "Show grid", dan "Back to top". Nama besar di footer sudah dihapus.
+**Gerak (`components/motion/`).** Kosakata gerak halaman, semuanya dalam keadaan selesai bila motion dimatikan, tanpa dukungan scroll-driven animations, atau tanpa script:
+- `Split.tsx` (server): `Chars` dan `Words` memotong teks menjadi potongan bermasker yang naik satu per satu (salinan utuh ada di `sr-only`), `Roll` membuat digit yang bergulir ke nilainya, `Fill` membuat pernyataan yang terisi tinta per kata. Potongan diberi `--i` untuk jeda bertahap.
+- `Decode.tsx` (client): label mono pendek yang "mendekode" dirinya sekali saat terlihat, sekitar 0,5 detik.
+- `motion.css`: elemen `[data-reveal]` menamai view timeline `--reveal`; potongan di dalamnya naik terkait scroll (`--step` mengatur jeda, `data-reveal="entry"` untuk blok di ujung halaman). Juga `.fill-w` (isi tinta mulai 45%), `.open-frame` (bingkai terbuka dari atas), `.rule-sweep` (garis hijau menyapu garis kepala bab).
+- Dipakai di: kepala setiap bab (nomor bergulir, huruf judul naik, meta decode, garis menyapu), judul hero (kata naik saat muat, 45ms per kata), judul jabatan dan tulisan, alamat email di Contact (per huruf), dan wordmark footer (per huruf saat halaman berakhir).
+
+**In short (`Statement.tsx`).** Satu pernyataan antara hero dan Work yang terisi tinta per kata saat naik melewati layar; label "_In short" dan "Developer · Designer" (decode) di kolom margin.
+
+**In numbers (`Figures.tsx`, `figures.css`).** Scene yang ditahan sekitar tiga layar: drum angka berputar di dalam reticle (angka aktif hijau, tetangganya samar di atas dan bawah), caption angka aktif di kanan, indeks lima angka di kiri, hitungan "n of 5", dan reticle berputar mengikuti scroll. Angkanya: jumlah proyek (`PROJECT_COUNT` dari `Works.tsx`), jumlah peran, jumlah sertifikat dan institusinya, 181 frame potret, dan ambang jatuh 23,1 m/s² (puncak uji 58,25). Dengan reduced motion: satu baris lima angka.
+
+**Experience (gerak).** Tiap peran adalah bab: nomornya besar di kolom margin bersama tanggal, jenis, dan tempat, dan blok itu menempel (sticky) di samping perannya sampai peran berikutnya mendorongnya. Peran yang melewati tengah layar tampil penuh dan nomornya hijau; lainnya 45% (`experience.css`, terkait scroll).
+
+**What I do (`About.tsx`, `about.css`).** Panel sistem: lima kemampuan sebagai tab list (vertikal mulai 1024px, baris yang digeser di HP), demo yang dipilih di viewport besar dengan label "Fig 0n / …" dan petunjuk, deskripsinya di bawah. Tab memakai roving tabindex (panah kedua arah, Home, End) dan seleksi mengikuti fokus. Panel lain `hidden="until-found"` dengan `beforematch`, jadi find-in-page tetap menemukannya. Demo yang dipilih digambar ke viewport dari atas di belakang garis pindai hijau.
+
+**Certificates (`Certifications.tsx`, `certifications.css`).** Dinding bukti seperti foto-foto di referensi: satu grid berisi 11 bingkai (4 kolom di laptop, 3 di tablet, 2 di HP), urut per bidang. Tiap sertifikat abu-abu dengan lapisan hijau (`mix-blend-mode: multiply`) dan pola tanda silang, kode `C-01` dan tahunnya di bingkai; disorot atau difokus, lapisannya hilang dan sertifikat tampil asli. Ditekan, terbuka di `CertificateLightbox` (panah kiri/kanan melangkah ke semua). Di bawahnya nama, penerbit, dan Verify. Petak ke-12 adalah readout jumlah per bidang. Bingkai terbuka dari atas saat naik (bertahap per kolom). Thumbnail dimuat bersama halaman dengan prioritas rendah.
+
+**Contact dan footer.** Contact (bab 06, meta "Open to work"), mengikuti "Request access" di referensi: di latar gelap, alamat email terbesar di halaman dalam hijau, naik per huruf; di sampingnya `ContactForm` menyusun email (nama jadi subjek, pesan jadi isi) lalu membukanya di aplikasi email pengunjung. Tidak ada yang dikirim dari halaman dan tidak ada server. Footer adalah bidang hijau penuh (`footer.css` menukar token warna, jadi tintanya hitam): tiga kolom readout dalam kurung ((Contact), (Social), (Site)), hak cipta, dan di bawahnya nama selebar baris dalam hitam, naik per huruf di akhir halaman (`calc(100cqw / 5.8)`: lebar baris dibagi rasio lebar-terhadap-ukuran nama itu dalam Inter 500, 5,72).
+
+**Bingkai HUD (`HudFrame.tsx`, `hud-frame.css`).** Hanya di beranda dan mulai 1024px: tanda sudut di keempat sudut layar, penggaris di tepi kiri yang ikut bergerak saat scroll (`--sy`), rail bab 01–06 di tepi kanan (link, yang sedang dibaca hijau), readout sektor di kiri bawah ("Sector 03 / What I do", teracak lalu terbentuk saat berganti), dan jam WIB dengan detik di kanan bawah. Menyingkir (opacity 0) selama panggung hero masih tertahan. Tidak menangkap pointer kecuali rail.
+
+**Decode (`motion/DecodeAll.tsx`).** Elemen bertanda `data-decode` teracak lalu terbentuk sekali saat pertama terlihat (sekitar 0,56 detik). Hanya nilai text node yang diubah, bukan node-nya, jadi aman untuk teks yang dirender React; pakai hanya untuk readout mono pendek yang teksnya tidak berubah setelah dirender. Dipakai di: fakta Experience, fakta dan label Fig di Writing, kode sertifikat, readout Fig dan catatan di Work, indeks angka, baris readout footer.
+
+**Detail HUD lain.** Strip header berupa spektrum 160 bar dengan tinggi tidak rata (path dibuat deterministik di `Header.tsx`, jadi server dan browser menggambar bar yang sama), terisi hijau sejauh halaman dibaca. Grain film: tile noise 128×128 (`public/noise.png`, dibuat dengan `node scripts/make-noise.mjs`) di atas seluruh layar dengan opacity 4,5%, bergeser lima kali per 0,9 detik (diam dengan reduced motion). Tombol `.action` diberi empat sudut target yang merapat saat disorot atau difokus. Di Work, kotak lock-on (SVG empat sudut, label "Lock / Fig 0n") menutup ke mesin dan berkedip dua kali saat proyek aktif; mesin kini utuh selama 40% pertama layarnya, terurai tepat sebelum teks berganti di tengah, dan mesin berikutnya utuh di 80%. Di In numbers, pita bergaris dengan ujung hijau menandai baris angka yang aktif.
+
+**Intro (`IntroScreen.tsx`).** Layar pembuka sekali per sesi, sesederhana preloader referensi: empat sudut samar, nama di atas, satu garis di tengah tempat kotak hijau bergerak dari "Loading" ke alamat situs sesuai progres, dan "( 064% )" di bawah. Logika waktunya tidak berubah (maksimal 1,5 detik).
+
+**Crosshair (`Crosshair.tsx`).** Seperti referensi, panah sistem diganti crosshair (mode `difference`, jadi terlihat di terang maupun gelap) yang mengikuti pointer tanpa jeda dan membuka/berputar 45° di atas apa pun yang bisa ditekan. Koordinat X dan Y pointer dibaca di sudut bawah bingkai HUD. Hanya untuk mouse/trackpad; di atas kolom teks kursor caret sistem kembali; tersembunyi saat pointer keluar jendela.
+
+**In short (`Statement.tsx`, `statement.css`).** Adegan zoom-through seperti "main security threat" di referensi: panggung ditahan dua layar; pernyataan "I design and build for the web, AI ⊕ and hardware" naik dari 35% ke tinta penuh, lalu kamera terbang ke reticle hijau di antara kata-katanya sampai reticle lebih besar dari layar (`DEPTH` 18). Satu transform per frame pada satu elemen; tanpa `will-change` supaya teks digambar ulang tajam. Kalimat lengkap tentang karya ada kecil di sudut kanan bawah. Dengan reduced motion: pernyataan biasa tanpa hold.
+
+**Hero, telemetri.** Readout kiri atas berupa blok kode seperti telemetri referensi (`// Portfolio loaded — Indonesia, UTC+7.`, Focus, Stack, `};`, Status dengan jam WIB berdetik), 55% tinta, teracak lalu terbentuk. Di HP baris Focus/Stack disembunyikan.
+
+**What I do (kartu).** Mengikuti bagian sistem di referensi: viewport demo lebar di atas, lima kartu A.–E. di bawahnya (judul, deskripsi, tools); kartu terpilih punya garis hijau di atas yang tergambar dari kiri. Nama tab hanya judulnya (`aria-labelledby`); deskripsi dibacakan dari panel (`sr-only`). Di bawah 1024px kartu menjadi baris geser.
+
+**In numbers (hitung).** Angka yang aktif menghitung naik ke nilainya selama 40% pertama segmennya (nilai text node diubah per frame, bukan render React).
+
+**Ringan.** Potret memuat setiap frame kedua di laptop (91 frame) dan setiap frame keempat di HP (46 frame); frame terdekat menggantikan yang tidak dimuat. Cahaya hero hanya bekerja saat digerakkan (pointer, scroll, atau cahaya menuju posisinya) dan berhenti saat diam; berkas cahayanya tidak lagi berputar. Grain diam. Inter dimuat tanpa sumbu opsz. Thumbnail sertifikat lazy. Ukuran yang ditransfer saat halaman dibuka: sekitar 1,1 MB di laptop dan 0,58 MB di HP.
+
+**Scroll.** Scroll native saja. Lenis sempat dipakai lalu dihapus supaya halaman lebih ringan: tanpa loop rAF yang terus berjalan, dan scroll langsung mengikuti tangan.
 
 **Command palette (`CommandPalette.tsx`).** Dibuka dengan Ctrl/⌘ K atau `/`, berupa combobox dengan `aria-activedescendant`. Isinya: lompat ke section, salin dan kirim email, buka profil sosial, tampilkan grid, dan kembali ke atas. Daftar section di dalamnya ditulis manual, jadi harus disesuaikan kalau section ditambah, dihapus, atau diganti namanya.
 
@@ -293,18 +326,20 @@ Semua token ada di `:root` dalam `src/app/globals.css`.
 
 | Token | Nilai | Dipakai untuk |
 |---|---|---|
-| `--surface` / `--surface-card` / `--surface-raised` | `#0d1011` / `#13171a` / `#1a1f22` | latar, panel, kotak gambar |
-| `--fg` / `--fg-soft` / `--fg-muted` / `--fg-dim` / `--fg-faint` | `#e7ebed` / `#c2c9cc` / `#8f999d` / `#78838a` / `#3f474b` | judul, teks panjang, pendukung, label, dekorasi |
-| `--rule` / `--rule-strong` | putih kebiruan 9% / 18% | garis rambut |
-| `--cloak` / `--cloak-bright` | `#14261c` / `#2f5a44` | Contact, footer, seleksi teks |
-| `--gold` | `#bf9d5f` | hover, fokus, item aktif, garis progres, petunjuk. Tidak dipakai untuk angka atau hiasan |
-| `--live` | `#5fbf8a` | titik Live |
-| `--paper` / `--ink` | `#ebe6da` / `#1c1d1e` | cover tulisan |
-| `--syntax-string` / `--syntax-type` / `--syntax-number` | `#8fbf9f` / `#9fb6c6` / `#c9a3c9` | warna kode di demo Code |
+| `--surface` / `--surface-card` / `--surface-raised` | `#050505` / `#0b0b0b` / `#161616` | latar (dengan grid titik 20px di `body`), panel, chip |
+| `--fg` / `--fg-soft` / `--fg-muted` / `--fg-dim` / `--fg-faint` | `#dddddd` / `#c2c2c2` / `#9a9a9a` / `#808080` / `#262626` | judul, teks panjang, pendukung, label, nomor bab dan wordmark footer |
+| `--rule` / `--rule-strong` | putih 10% / 20% | garis rambut, bar strip yang kosong |
+| `--green` / `--accent` / `--accent-ink` | `#3ee07c` / `var(--green)` / `#050505` | satu-satunya warna (hijau sinyal, pilihan pemilik, di referensi hijau): tombol, yang aktif dan ditunjuk, strip, reticle, titik Live, footer |
+| `--accent-wash` / `--accent-line` | hijau 6% / 30% | latar dan garis tombol `.action` yang tidak penuh |
+| `--gold`, `--live`, `--accent-text` | menunjuk ke `--accent` | nama lama, dipertahankan supaya komponen lama ikut |
+| `--paper` / `--ink` | `#dddddd` / `#050505` | cover tulisan |
+| `--syntax-string` / `--syntax-type` / `--syntax-number` | `#c9c9c9` / `#a3a3a3` / hijau | warna kode di demo Code |
+| `--bar-h` | 3rem / 3.5rem dari 768px | tinggi bar atas; panggung yang ditahan duduk di bawahnya |
 
 Tidak ada warna yang ditulis langsung di komponen. Warna baru ditambahkan sebagai token di sini dulu. Satu-satunya pengecualian adalah `opengraph-image.tsx`, karena gambar share dirender di server tanpa CSS.
 
-- **Grid:** `.shell` (lebar maksimum 1280px, padding 20px, menjadi 40px dari 768px, ditambah safe area) dan `.grid-12` (4 kolom dengan jarak 16px, menjadi 12 kolom dengan jarak 24px dari 768px).
+- **Komponen** (di `@layer components`, jadi utilitas Tailwind di elemen yang sama tetap menang): `.display`, `.label`, `.tag`, `.action` (tombol hijau; `data-solid` untuk yang penuh), `.viewport` (bingkai dengan sudut hijau), `.chapter-num`, `.strip`.
+- **Grid:** `.shell` (selebar layar, padding 20px, menjadi 28px dari 768px, ditambah safe area) dan `.grid-12` (4 kolom dengan jarak 16px, menjadi 12 kolom dengan jarak 24px dari 768px).
 - **Ukuran dasar:** di bawah 380px, `font-size` root menjadi 93.75% (15px), sehingga semua ukuran ikut mengecil.
 - **Kelas utilitas:** `.link`, `.reveal`, `.rise`, `.fade-in`, `.draw`, `.scroll-fade`, `.pulse-dot`, `.nudge-x`, `.caret`, `.intro*`, `.page-loading`, `.loading-bar`, `.wf-wide`, dan `.wf-tall`.
 - **Reduced motion:** semua animasi selesai seketika, dan bar loading diam.

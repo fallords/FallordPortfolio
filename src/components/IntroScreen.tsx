@@ -4,14 +4,17 @@ import { useEffect, useState, useSyncExternalStore } from "react";
 import { usePathname } from "next/navigation";
 import { onPortraitProgress } from "@/lib/portraitProgress";
 import { INTRO_FADE_MS, INTRO_MIN_MS } from "@/lib/intro";
+import { SITE_HOST } from "@/lib/site";
 
 const noopSubscribe = () => () => {};
 
 /**
- * The first-visit screen: the name, and a gold line that fills as the page
+ * The first-visit screen, kept as spare as the reference's: four faint
+ * corners, the name at the top, one line across the middle on which an
+ * green square travels from "Loading" to the site's address as the page
  * actually gets ready (the fonts, and on the home page the portrait's first
- * frames). It lifts as soon as both are in, and the hero's entrance plays
- * as it goes.
+ * frames), and the percentage at the foot. It lifts as soon as both are in, and the
+ * hero's entrance plays as it goes.
  *
  * Whether it shows at all, and the latest it may stay, are settled by
  * BOOT_SCRIPT in <head> before the first paint; this only ends it sooner.
@@ -81,28 +84,25 @@ export default function IntroScreen() {
 
     return (
         <div className="intro" aria-hidden="true">
-            <div className="shell grid-12 w-full">
-                <div className="col-span-4 md:col-span-6 md:col-start-4">
-                    <p className="text-xs text-[var(--gold)]">Portfolio</p>
-                    <p className="intro-name mt-3 font-display text-[2.75rem] font-bold leading-none tracking-[-0.04em] text-[var(--fg)] md:text-6xl">
-                        Fadhlan Bani
-                    </p>
-                    <p className="mt-4 text-sm text-[var(--fg-muted)]">Developer &amp; designer from Indonesia</p>
+            <span className="intro-corner" data-at="tl" />
+            <span className="intro-corner" data-at="tr" />
+            <span className="intro-corner" data-at="bl" />
+            <span className="intro-corner" data-at="br" />
+            <p className="intro-name label">Fadhlan Bani</p>
 
-                    {/* Two lines on one rule: a steady creep, and the real progress over it. */}
-                    <div className="relative mt-10 h-px w-full overflow-hidden bg-[var(--rule)]">
-                        <div className="intro-creep absolute inset-0 origin-left bg-[var(--gold)]/45" />
-                        <div
-                            className="absolute inset-0 origin-left bg-[var(--gold)] transition-transform duration-300 ease-out"
-                            style={{ transform: `scaleX(${progress})` }}
-                        />
-                    </div>
-                    <p className="mt-3 flex justify-between text-xs text-[var(--fg-dim)]">
-                        <span>Loading</span>
-                        {hydrated && <span className="font-mono tabular-nums">{String(Math.round(progress * 100)).padStart(3, "0")}%</span>}
-                    </p>
-                </div>
+            {/* The line: the square travels from "Loading" to the address as the page gets ready. */}
+            <div className="intro-line label" style={{ "--p": progress } as React.CSSProperties}>
+                <span>Loading</span>
+                <span className="intro-track">
+                    <span className="intro-creep" />
+                    <span className="intro-square" />
+                </span>
+                <span>{SITE_HOST}</span>
             </div>
+
+            <p className="intro-percent label tabular-nums">
+                ( <span className="text-[var(--fg)]">{hydrated ? String(Math.round(progress * 100)).padStart(3, "0") : "000"}%</span> )
+            </p>
         </div>
     );
 }

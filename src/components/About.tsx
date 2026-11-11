@@ -1,8 +1,7 @@
 "use client";
 
-import { useEffect, useRef, useState } from "react";
+import { useEffect, useRef, useState, type KeyboardEvent } from "react";
 import Section from "./Section";
-import SwipeRow from "./SwipeRow";
 import ErrorBoundary from "./ErrorBoundary";
 import FallbackNotice from "./FallbackNotice";
 import CodeDemo from "./demos/CodeDemo";
@@ -10,16 +9,12 @@ import WireframeDemo from "./demos/WireframeDemo";
 import TraceDemo from "./demos/TraceDemo";
 import StreamDemo from "./demos/StreamDemo";
 import SensorDemo from "./demos/SensorDemo";
+import "./about.css";
 
 /*
  * Each capability carries the tools it is done with, so there is no separate
  * "Tools I use" list to cross-reference. All sixteen tools are here, each
  * under the one place it is used.
- *
- * `span` places the card on the bench from lg: the two that need room (the
- * code, the wireframe) share the top row, the three that read fine at a
- * phone's width share the bottom one. `panel` is the demo's height from md,
- * the size each one is drawn for.
  */
 const services = [
     {
@@ -29,8 +24,6 @@ const services = [
         meta: "Portrait.tsx, code from this site",
         hint: "watch it, then rerun",
         Demo: CodeDemo,
-        span: "md:col-span-2 lg:col-span-7",
-        panel: "md:h-[27.5rem]",
     },
     {
         title: "Design",
@@ -39,8 +32,6 @@ const services = [
         meta: "this site's hero, wireframe → design",
         hint: "drag the slider",
         Demo: WireframeDemo,
-        span: "lg:col-span-5",
-        panel: "md:h-[27.5rem]",
     },
     {
         title: "Systems",
@@ -49,8 +40,6 @@ const services = [
         meta: "POST /api/analyze",
         hint: "send the request again",
         Demo: TraceDemo,
-        span: "lg:col-span-4",
-        panel: "md:h-[27.5rem] lg:h-[25rem]",
     },
     {
         title: "AI",
@@ -59,8 +48,6 @@ const services = [
         meta: "a streamed reply",
         hint: "pick a question",
         Demo: StreamDemo,
-        span: "lg:col-span-4",
-        panel: "md:h-[27.5rem] lg:h-[25rem]",
     },
     {
         title: "Hardware",
@@ -69,31 +56,40 @@ const services = [
         meta: "sensor → server, live",
         hint: "tap the chart",
         Demo: SensorDemo,
-        span: "lg:col-span-4",
-        panel: "md:h-[27.5rem] lg:h-[25rem]",
     },
 ];
 
-type Service = (typeof services)[number];
+const num = (i: number) => String(i + 1).padStart(2, "0");
+const letter = (i: number) => String.fromCharCode(65 + i);
 
 /**
- * One capability on the bench: its name, its demo, what it is and what it is
- * done with. The demo mounts the first time the card comes into view, so the
- * ones that play once (the code typing itself, the trace, the reply) play
- * while someone is looking, not before.
+ * Five capabilities as one system, laid out the way the reference shows its
+ * interception system: the one selected working in a wide viewport, and
+ * under it a row of five cards, A to E, each with its name, what it is and
+ * what it is done with. Selecting another card opens its demo in the
+ * viewport from the top, the way a scanner draws a frame (about.css). On a
+ * tablet or a phone the cards are a row to swipe.
+ *
+ * The list is a real tab list with a roving tabindex: Tab lands on the
+ * selected one, the arrow keys (both pairs, since the list is vertical on a
+ * laptop and a row on a phone), Home and End move along it, and selection
+ * follows focus. Native `focusgroup` only moves along a row, so it is not
+ * used. Panels that are not selected are hidden "until found", so the
+ * browser's find-in-page still reaches their words and opens them.
+ *
+ * A demo mounts only once the section has been on screen, so the ones that
+ * play once (the code typing itself, the trace, the reply) play while
+ * someone is looking. Switching back to one starts it again.
  */
-function Bench({ service }: { service: Service }) {
-    const { title, desc, tools, meta, hint, Demo, span, panel } = service;
-    const ref = useRef<HTMLLIElement>(null);
+export default function About() {
+    const root = useRef<HTMLDivElement>(null);
+    const tabs = useRef<(HTMLButtonElement | null)[]>([]);
+    const panels = useRef<(HTMLDivElement | null)[]>([]);
+    const [active, setActive] = useState(0);
     const [shown, setShown] = useState(false);
-    /*
-     * Until someone uses the demo, its card carries a pulsing "try this" hint
-     * instead of the plain label.
-     */
-    const [tried, setTried] = useState(false);
 
     useEffect(() => {
-        const el = ref.current;
+        const el = root.current;
         if (!el) return;
         const io = new IntersectionObserver(
             ([entry]) => {
@@ -101,82 +97,141 @@ function Bench({ service }: { service: Service }) {
                 setShown(true);
                 io.disconnect();
             },
-            { threshold: 0.35 }
+            { threshold: 0.3 }
         );
         io.observe(el);
         return () => io.disconnect();
     }, []);
 
-    return (
-        <li ref={ref} className={`flex w-[88%] shrink-0 snap-start flex-col md:w-auto ${span}`}>
-            <div className="mb-2.5 flex flex-wrap items-baseline justify-between gap-x-4 gap-y-1">
-                <h3 className="font-display text-xl font-bold tracking-[-0.02em] text-[var(--fg)]">{title}</h3>
-                {tried ? (
-                    <p className="text-xs text-[var(--fg-dim)]">{meta}</p>
-                ) : (
-                    // The dot is inline, so if the hint ever wraps it stays with the first line.
-                    <p className="text-xs text-[var(--gold)]">
-                        <span aria-hidden="true" className="pulse-dot mr-2 inline-block h-1.5 w-1.5 rounded-full bg-[var(--gold)] align-middle" />
-                        <span className="sr-only">Interactive demo: </span>
-                        {hint}
-                    </p>
-                )}
-            </div>
+    // Hidden "until found" rather than plainly hidden; find-in-page opening one selects its tab.
+    useEffect(() => {
+        const cleanups = panels.current.map((panel, i) => {
+            if (!panel) return () => {};
+            if (i !== active) panel.setAttribute("hidden", "until-found");
+            const onMatch = () => setActive(i);
+            panel.addEventListener("beforematch", onMatch);
+            return () => panel.removeEventListener("beforematch", onMatch);
+        });
+        return () => cleanups.forEach((stop) => stop());
+    }, [active]);
 
-            {/*
-             * The only box on the card: the demo itself. A phone: as tall as the
-             * demo needs (with room held for it until it mounts). From md: the
-             * height the demo is drawn for.
-             */}
-            <div
-                onPointerDownCapture={() => setTried(true)}
-                onKeyDownCapture={() => setTried(true)}
-                className={`flex min-h-[20rem] flex-col border border-[var(--rule-strong)] bg-[var(--surface-card)] md:min-h-0 ${panel}`}
-            >
-                {shown && (
-                    <div className="fade-in md:min-h-0 md:flex-1" style={{ animationDuration: "300ms" }}>
-                        {/* A demo that breaks is replaced by a notice, in its own panel only. */}
-                        <ErrorBoundary
-                            fallback={(retry) => (
-                                <FallbackNotice
-                                    message="This demo stopped working. Starting it again usually fixes it."
-                                    onRetry={retry}
-                                    className="h-full min-h-[16rem] justify-center p-6"
-                                />
-                            )}
+    const onKeyDown = (event: KeyboardEvent<HTMLDivElement>) => {
+        const last = services.length - 1;
+        const next =
+            event.key === "ArrowDown" || event.key === "ArrowRight"
+                ? (active + 1) % services.length
+                : event.key === "ArrowUp" || event.key === "ArrowLeft"
+                  ? (active + last) % services.length
+                  : event.key === "Home"
+                    ? 0
+                    : event.key === "End"
+                      ? last
+                      : -1;
+        if (next < 0) return;
+        event.preventDefault();
+        select(next);
+        tabs.current[next]?.focus();
+    };
+
+    const select = (i: number) => {
+        setActive(i);
+        // On a phone the row of tabs scrolls; bring the chosen one into view without moving the page.
+        tabs.current[i]?.scrollIntoView({ block: "nearest", inline: "nearest", container: "nearest" } as ScrollIntoViewOptions);
+    };
+
+    return (
+        <Section id="about" index="03" title="What I do" meta={`${services.length} demos`} wide>
+            <div ref={root} className="sys">
+                <div role="tablist" aria-label="What I do" onKeyDown={onKeyDown} className="sys-tabs scroll-fade">
+                    {services.map((service, i) => (
+                        <button
+                            key={service.title}
+                            ref={(node) => {
+                                tabs.current[i] = node;
+                            }}
+                            type="button"
+                            role="tab"
+                            id={`sys-tab-${i}`}
+                            aria-selected={i === active}
+                            // Named by its title alone; the description on the card is read in the panel instead.
+                            aria-labelledby={`sys-name-${i}`}
+                            tabIndex={i === active ? 0 : -1}
+                            onClick={() => select(i)}
+                            // Selection follows focus, however focus got there.
+                            onFocus={() => i !== active && select(i)}
+                            className="sys-tab"
                         >
-                            <Demo />
-                        </ErrorBoundary>
-                    </div>
-                )}
+                            <span className="label sys-tab-num">{letter(i)}.</span>
+                            <span id={`sys-name-${i}`} className="sys-tab-title">
+                                {service.title}
+                            </span>
+                            <span aria-hidden="true" className="sys-tab-desc">
+                                {service.desc}
+                            </span>
+                            {/* Non-breaking spaces keep each tool's name whole ("Tailwind CSS"). */}
+                            <span aria-hidden="true" className="label sys-tab-tools">
+                                {service.tools.map((tool) => tool.replaceAll(" ", " ")).join(" · ")}
+                            </span>
+                        </button>
+                    ))}
+                </div>
+
+                <div className="sys-panels">
+                    {services.map((service, i) => {
+                        const { Demo } = service;
+                        const on = i === active;
+                        return (
+                            <div
+                                key={service.title}
+                                ref={(node) => {
+                                    panels.current[i] = node;
+                                }}
+                                role="tabpanel"
+                                aria-labelledby={`sys-tab-${i}`}
+                                hidden={!on}
+                                className="sys-panel"
+                            >
+                                <div className="sys-panel-inner">
+                                    <div className="sys-view viewport">
+                                        <p aria-hidden="true" className="sys-view-head label">
+                                            <span>
+                                                Fig {num(i)} <span className="text-[var(--fg-dim)]">/ {service.meta}</span>
+                                            </span>
+                                            <span className="text-[var(--accent)]">
+                                                <span className="pulse-dot mr-1.5 inline-block h-1.5 w-1.5 bg-[var(--accent)] align-middle" />
+                                                {service.hint}
+                                            </span>
+                                        </p>
+                                        {/* A working piece of interface, with its own borders and controls. */}
+                                        <div className="sys-demo" data-ui>
+                                            {on && shown && (
+                                                // A demo that breaks is replaced by a notice, in its own panel only.
+                                                <ErrorBoundary
+                                                    fallback={(retry) => (
+                                                        <FallbackNotice
+                                                            message="This demo stopped working. Starting it again usually fixes it."
+                                                            onRetry={retry}
+                                                            className="h-full min-h-[16rem] justify-center p-6"
+                                                        />
+                                                    )}
+                                                >
+                                                    <Demo />
+                                                </ErrorBoundary>
+                                            )}
+                                        </div>
+                                        {on && <span aria-hidden="true" className="sys-scan" />}
+                                    </div>
+                                    {/* The card shows these; here they are read out with the panel. */}
+                                    <div className="sr-only">
+                                        <p>{service.desc}</p>
+                                        <p>Tools: {service.tools.join(", ")}</p>
+                                    </div>
+                                </div>
+                            </div>
+                        );
+                    })}
+                </div>
             </div>
-
-            <p className="mt-3 max-w-[40rem] text-pretty text-[13px] leading-[1.55] text-[var(--fg-muted)] md:text-sm">{desc}</p>
-            {/* Non-breaking spaces keep each tool's name whole ("Tailwind CSS"). */}
-            <p className="mt-1.5 font-mono text-xs leading-5 text-[var(--fg-dim)]">
-                {tools.map((tool) => tool.replaceAll(" ", " ")).join(" · ")}
-            </p>
-        </li>
-    );
-}
-
-/**
- * Five capabilities, each shown working rather than described: a bench of
- * live demos. From lg an uneven grid (the code and the wireframe big on top,
- * the trace, the chat and the sensor below); on a tablet two to a row, the
- * code across both; on a phone one per screen, swiped.
- */
-export default function About() {
-    return (
-        <Section id="about" title="What I do" meta={`${services.length} demos`} wide>
-            <SwipeRow
-                className="-mx-5 flex snap-x snap-mandatory scroll-px-5 gap-4 overflow-x-auto px-5 [scrollbar-width:none] md:mx-0 md:grid md:grid-cols-2 md:gap-x-6 md:gap-y-12 md:overflow-visible md:px-0 lg:grid-cols-12 [&::-webkit-scrollbar]:hidden"
-                hintClassName="mt-2 text-right md:hidden"
-            >
-                {services.map((service) => (
-                    <Bench key={service.title} service={service} />
-                ))}
-            </SwipeRow>
         </Section>
     );
 }

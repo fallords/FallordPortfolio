@@ -114,8 +114,15 @@ export default function Portrait({
     className = "",
     focalX = 0.47,
     captionClassName = "bottom-3 right-3",
+    scrub = false,
     children,
 }: {
+    /**
+     * Let the page turn him instead of the clock: inside an ancestor marked
+     * `data-turn-track`, he is in profile at its top and faces the camera
+     * by the time it has scrolled through.
+     */
+    scrub?: boolean;
     className?: string;
     /** Horizontal point of the source kept in view, as a fraction of its width. */
     focalX?: number;
@@ -210,9 +217,22 @@ export default function Portrait({
             if (counterRef.current) counterRef.current.textContent = String(at).padStart(3, "0");
         };
 
+        const track = scrub ? canvas.closest<HTMLElement>("[data-turn-track]") : null;
+        /*
+         * Where the scroll has the turn, or null where the track is not held
+         * on stage (it is no taller than the screen), so there is no stretch
+         * of scroll to turn him with and the clock does it instead.
+         */
+        const scrubFrame = (el: HTMLElement) => {
+            const r = el.getBoundingClientRect();
+            const span = r.height - window.innerHeight;
+            if (span < window.innerHeight * 0.25) return null;
+            return PROFILE + Math.min(1, Math.max(0, -r.top / span)) * SPAN;
+        };
+
         const tick = (now: number) => {
             s.raf = 0;
-            if (s.phase === "loop") s.current = loopFrame(now - s.loopStart);
+            if (s.phase === "loop") s.current = (track && scrubFrame(track)) ?? loopFrame(now - s.loopStart);
 
             draw(Math.round(s.current));
 
@@ -269,8 +289,15 @@ export default function Portrait({
             return null;
         };
 
-        // Loader: a small pool pulling from the coarse-to-fine queue.
-        const queue = still ? [FRONT] : loadOrder();
+        /*
+         * Loader: a small pool pulling from the coarse-to-fine queue. Not
+         * every frame is fetched: every other one on a laptop and every
+         * fourth on a phone, about half and a quarter of the bytes. The turn
+         * is driven by the scroll, and the nearest loaded frame stands in for
+         * a missing one, so the difference does not show.
+         */
+        const stride = window.matchMedia("(max-width: 767px)").matches ? 4 : 2;
+        const queue = still ? [FRONT] : loadOrder().filter((i) => (i - PROFILE) % stride === 0 || i === FRONT);
         let inflight = 0;
         const pump = () => {
             while (inflight < CONCURRENCY && queue.length) {
@@ -322,7 +349,7 @@ export default function Portrait({
             ro.disconnect();
             io.disconnect();
         };
-    }, [focalX, setName]);
+    }, [focalX, scrub, setName]);
 
     return (
         <figure className={`m-0 overflow-hidden bg-[var(--cloak)] ${className}`}>
@@ -345,10 +372,10 @@ export default function Portrait({
             />
             {children}
             <figcaption
-                className={`absolute z-10 flex items-center gap-4 font-mono text-xs text-[var(--fg-muted)] ${captionClassName}`}
+                className={`label absolute z-10 flex items-center gap-4 text-[var(--fg-dim)] ${captionClassName}`}
             >
                 <span>
-                    Frame <span ref={counterRef} className="tabular-nums text-[var(--fg-soft)]">001</span> / {TOTAL}
+                    Frame <span ref={counterRef} className="tabular-nums text-[var(--accent)]">001</span> / {TOTAL}
                 </span>
             </figcaption>
         </figure>

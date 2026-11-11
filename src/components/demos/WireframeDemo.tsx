@@ -22,7 +22,7 @@ const d = (i: number) => ({ "--delay": `${i}ms` }) as React.CSSProperties;
 // Frame 181 in colour: this demo greys it through its own SVG filter, so it keeps the original.
 const PORTRAIT = `/_next/image?url=${encodeURIComponent("/frames/still-full.jpg")}&w=640&q=75`;
 // The hero name: the body face at 700, set tight, as the live hero sets it.
-const display = { fontFamily: "var(--font-geist)", letterSpacing: "-0.04em" };
+const display = { fontFamily: "var(--font-text)", letterSpacing: "-0.04em" };
 
 /*
  * Each picture comes in two shapes, and the panel's own shape picks one (a
@@ -38,7 +38,7 @@ const display = { fontFamily: "var(--font-geist)", letterSpacing: "-0.04em" };
 const WIDE = "wf-wide absolute inset-0 h-full w-full";
 const TALL = "wf-tall absolute inset-0 h-full w-full";
 const GROUND = { x: -2000, y: -2000, width: 5000, height: 5000 };
-const sans = { fontFamily: "var(--font-geist)" };
+const sans = { fontFamily: "var(--font-text)" };
 const mono = { fontFamily: "var(--font-geist-mono)" };
 
 function Wireframe() {

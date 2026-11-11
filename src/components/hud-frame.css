@@ -1,0 +1,148 @@
+/*
+ * The frame of the instrument (HudFrame.tsx): fixed round the screen, in
+ * the page margins, on laptops only. Nothing in it takes the pointer except
+ * the chapter rail.
+ */
+.hud {
+  display: none;
+}
+
+@media (min-width: 1024px) {
+  .hud {
+    --edge: 0.625rem;
+    position: fixed;
+    inset: var(--bar-h) 0 0 0;
+    z-index: 35;
+    display: block;
+    pointer-events: none;
+    transition: opacity 400ms ease;
+  }
+
+  /* Over the hero the frame steps back; the hero has its own readouts. */
+  .hud[data-quiet] {
+    opacity: 0;
+  }
+
+  .hud[data-quiet] .hud-rail a {
+    pointer-events: none;
+  }
+
+  .hud-corner {
+    position: absolute;
+    width: 0.875rem;
+    height: 0.875rem;
+    border: 0 solid var(--fg-dim);
+  }
+
+  .hud-corner[data-at="tl"] { top: var(--edge); left: var(--edge); border-top-width: 1px; border-left-width: 1px; }
+  .hud-corner[data-at="tr"] { top: var(--edge); right: var(--edge); border-top-width: 1px; border-right-width: 1px; }
+  .hud-corner[data-at="bl"] { bottom: var(--edge); left: var(--edge); border-bottom-width: 1px; border-left-width: 1px; }
+  .hud-corner[data-at="br"] { bottom: var(--edge); right: var(--edge); border-bottom-width: 1px; border-right-width: 1px; }
+
+  /* A ruler down the left edge: a tick every 8px, a long one every 80px, running with the scroll. */
+  .hud-ruler {
+    position: absolute;
+    top: 3rem;
+    bottom: 3rem;
+    left: var(--edge);
+    width: 0.625rem;
+    background:
+      repeating-linear-gradient(to bottom, var(--fg-dim) 0 1px, transparent 1px 80px) 0 calc(var(--sy, 0) * -0.5px) / 100% 80px,
+      repeating-linear-gradient(to bottom, var(--rule-strong) 0 1px, transparent 1px 8px) 0 calc(var(--sy, 0) * -0.5px) / 50% 8px;
+    background-repeat: repeat-y;
+    mask-image: linear-gradient(transparent, #000 15%, #000 85%, transparent);
+  }
+
+  /* The chapters down the right edge. */
+  .hud-rail {
+    position: absolute;
+    top: 50%;
+    right: 0.25rem;
+    translate: 0 -50%;
+  }
+
+  .hud-rail ol {
+    display: grid;
+    gap: 0.25rem;
+  }
+
+  .hud-rail a {
+    position: relative;
+    display: flex;
+    align-items: center;
+    justify-content: flex-end;
+    min-width: 1.5rem;
+    min-height: 1.75rem;
+    padding-right: 0.25rem;
+    color: var(--fg-dim);
+    font-size: 0.625rem;
+    pointer-events: auto;
+    transition: color 200ms ease;
+  }
+
+  .hud-rail a::before {
+    content: "";
+    position: absolute;
+    right: 100%;
+    top: 50%;
+    width: 0.375rem;
+    height: 1px;
+    background: currentColor;
+    transition: width 300ms var(--ease-out);
+  }
+
+  .hud-rail a:hover,
+  .hud-rail a[aria-current] {
+    color: var(--accent);
+  }
+
+  .hud-rail a[aria-current]::before {
+    width: 0.875rem;
+  }
+
+  .hud-read {
+    position: absolute;
+    bottom: 0.5rem;
+    display: flex;
+    align-items: center;
+    gap: 0.5rem;
+    padding: 0.125rem 0.375rem;
+    background: rgb(5 5 5 / 0.8);
+    color: var(--fg-dim);
+    font-size: 0.6875rem;
+    white-space: nowrap;
+  }
+
+  .hud-read[data-at="bl"] {
+    left: 1.75rem;
+    color: var(--fg);
+  }
+
+  .hud-read[data-at="br"] {
+    right: 1.75rem;
+    font-variant-numeric: tabular-nums;
+  }
+
+  .hud-coord {
+    color: var(--fg-dim);
+    font-variant-numeric: tabular-nums;
+  }
+
+  .hud-dot {
+    width: 0.375rem;
+    height: 0.375rem;
+    background: var(--accent);
+  }
+}
+
+@media (min-width: 1024px) and (prefers-reduced-motion: no-preference) {
+  @keyframes hud-blink {
+    50% {
+      opacity: 0.25;
+    }
+  }
+
+  .hud-dot {
+    animation: hud-blink 1.6s steps(1) infinite;
+  }
+}

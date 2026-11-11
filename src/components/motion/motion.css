@@ -1,0 +1,139 @@
+/*
+ * The page's motion vocabulary (motion/Split.tsx, motion/Decode.tsx). The
+ * resting state of everything here is the finished state: the hidden and
+ * travelling states only exist inside the guards at the bottom, so with
+ * motion turned down, without scroll-driven animations or without script,
+ * the words and figures are simply in place.
+ */
+:root {
+  --ease-out: cubic-bezier(0.22, 1, 0.36, 1);
+  --ease-expo: cubic-bezier(0.16, 1, 0.3, 1);
+  --ease-in-out: cubic-bezier(0.76, 0, 0.24, 1);
+}
+
+/* A piece in its mask; the padding keeps descenders inside it. */
+.split-m {
+  display: inline-block;
+  overflow: clip;
+  padding-bottom: 0.12em;
+  margin-bottom: -0.12em;
+  vertical-align: top;
+}
+
+.split-m > span {
+  display: inline-block;
+}
+
+/* A rolling figure: each digit column one line tall, its strip resting on the second run's value. */
+.roll {
+  display: inline-flex;
+  font-variant-numeric: tabular-nums;
+}
+
+.roll-col {
+  display: inline-block;
+  height: 1em;
+  overflow: clip;
+}
+
+.roll-strip {
+  display: flex;
+  flex-direction: column;
+  translate: 0 calc((10 + var(--d)) * -1em);
+}
+
+.roll-strip > span {
+  height: 1em;
+  line-height: 1em;
+}
+
+@keyframes split-rise {
+  from {
+    translate: 0 112%;
+  }
+}
+
+@keyframes roll-up {
+  from {
+    translate: 0 0;
+  }
+}
+
+@keyframes ink-fill {
+  to {
+    color: var(--fill, var(--fg));
+  }
+}
+
+/* A hairline that is drawn from the left and then gives way to the plain rule under it. */
+@keyframes rule-sweep {
+  0% {
+    scale: 0 1;
+    opacity: 1;
+  }
+  70% {
+    scale: 1 1;
+    opacity: 1;
+  }
+  100% {
+    scale: 1 1;
+    opacity: 0;
+  }
+}
+
+@keyframes frame-open {
+  from {
+    clip-path: inset(0 0 100% 0);
+  }
+}
+
+@media (prefers-reduced-motion: no-preference) {
+  @supports ((animation-timeline: view()) and (animation-range: cover 0% cover 100%)) {
+    /*
+     * Scroll-linked reveals. [data-reveal] names the timeline its pieces
+     * follow, so the pieces can travel without moving what is measured.
+     * Each piece starts a little later (--step) than the one before it.
+     */
+    [data-reveal] {
+      view-timeline: --reveal block;
+    }
+
+    [data-reveal] .split-m > span {
+      animation: split-rise linear both;
+      animation-timeline: --reveal;
+      animation-range: cover calc(var(--i) * var(--step, 1.4%)) cover calc(20% + var(--i) * var(--step, 1.4%));
+    }
+
+    /* For a block at the very end of the page, which never scrolls far past the bottom edge. */
+    [data-reveal="entry"] .split-m > span {
+      animation-range: entry calc(var(--i) * var(--step, 4%)) entry calc(55% + var(--i) * var(--step, 4%));
+    }
+
+    [data-reveal] .roll-strip {
+      animation: roll-up linear both;
+      animation-timeline: --reveal;
+      animation-range: cover 0% cover calc(24% + var(--i) * 5%);
+    }
+
+    /* The statement: every word watches its own place on the screen and fills as it passes. */
+    .fill-w {
+      color: color-mix(in oklab, var(--fill, var(--fg)) 45%, transparent);
+      animation: ink-fill linear both;
+      animation-timeline: view();
+      animation-range: cover 22% cover 46%;
+    }
+
+    [data-reveal] .open-frame {
+      animation: frame-open linear both;
+      animation-timeline: --reveal;
+      animation-range: cover 0% cover 32%;
+    }
+
+    [data-reveal] .rule-sweep {
+      transform-origin: left;
+      animation: rule-sweep linear both;
+      animation-timeline: --reveal;
+      animation-range: cover 4% cover 40%;
+    }
+  }
+}

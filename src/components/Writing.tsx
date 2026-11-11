@@ -3,6 +3,7 @@ import Link from "next/link";
 import Section from "./Section";
 import ErrorBoundary from "./ErrorBoundary";
 import { DoorThumb, WearableThumb } from "./figures/thumbs/art";
+import { Words } from "./motion/Split";
 import { essaysByYear, type Essay } from "@/content/writing";
 
 /**
@@ -65,34 +66,37 @@ const thumbs: Record<string, ReactNode> = {
 };
 
 /*
- * One piece as a row of the index, read like a line in a datasheet's
- * revision table: the thumbnail in the margin columns, then from column 4
- * the facts in mono (year, field, length), the title and its one sentence,
- * and the two ways in at the far edge. On a phone the thumbnail sits beside
- * the facts and title, and the sentence and links run under both. The
- * abstract and keywords wait on the piece's page.
+ * One piece as a spread: its working drawing large on one side, framed as a
+ * figure, and on the other its facts, its title at heading size, its one
+ * sentence and the two ways in. The sides swap from one piece to the next.
+ * On a phone the drawing sits above the words.
  *
- * The thumbnail opens the piece for a mouse or a finger but stays out of the
+ * The drawing opens the piece for a mouse or a finger but stays out of the
  * Tab order: the title is the same link.
  */
-function Piece({ essay }: { essay: Essay }) {
+function Piece({ essay, index }: { essay: Essay; index: number }) {
     const href = `/writing/${essay.slug}`;
     const facts = [essay.year, essay.field, `${essay.readingTime} read`];
+    // Every other piece puts its drawing on the right, so the two read as a spread rather than a list.
+    const flip = index % 2 === 1;
     return (
-        <li className="grid grid-cols-[34%_minmax(0,1fr)] gap-x-4 border-b border-[var(--rule)] py-6 md:grid-cols-12 md:grid-rows-[auto_auto_1fr] md:gap-x-6 md:py-8">
+        <li data-reveal className="grid gap-6 border-b border-[var(--rule)] py-10 md:grid-cols-12 md:items-center md:gap-x-6 md:py-14">
             <Link
                 href={href}
                 tabIndex={-1}
                 aria-hidden="true"
-                className="block self-start overflow-hidden border border-[var(--rule-strong)] bg-[var(--surface-card)] transition-colors hover:border-[var(--gold)] md:col-span-3 md:row-span-3"
+                className={`viewport open-frame relative block self-start overflow-hidden transition-colors hover:border-[var(--accent-line)] md:col-span-6 ${flip ? "md:order-2 md:col-start-7" : ""}`}
             >
                 {/* The drawing runs in the browser; if it fails, the empty card holds its place. */}
                 <ErrorBoundary fallback={<span className="block aspect-[4/3]" />}>{thumbs[essay.slug] ?? <Cover essay={essay} />}</ErrorBoundary>
+                <span data-decode className="label pointer-events-none absolute left-3 top-2.5 text-[var(--fg)]">
+                    Fig {String(index + 1).padStart(2, "0")} <span className="text-[var(--fg-dim)]">/ {essay.label ?? "Essay"}</span>
+                </span>
             </Link>
 
-            <div className="min-w-0 md:col-span-7 md:col-start-4">
+            <div className={`min-w-0 md:col-span-5 ${flip ? "md:order-1 md:col-start-1" : "md:col-start-8"}`}>
                 {/* One line, broken only between the facts; the dot goes down with the fact after it, never left hanging. */}
-                <p className="font-mono text-xs leading-relaxed text-[var(--fg-dim)] md:text-sm">
+                <p data-decode className="label text-[var(--fg-dim)]">
                     {facts.map((fact, i) => (
                         <Fragment key={fact}>
                             {i > 0 && " "}
@@ -103,33 +107,29 @@ function Piece({ essay }: { essay: Essay }) {
                         </Fragment>
                     ))}
                 </p>
-                <h3 className="mt-1.5 min-w-0 text-pretty font-display text-lg font-bold leading-[1.1] tracking-[-0.03em] text-[var(--fg)] wrap-anywhere md:mt-2 md:text-3xl">
-                    <Link href={href} className="transition-colors hover:text-[var(--gold)]">
-                        {essay.title}
+                <h3 className="display mt-3 min-w-0 text-pretty text-[1.75rem] leading-[1.02] text-[var(--fg)] wrap-anywhere md:text-[clamp(2rem,3.2vw,3.25rem)]">
+                    <Link href={href} className="transition-colors hover:text-[var(--accent)]">
+                        <Words text={essay.title} />
                     </Link>
                 </h3>
+                <p className="mt-4 max-w-[34rem] text-pretty text-[15px] leading-relaxed text-[var(--fg-soft)] md:text-base">{essay.summary}</p>
+                <p className="mt-6 flex items-center gap-x-5">
+                    <Link href={href} aria-label={`${readLabel(essay)}: ${essay.title}`} className="action" data-solid>
+                        {readLabel(essay)} →
+                    </Link>
+                    {essay.pdfUrl && (
+                        <a
+                            href={essay.pdfUrl}
+                            target="_blank"
+                            rel="noopener noreferrer"
+                            aria-label={`Download the PDF of ${essay.title}`}
+                            className="label link flex min-h-11 items-center whitespace-nowrap text-[var(--fg-soft)]"
+                        >
+                            PDF ↗
+                        </a>
+                    )}
+                </p>
             </div>
-
-            <p className="col-span-2 mt-3 max-w-[36rem] text-pretty text-sm leading-relaxed text-[var(--fg-muted)] md:col-span-7 md:col-start-4 md:row-start-2 md:text-base">
-                {essay.summary}
-            </p>
-
-            <p className="col-span-2 mt-4 flex gap-x-5 text-sm md:col-span-2 md:col-start-11 md:row-span-2 md:row-start-1 md:mt-1 md:flex-col md:items-end md:gap-y-2">
-                <Link href={href} aria-label={`${readLabel(essay)}: ${essay.title}`} className="link whitespace-nowrap text-[var(--fg)]">
-                    Read →
-                </Link>
-                {essay.pdfUrl && (
-                    <a
-                        href={essay.pdfUrl}
-                        target="_blank"
-                        rel="noopener noreferrer"
-                        aria-label={`Download the PDF of ${essay.title}`}
-                        className="link whitespace-nowrap text-[var(--fg-soft)]"
-                    >
-                        PDF ↗
-                    </a>
-                )}
-            </p>
         </li>
     );
 }
@@ -145,15 +145,16 @@ export default function Writing() {
     return (
         <Section
             id="writing"
+            index="05"
             title="Writing"
             meta={`${essaysByYear.length} pieces`}
             intro="Longer pieces: my thesis project, written up as a case study, and an essay on something outside of code."
             introClassName="hidden md:block"
             wide
         >
-            <ul className="border-t border-[var(--rule-strong)]">
-                {essaysByYear.map((essay) => (
-                    <Piece key={essay.slug} essay={essay} />
+            <ul>
+                {essaysByYear.map((essay, index) => (
+                    <Piece key={essay.slug} essay={essay} index={index} />
                 ))}
             </ul>
         </Section>

@@ -1,92 +1,81 @@
 import Portrait from "./Portrait";
 import ErrorBoundary from "./ErrorBoundary";
+import HeroLight from "./HeroLight";
 import LocalTime from "./LocalTime";
+import { Words } from "./motion/Split";
 import { EMAIL } from "@/lib/site";
+import "./hero.css";
 
-/** The portrait's box: a block on a phone, bleeding off the right edge from md. */
-const PORTRAIT_BOX = "relative h-[46svh] w-full md:absolute md:inset-y-0 md:right-0 md:h-auto md:w-[62%]";
-
-/** The fades that blend the portrait into the page; the fallback box keeps them too. */
-const fades = (
-    <>
-        <div aria-hidden="true" className="absolute inset-0 bg-gradient-to-t from-[var(--surface)] via-[var(--surface)]/10 to-transparent" />
-        <div
-            aria-hidden="true"
-            className="absolute inset-0 hidden bg-gradient-to-r from-[var(--surface)] via-[var(--surface)]/25 to-transparent md:block"
-        />
-    </>
-);
-
-const facts = [
-    { label: "Based in", value: <>Indonesia · <LocalTime /></> },
-    { label: "Focus", value: "Software, AI, IoT, UI design" },
-    { label: "Stack", value: "Next.js, React, TypeScript, Python, C++" },
-];
 
 /*
- * On a phone the portrait is a block at the top and the text rides up over
- * its faded bottom edge. From md up the portrait bleeds off the right edge of
- * the page at full height, and the name is set across the seam between the
- * two, so image and type read as one composition rather than two columns.
+ * The first screen is a dark stage with him in it, the whole width of the
+ * page, and one light cutting through the dark (HeroLight): the pointer
+ * carries it, a reticle tracks it and reads out where it is. The screen is
+ * held for one more screen of scroll, and the scroll works it: the portrait
+ * turns from profile to face the visitor (Portrait's `scrub`), and the
+ * darkness opens until the whole stage is lit. The words stay where they
+ * are: who he is, bottom-left, with the two things to do next; what the
+ * instrument reads about him, top-left.
+ *
+ * With motion turned down nothing is held: the stage is one screen, the
+ * portrait is the still frame looking at the camera and the light is open.
  */
 export default function Hero() {
     return (
-        <section className="relative isolate md:flex md:min-h-[min(calc(100svh-3.5rem),60rem)]">
-            {/* Should the portrait fail, its box stays (the cloak colour, the same fades) and the layout holds. */}
-            <ErrorBoundary fallback={<div aria-hidden="true" className={`${PORTRAIT_BOX} bg-[var(--cloak)]`}>{fades}</div>}>
-                <Portrait
-                    className={PORTRAIT_BOX}
-                    focalX={0.45}
-                    captionClassName="top-4 right-5 md:top-auto md:bottom-8 md:right-[max(2.5rem,calc((100vw_-_1280px)/2_+_2.5rem))]"
-                >
-                    {fades}
-                </Portrait>
-            </ErrorBoundary>
+        <section className="hero" data-turn-track aria-label="Introduction">
+            <div className="hero-stage">
+                {/* Should the portrait fail, its box stays and the layout holds. */}
+                <ErrorBoundary fallback={<div aria-hidden="true" className="hero-portrait" />}>
+                    {/* focalX 0: on a wide screen the crop is taken from the left of the frame, which moves his face right of the words. */}
+                    <Portrait scrub className="hero-portrait" focalX={0} captionClassName="hero-caption" />
+                </ErrorBoundary>
+                <HeroLight />
 
-            <div className="shell grid-12 relative -mt-28 pb-16 md:mt-0 md:content-end md:pt-12 md:pb-16">
-                <div className="col-span-4 md:col-span-8">
-                    <p className="rise text-sm text-[var(--fg-muted)]">Developer &amp; designer from Indonesia</p>
-
-                    <h1
-                        className="rise mt-3 min-w-0 font-display text-[clamp(2.75rem,13vw,3.75rem)] wrap-anywhere font-bold leading-[0.95] tracking-[-0.04em] text-[var(--fg)] md:mt-4 md:text-[min(8vw,6.5rem)]"
-                        style={{ animationDelay: "60ms" }}
-                    >
-                        Fadhlan Bani
-                    </h1>
-
-                    {/* What he builds, in the words the "What I do" section uses for it. */}
-                    <p
-                        className="rise mt-4 max-w-[30rem] text-pretty text-[1.0625rem] leading-relaxed text-[var(--fg-soft)] md:mt-6 md:text-xl"
-                        style={{ animationDelay: "140ms" }}
-                    >
-                        I build web apps, AI tools and firmware for small boards.
+                {/* What the instrument reads about him, set as a block of code the way the reference sets its telemetry. */}
+                <div className="hero-code label rise" style={{ animationDelay: "240ms" }}>
+                    <p aria-hidden="true">{"//"}</p>
+                    <p data-decode>Portfolio loaded — Indonesia, UTC+7.</p>
+                    <p data-decode className="hero-code-in">
+                        Focus: software, AI, IoT, UI design
                     </p>
+                    <p data-decode className="hero-code-in">
+                        Stack: Next.js, React, TypeScript, Python, C++
+                    </p>
+                    <p aria-hidden="true">{"};"}</p>
+                    <p>
+                        Status: open to work — <LocalTime withSeconds />
+                    </p>
+                </div>
 
-                    <div className="rise mt-6 flex flex-wrap items-center gap-x-6 gap-y-3 md:mt-8" style={{ animationDelay: "200ms" }}>
-                        <a
-                            href={`mailto:${EMAIL}`}
-                            className="inline-flex h-11 items-center bg-[var(--fg)] px-5 text-sm font-medium text-[var(--surface)] transition-colors hover:bg-[var(--gold)]"
-                        >
-                            Email me
-                        </a>
-                        <a href="#work" className="link text-sm text-[var(--fg-soft)]">
-                            See my work
-                        </a>
+                <div className="hero-foot">
+                    <p aria-hidden="true" className="label rise flex gap-1.5">
+                        <span className="tag">_Portfolio</span>
+                        <span className="tag" data-solid>
+                            2026
+                        </span>
+                    </p>
+                    <h1 className="hero-title display">
+                        <Words text="I’m Fadhlan Bani, a developer and designer from Indonesia" />
+                    </h1>
+                    <div className="hero-next rise" style={{ animationDelay: "160ms" }}>
+                        <p className="text-pretty text-[length:var(--step-body)] leading-[1.4] text-[var(--fg-soft)]">
+                            I build web apps, AI tools and firmware for small boards.
+                        </p>
+                        <div className="flex flex-wrap items-center gap-2.5">
+                            <a href={`mailto:${EMAIL}`} className="action" data-solid>
+                                Email me
+                            </a>
+                            <a href="#work" className="action">
+                                See my work <span aria-hidden="true">↓</span>
+                            </a>
+                        </div>
                     </div>
                 </div>
 
-                <dl
-                    className="rise col-span-4 mt-7 grid grid-cols-1 gap-2 border-t border-[var(--rule-strong)] pt-4 sm:grid-cols-3 sm:gap-4 sm:pt-6 md:col-span-7 md:mt-20"
-                    style={{ animationDelay: "260ms" }}
-                >
-                    {facts.map((fact) => (
-                        // Label beside value on a phone (three short rows), stacked from sm up.
-                        <div key={fact.label} className="grid grid-cols-[5rem_1fr] items-baseline gap-3 sm:block">
-                            <dt className="font-mono text-xs text-[var(--fg-dim)]">{fact.label}</dt>
-                            <dd className="text-sm text-[var(--fg-soft)] sm:mt-1">{fact.value}</dd>
-                        </div>
-                    ))}
-                </dl>
+                {/* Only where the stage is held is there anything to turn. */}
+                <p aria-hidden="true" className="hero-hint label">
+                    Scroll to turn the portrait <span className="text-[var(--accent)]">↓</span>
+                </p>
             </div>
         </section>
     );

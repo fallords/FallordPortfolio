@@ -100,7 +100,7 @@ export default async function EssayPage({
                             <p className="font-mono text-xs text-[var(--fg-dim)] md:text-sm">
                                 {essay.field} · {essay.year} · {essay.readingTime} read
                             </p>
-                            <h1 className="mt-3 min-w-0 font-display text-[2rem] font-bold leading-[1.08] tracking-[-0.03em] text-balance wrap-anywhere md:text-5xl">
+                            <h1 className="mt-3 min-w-0 font-display text-[2rem] font-medium leading-[1.08] tracking-[-0.03em] text-balance wrap-anywhere md:text-5xl">
                                 {essay.title}
                             </h1>
                             {essay.subtitle && <p className="mt-3 text-lg leading-snug text-[var(--fg-muted)] md:text-xl">{essay.subtitle}</p>}
@@ -179,7 +179,7 @@ export default async function EssayPage({
                             {newer && (
                                 <Link href={`/writing/${newer.slug}`} className="group flex flex-col gap-1.5">
                                     <span className="font-mono text-xs text-[var(--fg-dim)]">← Newer</span>
-                                    <span className="font-display text-lg font-bold leading-tight tracking-[-0.02em] text-[var(--fg-soft)] transition-colors group-hover:text-[var(--gold)]">
+                                    <span className="font-display text-lg font-medium leading-tight tracking-[-0.02em] text-[var(--fg-soft)] transition-colors group-hover:text-[var(--gold)]">
                                         {newer.title}
                                     </span>
                                 </Link>
@@ -187,7 +187,7 @@ export default async function EssayPage({
                             {older && (
                                 <Link href={`/writing/${older.slug}`} className="group flex flex-col gap-1.5 sm:col-start-2 sm:text-right">
                                     <span className="font-mono text-xs text-[var(--fg-dim)]">Older →</span>
-                                    <span className="font-display text-lg font-bold leading-tight tracking-[-0.02em] text-[var(--fg-soft)] transition-colors group-hover:text-[var(--gold)]">
+                                    <span className="font-display text-lg font-medium leading-tight tracking-[-0.02em] text-[var(--fg-soft)] transition-colors group-hover:text-[var(--gold)]">
                                         {older.title}
                                     </span>
                                 </Link>
