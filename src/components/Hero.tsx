@@ -1,86 +1,59 @@
-import Portrait from "./Portrait";
 import ErrorBoundary from "./ErrorBoundary";
-import HeroLight from "./HeroLight";
+import HeroVoxel from "./HeroVoxel";
 import LocalTime from "./LocalTime";
-import { Words } from "./motion/Split";
+import { Chars } from "./motion/Split";
 import { EMAIL } from "@/lib/site";
 import "./hero.css";
 
-
 /*
- * The first screen is a dark stage with him in it, the whole width of the
- * page, and one light cutting through the dark (HeroLight): the pointer
- * carries it, and round it the picture is seen through a night scope. The screen is
- * held for one more screen of scroll, and the scroll works it: the portrait
- * turns from profile to face the visitor (Portrait's `scrub`), the darkness
- * opens, and the night scope round the light widens until the whole
- * stage is seen through it. The words stay where they
- * are: who he is, bottom-left, with the two things to do next; what the
- * instrument reads about him, top-left.
+ * The first screen, laid out as the reference lays out its own: his head in
+ * voxels on a curved, flickering screen (HeroVoxel), his name large on the
+ * left with "// Portfolio ©2026" under it, and on the right, in the mono
+ * face, what he does and that he is open to work, with the two things to do
+ * next. On a phone the head stands in the middle and the words sit under it.
  *
- * With motion turned down nothing is held: the stage is one screen, the
- * portrait is the still frame looking at the camera and the light is open.
+ * One screen tall: the head boots and turns on its own when the intro
+ * lifts, so nothing holds the scroll.
  */
 export default function Hero() {
     return (
+        // data-turn-track: how the bar and the frame know the hero is at the top (Header, HudFrame).
         <section className="hero" data-turn-track aria-label="Introduction">
             <div className="hero-stage">
-                {/* Should the portrait fail, its box stays and the layout holds. */}
-                <ErrorBoundary fallback={<div aria-hidden="true" className="hero-portrait" />}>
-                    {/* focalX 0: on a wide screen the crop is taken from the left of the frame, which moves his face right of the words. */}
-                    <Portrait scrub className="hero-portrait" focalX={0} captionClassName="hero-caption">
-                        {/* The night scope: round the light the picture is lifted, turned green and scanned (hero.css). */}
-                        <span aria-hidden="true" className="hero-scope hero-scope-gain" />
-                        <span aria-hidden="true" className="hero-scope hero-scope-tint" />
-                        <span aria-hidden="true" className="hero-scope hero-scope-lines" />
-                    </Portrait>
+                {/* Should the scene fail, the still drawing inside it stays; should the component itself fail, the words still stand. */}
+                <ErrorBoundary fallback={null}>
+                    <HeroVoxel className="hero-voxel" />
                 </ErrorBoundary>
-                <HeroLight />
 
-                {/* What the instrument reads about him, set as a block of code the way the reference sets its telemetry. */}
-                <div className="hero-code label rise" style={{ "--rise-delay": "240ms" } as React.CSSProperties}>
-                    <p aria-hidden="true">{"//"}</p>
-                    <p data-decode>Portfolio loaded — Indonesia, UTC+7.</p>
-                    <p data-decode className="hero-code-in">
-                        Focus: software, AI, IoT, UI design
-                    </p>
-                    <p data-decode className="hero-code-in">
-                        Stack: Next.js, React, TypeScript, Python, C++
-                    </p>
-                    <p aria-hidden="true">{"};"}</p>
-                    <p>
-                        Status: open to work — <LocalTime withSeconds />
+                <div className="hero-name">
+                    <h1 data-flicker="view" className="hero-title display">
+                        <Chars text="Fadhlan Bani" />
+                    </h1>
+                    <p className="hero-sub label rise" style={{ "--rise-delay": "200ms" } as React.CSSProperties}>
+                        <span>{"//"} Portfolio</span>
+                        <span className="tabular-nums">©{new Date().getFullYear()}</span>
                     </p>
                 </div>
 
-                <div className="hero-foot">
-                    <p aria-hidden="true" className="label rise flex">
-                        <span className="tag">_Portfolio</span>
-                        <span className="tag" data-solid>
-                            2026
-                        </span>
+                <div className="hero-about rise" style={{ "--rise-delay": "320ms" } as React.CSSProperties}>
+                    <p data-decode className="hero-desc label">
+                        Developer and designer from Indonesia, building web apps, AI tools and firmware for small boards.
                     </p>
-                    <h1 data-flicker="view" className="hero-title display">
-                        <Words text="I’m Fadhlan Bani, a developer and designer from Indonesia" />
-                    </h1>
-                    <div className="hero-next rise" style={{ "--rise-delay": "160ms" } as React.CSSProperties}>
-                        <p className="text-pretty text-[length:var(--step-body)] leading-[1.4] text-[var(--fg-soft)]">
-                            I build web apps, AI tools and firmware for small boards.
-                        </p>
-                        <div className="flex flex-wrap items-center gap-2.5">
-                            <a href={`mailto:${EMAIL}`} className="action" data-solid data-cursor="Write">
-                                Email me
-                            </a>
-                            <a href="#work" className="action" data-cursor="Go">
-                                See my work <span aria-hidden="true">↓</span>
-                            </a>
-                        </div>
+                    <p className="hero-status label">
+                        Status: open to work — <LocalTime withSeconds />
+                    </p>
+                    <div className="hero-actions">
+                        <a href={`mailto:${EMAIL}`} className="action" data-solid data-cursor="Write">
+                            Email me
+                        </a>
+                        <a href="#work" className="action" data-cursor="Go">
+                            See my work <span aria-hidden="true">↓</span>
+                        </a>
                     </div>
                 </div>
 
-                {/* Only where the stage is held is there anything to turn. */}
                 <p aria-hidden="true" className="hero-hint label">
-                    Scroll to turn the portrait <span className="text-[var(--accent)]">↓</span>
+                    Scroll <span className="text-[var(--accent)]">↓</span>
                 </p>
             </div>
         </section>
