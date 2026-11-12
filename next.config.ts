@@ -50,6 +50,10 @@ const securityHeaders = [
 
 const nextConfig: NextConfig = {
   reactCompiler: true,
+  experimental: {
+    // Next 16.3 keeps Turbopack's build cache on disk by default, and Vercel restores it between deploys: a deploy (fbbda2a) shipped the previous globals.css. Every build starts clean instead.
+    turbopackFileSystemCacheForBuild: false,
+  },
   poweredByHeader: false,
   compress: true,
   images: {
