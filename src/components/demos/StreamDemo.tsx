@@ -77,6 +77,14 @@ export default function StreamDemo() {
     const stop = () => setStopped(true);
 
     const status = stopped ? "stopped" : done ? "done" : count ? "streaming" : "thinking";
+    // Time since the question, as the stream has played it: the pause, then one token every TOKEN_MS.
+    const elapsed = count ? THINK_MS + count * TOKEN_MS : 0;
+    const readouts = [
+        { label: "status", value: status },
+        { label: "first word", value: `${THINK_MS}`, unit: "ms" },
+        { label: "tokens", value: `${count}/${tokens.length}` },
+        { label: "elapsed", value: `${elapsed}`, unit: "ms" },
+    ];
 
     return (
         <div className="flex h-full flex-col gap-3 p-3.5 text-sm sm:gap-4 sm:p-5">
@@ -102,7 +110,7 @@ export default function StreamDemo() {
             </p>
 
             {/* Room for the longest reply on a phone, where the panel is only as tall as its content: it grows no further while streaming. */}
-            <div className="min-h-[6rem] max-w-[92%] leading-relaxed text-[var(--fg)] md:min-h-0" aria-live="polite">
+            <div className="min-h-[6rem] max-w-[92%] text-pretty leading-relaxed text-[var(--fg)] md:min-h-0 md:text-lg md:leading-[1.5]" aria-live="polite">
                 {count === 0 && !stopped ? (
                     <span className="font-mono text-xs text-[var(--fg-dim)]">
                         thinking<span className="caret">_</span>
@@ -115,10 +123,43 @@ export default function StreamDemo() {
                 )}
             </div>
 
-            <div className="mt-auto flex items-center justify-between gap-3 border-t border-[var(--rule)] pt-3 font-mono text-xs text-[var(--fg-dim)]">
-                <span className="tabular-nums">
-                    {status} · first word {THINK_MS}ms · {count}/{tokens.length} tokens · {Math.round(1000 / TOKEN_MS)} tok/s
+            {/* The stream as it arrives: one tick per token, lit as it lands, after the pause before the first. */}
+            <div aria-hidden="true" className="mt-auto">
+                <div className="flex items-center justify-between font-mono text-xs text-[var(--fg-dim)]">
+                    <span>tokens · {Math.round(1000 / TOKEN_MS)} tok/s</span>
+                    <span className="tabular-nums">
+                        {count}/{tokens.length}
+                    </span>
+                </div>
+                <div className="mt-2 flex h-5 gap-[3px]">
+                    {tokens.map((_, i) => (
+                        <span
+                            key={i}
+                            className={`flex-1 transition-colors duration-150 ${i < count ? (i === count - 1 && streaming ? "bg-[var(--fg)]" : "bg-[var(--gold)]") : "bg-[var(--surface-raised)]"}`}
+                        />
+                    ))}
+                </div>
+            </div>
+
+            {/* The numbers that settle when it is done, read out the way the page reads its figures. */}
+            <dl className="hidden grid-cols-4 gap-3 border-t border-[var(--rule)] pt-3 sm:grid">
+                {readouts.map((r) => (
+                    <div key={r.label}>
+                        <dt className="font-mono text-[11px] uppercase tracking-wide text-[var(--fg-dim)]">{r.label}</dt>
+                        <dd className={`mt-1 text-xl font-medium tabular-nums tracking-tight ${r.label === "status" && streaming ? "text-[var(--gold)]" : "text-[var(--fg)]"}`}>
+                            {r.value}
+                            {r.unit && <span className="ml-1 font-mono text-xs text-[var(--fg-dim)]">{r.unit}</span>}
+                        </dd>
+                    </div>
+                ))}
+            </dl>
+
+            <div className="flex items-center justify-between gap-3 border-t border-[var(--rule)] pt-3 font-mono text-xs text-[var(--fg-dim)]">
+                {/* The readouts above say this from 640px; a phone keeps the one line. */}
+                <span className="tabular-nums sm:hidden">
+                    {status} · first word {THINK_MS}ms · {count}/{tokens.length} tokens
                 </span>
+                <span className="hidden sm:inline">pick a question to ask it again</span>
                 {/* Always laid out, hidden when idle, so the row doesn't grow and shrink as a reply starts and ends. */}
                 <button
                     type="button"

@@ -1,46 +1,153 @@
 /*
- * The wall of certificates (Certifications.tsx). Each frame shows its
- * certificate washed in the page's green, with a field of crosses over it;
- * pointing at it or focusing it takes the wash off.
+ * The certificates as a slideshow of photo chapters (Certifications.tsx),
+ * after the reference's card section. One chapter on show at a time on a
+ * stage about a screen tall: its words on the left (on a phone, under the
+ * scan), its scan on the right, the controls along the foot, a rail down
+ * the right edge marking how far through the show is.
+ *
+ * The scan itself: washed in the page's green with a field of crosses over
+ * it; pointing at it or focusing it takes the wash off.
  */
-.cert-grid {
-  display: grid;
-  grid-template-columns: repeat(2, minmax(0, 1fr));
-  gap: 1.75rem 1rem;
+.cc-stage {
+  --foot: 5.75rem;
+  position: relative;
+  height: min(46rem, calc(100svh - var(--bar-h) - 2rem));
+  min-height: 34rem;
 }
 
 @media (min-width: 768px) {
-  .cert-grid {
-    grid-template-columns: repeat(3, minmax(0, 1fr));
-    gap: 2.25rem 1.5rem;
+  .cc-stage {
+    --foot: 4.5rem;
+    height: min(40rem, calc(100svh - var(--bar-h) - 3rem));
+    min-height: 30rem;
   }
 }
 
-@media (min-width: 1024px) {
-  .cert-grid {
-    grid-template-columns: repeat(4, minmax(0, 1fr));
+.cc-list,
+.cc-item {
+  display: block;
+}
+
+/* ------------------------------------------------------------ one chapter */
+
+.cc-text {
+  position: absolute;
+  top: calc(42% + 1.25rem);
+  right: 1.75rem;
+  bottom: var(--foot);
+  left: 0;
+  display: flex;
+  flex-direction: column;
+  justify-content: space-between;
+  gap: 1rem;
+}
+
+/* The chapter's number: very large and barely there, as the reference sets it. */
+.cc-big {
+  font-size: clamp(3.5rem, 18vw, 5rem);
+  font-weight: 500;
+  line-height: 0.74;
+  letter-spacing: -0.05em;
+  color: rgb(221 221 221 / 0.1);
+  font-variant-numeric: tabular-nums;
+}
+
+.cc-words {
+  display: grid;
+  gap: 0.75rem;
+}
+
+.cc-name {
+  max-width: 34rem;
+  font-size: clamp(1.375rem, 1.1rem + 1vw, 2.25rem);
+  font-weight: 500;
+  line-height: 1.02;
+  letter-spacing: -0.03em;
+  color: var(--fg);
+  text-wrap: balance;
+}
+
+.cc-meta {
+  color: var(--fg-dim);
+}
+
+.cc-actions {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 0.25rem 1.25rem;
+}
+
+.cc-frame {
+  position: absolute;
+  top: 0;
+  right: 1.75rem;
+  left: 0;
+  height: 42%;
+}
+
+@media (min-width: 768px) {
+  .cc-text {
+    top: 0;
+    right: auto;
+    width: 36%;
+  }
+
+  .cc-big {
+    font-size: clamp(6rem, 12vw, 13rem);
+  }
+
+  .cc-frame {
+    right: 2.5rem;
+    bottom: var(--foot);
+    left: calc(36% + 3rem);
+    height: auto;
   }
 }
 
-/* The last tile: the fields in a framed readout, as tall as a certificate's frame. */
-.cert-readout-tile {
-  align-self: start;
-  aspect-ratio: 4 / 3;
-  padding: 1rem;
-  border: 1px solid var(--accent-line);
-  background: var(--accent-wash);
+/* One chapter on show. The others are out of sight, out of the tab order and away from screen readers (visibility, after their way out). */
+.cc-text {
+  visibility: hidden;
+  opacity: 0;
+  translate: 0 0.75rem;
+  transition:
+    opacity 200ms ease,
+    translate 200ms var(--ease-out),
+    visibility 0s linear 800ms;
 }
 
-@media (max-width: 767px) {
-  .cert-readout-tile {
-    aspect-ratio: auto;
-  }
+.cc-item[data-active] .cc-text {
+  visibility: visible;
+  opacity: 1;
+  translate: 0 0;
+  transition:
+    opacity 400ms ease 200ms,
+    translate 700ms var(--ease-expo) 200ms,
+    visibility 0s;
 }
+
+/* A scan comes down over the last one like a shutter as its chapter comes on; the one going is drawn up under it. */
+.cc-frame {
+  z-index: 1;
+  visibility: hidden;
+  clip-path: inset(0 0 100% 0);
+  transition:
+    clip-path 800ms var(--ease-in-out),
+    visibility 0s linear 800ms;
+}
+
+.cc-item[data-active] .cc-frame {
+  z-index: 2;
+  visibility: visible;
+  clip-path: inset(0 0 0 0);
+  transition:
+    clip-path 800ms var(--ease-in-out),
+    visibility 0s;
+}
+
+/* ------------------------------------------------------------ the scan */
 
 .cert-frame {
   display: block;
-  width: 100%;
-  aspect-ratio: 4 / 3;
   overflow: clip;
   isolation: isolate;
   background: var(--surface-raised);
@@ -71,14 +178,17 @@
   transition: opacity 400ms ease;
 }
 
-.cert-code {
+/* The reference's caption over a photograph: "//", the readout, "};". */
+.cc-cap {
   position: absolute;
   z-index: 3;
-  left: 0.625rem;
-  bottom: 0.5rem;
-  padding: 0.125rem 0.375rem;
-  background: var(--surface);
+  top: 0.75rem;
+  left: 0.75rem;
+  padding: 0.375rem 0.5rem;
+  background: rgb(5 5 5 / 0.62);
   color: var(--fg);
+  text-align: left;
+  line-height: 1.45;
 }
 
 /* Pointed at or focused: the certificate as it is. */
@@ -102,11 +212,143 @@
   }
 }
 
-/* Frames in a row open one after another. */
+/* ------------------------------------------------------------ time, place, controls */
+
+/* The slide's time: a green line drawn along the foot of the scan; the next slide comes on when it ends. */
+.cc-timer {
+  position: absolute;
+  z-index: 3;
+  top: calc(42% - 2px);
+  right: 1.75rem;
+  left: 0;
+  height: 2px;
+  background: var(--accent);
+  transform-origin: left;
+  scale: 0 1;
+}
+
+@media (min-width: 768px) {
+  .cc-timer {
+    top: auto;
+    right: 2.5rem;
+    bottom: calc(var(--foot) - 2px);
+    left: calc(36% + 3rem);
+  }
+}
+
+@keyframes cc-timer {
+  to {
+    scale: 1 1;
+  }
+}
+
 @media (prefers-reduced-motion: no-preference) {
-  @supports ((animation-timeline: view()) and (animation-range: cover 0% cover 100%)) {
-    .cert-card[data-reveal] .open-frame {
-      animation-range: cover calc(var(--k) * 3%) cover calc(28% + var(--k) * 3%);
-    }
+  .cc-timer {
+    animation: cc-timer var(--slide) linear both;
+  }
+
+  .cc-stage[data-paused] .cc-timer {
+    animation-play-state: paused;
+  }
+}
+
+.cc-rail {
+  position: absolute;
+  top: 0;
+  right: 0;
+  bottom: var(--foot);
+  width: 1px;
+  background: var(--rule-strong);
+}
+
+.cc-rail > span {
+  display: block;
+  height: calc(100% / var(--n));
+  background: var(--accent);
+  translate: 0 calc(var(--active, 0) * 100%);
+  transition: translate 600ms var(--ease-expo);
+}
+
+/* Along the foot: the numbers on the left, the arrows, Pause and the count on the right. */
+.cc-controls {
+  position: absolute;
+  right: 0;
+  bottom: 0;
+  left: 0;
+  display: flex;
+  flex-wrap: wrap;
+  align-items: center;
+  justify-content: space-between;
+  gap: 0.5rem 1.5rem;
+  min-height: 3rem;
+  padding-top: 0.5rem;
+  border-top: 1px solid var(--rule);
+}
+
+.cc-nav {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 0 0.25rem;
+}
+
+/* The chapter numbers: the one on show in green, the rest at 40%, as the reference dims them. */
+.cc-nav button {
+  min-width: 1.75rem;
+  min-height: 1.75rem;
+  color: var(--fg-dim);
+  opacity: 0.4;
+  transition:
+    opacity 300ms ease,
+    color 300ms ease;
+}
+
+.cc-nav button:hover {
+  opacity: 1;
+  color: var(--fg);
+}
+
+.cc-nav button[aria-current] {
+  opacity: 1;
+  color: var(--accent);
+}
+
+.cc-buttons {
+  display: flex;
+  align-items: center;
+  gap: 0.25rem;
+}
+
+.cc-buttons button {
+  min-width: 2.75rem;
+  min-height: 2.75rem;
+  padding-inline: 0.5rem;
+  border: 1px solid var(--rule-strong);
+  color: var(--fg-soft);
+  transition:
+    border-color 150ms,
+    color 150ms;
+}
+
+.cc-buttons button:hover {
+  border-color: var(--accent);
+  color: var(--fg);
+}
+
+.cc-buttons > span {
+  margin-left: 0.75rem;
+}
+
+/* With motion turned down nothing turns on its own, so there is nothing to pause and no time to show. */
+@media (prefers-reduced-motion: reduce) {
+  .cc-pause,
+  .cc-timer {
+    display: none;
+  }
+}
+
+/* On a phone the numbers would take two rows; the arrows and the count are enough there. */
+@media (max-width: 639px) {
+  .cc-nav {
+    display: none;
   }
 }

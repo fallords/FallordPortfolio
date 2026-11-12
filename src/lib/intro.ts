@@ -2,8 +2,8 @@
 export const INTRO_MIN_MS = 500;
 /** The intro never holds the page past this point, counted from the start of the page load. */
 export const INTRO_MAX_MS = 1500;
-/** Matches the fade on .intro in globals.css. */
-export const INTRO_FADE_MS = 500;
+/** How long the intro takes to leave: its words part, the block opens, the sheet is drawn up (globals.css, .intro). */
+export const INTRO_FADE_MS = 1100;
 /**
  * A page whose HTML took longer than this to arrive is already slow; the
  * intro would only make it slower, so it doesn't play.

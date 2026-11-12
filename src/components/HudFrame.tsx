@@ -9,7 +9,6 @@ const CHAPTERS: Record<string, { num?: string; name: string }> = {
     brief: { name: "In short" },
     work: { num: "01", name: "Work" },
     experience: { num: "02", name: "Experience" },
-    numbers: { name: "In numbers" },
     about: { num: "03", name: "What I do" },
     certificates: { num: "04", name: "Certificates" },
     writing: { num: "05", name: "Writing" },
@@ -49,7 +48,7 @@ export default function HudFrame() {
         let frame = 0;
         let current: string | null = null;
         let decode = 0;
-        // What leans with the speed of the scroll (the band of words, the chapter numbers, the name in the footer).
+        // What leans with the speed of the scroll (the chapter numbers, the name in the footer).
         const movers = [...document.querySelectorAll<HTMLElement>("[data-vel]")];
         let lastY = window.scrollY;
         let lastT = performance.now();
@@ -138,7 +137,7 @@ export default function HudFrame() {
                 <ol>
                     {RAIL.map(([id, c]) => (
                         <li key={id}>
-                            <a href={`#${id}`} aria-label={`${c.num}: ${c.name}`} aria-current={active === id ? "location" : undefined} data-cursor={c.name} className="label">
+                            <a href={`#${id}`} aria-label={`${c.num}: ${c.name}`} aria-current={active === id ? "location" : undefined} data-cursor={c.name} data-flick className="label">
                                 {c.num}
                             </a>
                         </li>

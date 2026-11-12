@@ -115,3 +115,48 @@
     --edge-x: 1.75rem;
   }
 }
+
+/*
+ * The way in from the hero (the reference's line-wrap). Ten columns of the
+ * page's dark stand on this section's top edge, a screen tall, over the
+ * hero's last screen. As the section comes up they rise, each from its own
+ * point in the scroll (--d, shuffled), until the portrait is gone behind
+ * them. Scroll-driven, on the compositor; without that, or with motion
+ * turned down, they are flat and nothing is covered.
+ */
+.zoom-bars {
+  position: absolute;
+  inset: -100svh 0 auto;
+  z-index: 3;
+  display: flex;
+  height: 100svh;
+  pointer-events: none;
+}
+
+.zoom-bars > span {
+  flex: 1;
+  background: var(--surface);
+  transform-origin: bottom;
+  scale: 1 0;
+}
+
+@media (prefers-reduced-motion: no-preference) {
+  @supports ((animation-timeline: view()) and (animation-range: exit 0% exit 100%)) {
+    @keyframes zoom-bar {
+      to {
+        scale: 1 1;
+      }
+    }
+
+    .zoom-bars {
+      view-timeline: --bars block;
+    }
+
+    /* The section's top runs from the foot of the screen to its head over "exit"; every column is up by 70% of that. */
+    .zoom-bars > span {
+      animation: zoom-bar linear both;
+      animation-timeline: --bars;
+      animation-range: exit calc(var(--d) * 4%) exit calc(36% + var(--d) * 4%);
+    }
+  }
+}

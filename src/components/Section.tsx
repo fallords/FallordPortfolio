@@ -10,7 +10,9 @@ import Decode from "./motion/Decode";
  * display face, the whole head closed by a hairline. As the head comes up
  * the scroll works it (motion.css): the number's digits roll up to their
  * value, the name's letters rise out of their masks, the readout decodes
- * itself, and a green line runs along the rule.
+ * itself, and a green line runs along the rule. The name also comes in as
+ * a signal, its letters flashing green and flickering once before they hold
+ * (data-flicker).
  *
  * `wide` hands a section all twelve columns; otherwise its content starts
  * at column 4, the line the text of the page shares.
@@ -58,7 +60,7 @@ export default function Section({
                         {meta && (
                             <p className="label text-[var(--fg-dim)]">{typeof meta === "string" ? <Decode text={meta} /> : meta}</p>
                         )}
-                        <h2 className="display mt-1.5 text-[clamp(2rem,4.4vw,4rem)] text-[var(--fg)]">
+                        <h2 data-flicker="view" className="display mt-1.5 text-[clamp(2rem,4.4vw,4rem)] text-[var(--fg)]">
                             <Chars text={title} />
                         </h2>
                     </div>

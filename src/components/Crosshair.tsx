@@ -12,7 +12,8 @@ const TYPED = "input, textarea, select, [contenteditable='true']";
  * Everything the pointer does on this site, from one listener.
  *
  * The crosshair: in place of the arrow, drawn in "difference" so it shows
- * on light and dark alike, opening out over anything that can be pressed,
+ * on light and dark alike, turning a quarter over anything that can be
+ * pressed and growing while a button is held down,
  * with the pointer's X and Y read out in the frame's bottom corners
  * (HudFrame's `data-coord` readouts). It follows the pointer exactly, with
  * no easing, so it never lags behind the real position.
@@ -111,6 +112,10 @@ export default function Crosshair() {
             tag.removeAttribute("data-away");
             if (!frame) frame = requestAnimationFrame(paint);
         };
+        const onDown = (event: PointerEvent) => {
+            if (event.pointerType === "mouse" || event.pointerType === "pen") el.setAttribute("data-down", "");
+        };
+        const onUp = () => el.removeAttribute("data-down");
         const onLeave = () => {
             el.setAttribute("data-away", "");
             tag.setAttribute("data-away", "");
@@ -119,6 +124,9 @@ export default function Crosshair() {
         };
 
         window.addEventListener("pointermove", onMove, { passive: true });
+        window.addEventListener("pointerdown", onDown, { passive: true });
+        window.addEventListener("pointerup", onUp, { passive: true });
+        window.addEventListener("pointercancel", onUp, { passive: true });
         root.addEventListener("pointerleave", onLeave);
         return () => {
             cancelAnimationFrame(frame);
@@ -126,6 +134,9 @@ export default function Crosshair() {
             level();
             root.classList.remove("has-crosshair");
             window.removeEventListener("pointermove", onMove);
+            window.removeEventListener("pointerdown", onDown);
+            window.removeEventListener("pointerup", onUp);
+            window.removeEventListener("pointercancel", onUp);
             root.removeEventListener("pointerleave", onLeave);
         };
     }, []);

@@ -1,6 +1,7 @@
 import { Fragment, type ReactNode } from "react";
 import Link from "next/link";
 import Section from "./Section";
+import { Chars } from "./motion/Split";
 import ErrorBoundary from "./ErrorBoundary";
 import WorkStage from "./WorkStage";
 import { CvThumb, SeraThumb, WearableThumb } from "./figures/thumbs/art";
@@ -143,12 +144,17 @@ function words(project: Project, index: number) {
     const external = project.href.startsWith("http");
     return (
         <Fragment key="text">
-            <p className="label text-[var(--fg-dim)]">
+            {/* "active": these come in each time the stage brings the project on (WorkStage). */}
+            <p data-decode="active" className="label text-[var(--fg-dim)]">
                 Project {index + 1} of {projects.length}
             </p>
-            <h3 className="ws-title display mt-2.5 min-w-0 text-[2.25rem] text-[var(--fg)] wrap-anywhere lg:text-5xl">{project.title}</h3>
+            <h3 data-flicker="active" className="ws-title display mt-2.5 min-w-0 text-[2.25rem] text-[var(--fg)] wrap-anywhere lg:text-5xl">
+                <Chars text={project.title} />
+            </h3>
             <p className="mt-2 text-sm text-[var(--fg-soft)] md:text-base">{project.subtitle}</p>
-            <p className="mt-4 text-pretty text-[15px] leading-relaxed text-[var(--fg-soft)] md:text-base">{project.description}</p>
+            <p data-shuffle="active" className="mt-4 text-pretty text-[15px] leading-relaxed text-[var(--fg-soft)] md:text-base">
+                {project.description}
+            </p>
 
             {/* Non-breaking spaces keep each tool's name whole ("Tailwind CSS") and tie each dot to the name before it. */}
             <div className="mt-5 flex flex-wrap items-center justify-between gap-x-6 gap-y-3">
@@ -186,7 +192,7 @@ function features(project: Project) {
                         {f.title}
                     </dt>
                     <dd className="text-[var(--fg-muted)]">
-                        {f.desc}
+                        <span data-shuffle="active">{f.desc}</span>
                         {f.chain && (
                             <span className="mt-2 flex flex-wrap items-center gap-x-1 gap-y-1.5 font-mono text-xs text-[var(--fg-soft)] sm:gap-x-1.5">
                                 {/* The arrow trails its model, so a wrapped line ends on → instead of starting with one. */}
@@ -210,9 +216,6 @@ function features(project: Project) {
  * project at a time. WorkStage holds the bench still while the page scrolls
  * and takes each machine apart to bring in the next.
  */
-/** How many projects are on the page; the figures quote it. */
-export const PROJECT_COUNT = projects.length;
-
 export default function Works() {
     return (
         <Section id="work" index="01" title="Work" meta={`${projects.length} projects`} wide>

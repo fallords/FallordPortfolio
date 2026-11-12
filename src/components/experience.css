@@ -1,7 +1,10 @@
 /*
- * The log (Experience.tsx). At rest every role is in full ink with its
- * number in the faint tone; the focus that follows the scroll only exists
- * where scroll-driven animations do and motion is welcome.
+ * Experience (Experience.tsx, ExperienceDrum.tsx). The log first: at rest
+ * every role is in full ink with its number in the faint tone; the focus
+ * that follows the scroll only exists where scroll-driven animations do and
+ * motion is welcome. This is what a phone, a tablet and reduced motion get.
+ * Under [data-live] (a laptop) the same rows stand in the panel of the held
+ * drum scene, in the bottom half.
  */
 .xp-row {
   padding-block: 2rem;
@@ -102,4 +105,230 @@
       animation-range: cover 0% cover 100%;
     }
   }
+}
+
+/* The drum scene's parts are only drawn where it is held. */
+.xp-reticle,
+.xp-count,
+.xp-index,
+.xp-band,
+.xp-drum {
+  display: none;
+}
+
+/* ------------------------------------------------------------ the held scene */
+
+/* A screen and a little more of scroll for each role. */
+.xp-track[data-live] {
+  height: calc(100svh + var(--n) * 70svh);
+}
+
+.xp-track[data-live] .xp-stage {
+  --size: clamp(3.5rem, 8vw, 8.5rem);
+  --unit: calc(var(--size) * 1.1);
+  --panel: min(30rem, 36vw);
+  /* The index's column on the left; on the right, the panel and room for the frame's chapter rail. */
+  --index: 13rem;
+  --side: calc(var(--panel) + 5rem);
+  /* Where the drum turns: the middle of what the index and the panel leave. */
+  --drum-x: calc(var(--index) + (100% - var(--index) - var(--side)) / 2);
+  position: sticky;
+  top: var(--bar-h);
+  height: calc(100svh - var(--bar-h));
+  overflow: clip;
+}
+
+.xp-track[data-live] .xp-reticle {
+  display: block;
+  position: absolute;
+  top: 50%;
+  left: var(--drum-x);
+  width: min(42vw, 64svh);
+  aspect-ratio: 1;
+  translate: -50% -50%;
+  stroke: var(--rule-strong);
+  stroke-width: 1;
+}
+
+.xp-reticle * {
+  vector-effect: non-scaling-stroke;
+}
+
+.xp-reticle .xp-arc {
+  stroke: var(--accent);
+  stroke-width: 2;
+}
+
+.xp-track[data-live] .xp-count {
+  position: absolute;
+  z-index: 2;
+  top: 1.5rem;
+  right: 2.5rem;
+  display: flex;
+  align-items: baseline;
+  gap: 1.25rem;
+  color: var(--fg-dim);
+}
+
+.xp-track[data-live] .xp-count .scene-skip {
+  position: static;
+}
+
+/* Every role by name down the left; the one on show is green. */
+.xp-track[data-live] .xp-index {
+  position: absolute;
+  z-index: 2;
+  top: 50%;
+  left: 0;
+  display: grid;
+  gap: 0.625rem;
+  width: calc(var(--index) - 1.5rem);
+  translate: 0 -50%;
+  color: var(--fg-dim);
+}
+
+/* The number hangs; a long title wraps under its own first word. */
+.xp-index li {
+  display: flex;
+  gap: 0.5rem;
+  transition: color 300ms ease;
+}
+
+.xp-index li[data-on] {
+  color: var(--accent);
+}
+
+/* The band: two rules across the drum's middle row, as far as the panel, with a green tick at each end. */
+.xp-track[data-live] .xp-band {
+  display: block;
+  position: absolute;
+  top: 50%;
+  left: var(--index);
+  right: var(--side);
+  height: var(--unit);
+  translate: 0 -50%;
+  border-block: 1px solid var(--rule);
+  background: var(--accent-wash);
+}
+
+.xp-band::before,
+.xp-band::after {
+  content: "";
+  position: absolute;
+  top: -1px;
+  bottom: -1px;
+  width: 0.75rem;
+  border-block: 1px solid var(--accent);
+}
+
+.xp-band::before {
+  left: 0;
+  border-left: 1px solid var(--accent);
+}
+
+.xp-band::after {
+  right: 0;
+  border-right: 1px solid var(--accent);
+}
+
+/* The drum: the column of dates, centred on the one on show, fading out above and below. */
+.xp-track[data-live] .xp-drum {
+  position: absolute;
+  inset: 0 var(--side) 0 var(--index);
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  mask-image: linear-gradient(to bottom, transparent 14%, #000 40%, #000 60%, transparent 86%);
+}
+
+.xp-drum-col {
+  translate: 0 calc(((var(--n) - 1) / 2 - var(--active, 0)) * var(--unit));
+  transition: translate 900ms var(--ease-expo);
+}
+
+.xp-date {
+  height: var(--unit);
+  font-size: var(--size);
+  font-weight: 500;
+  line-height: var(--unit);
+  letter-spacing: -0.055em;
+  text-align: center;
+  white-space: nowrap;
+  color: var(--fg-faint);
+  font-variant-numeric: tabular-nums;
+  transition: color 500ms ease;
+}
+
+.xp-date[data-on] {
+  color: var(--accent);
+}
+
+/* The panel: every role in one place, only the one on show seen; it rises in. */
+.xp-track[data-live] .xp-list {
+  position: absolute;
+  z-index: 2;
+  top: 50%;
+  right: 2.5rem;
+  display: grid;
+  width: var(--panel);
+  translate: 0 -50%;
+}
+
+.xp-track[data-live] .xp-row {
+  grid-area: 1 / 1;
+  align-self: center;
+  display: block;
+  padding: 0;
+  border: 0;
+  opacity: 0;
+  translate: 0 0.75rem;
+  pointer-events: none;
+  transition:
+    opacity 200ms ease,
+    translate 200ms var(--ease-out);
+}
+
+.xp-track[data-live] .xp-row[data-active] {
+  opacity: 1;
+  translate: 0 0;
+  pointer-events: auto;
+  transition:
+    opacity 400ms ease 160ms,
+    translate 700ms var(--ease-expo) 160ms;
+}
+
+/* The drum shows when; the big row number is not needed here, and the facts go above the title. */
+.xp-track[data-live] .xp-side {
+  position: static;
+  display: block;
+  margin-bottom: 1rem;
+}
+
+.xp-track[data-live] .xp-num {
+  display: none;
+}
+
+.xp-track[data-live] .xp-facts {
+  display: flex;
+}
+
+/* A project's name above its description: the panel is too narrow for two columns. */
+.xp-track[data-live] .xp-projects > div {
+  display: block;
+}
+
+.xp-track[data-live] .xp-projects dt {
+  display: block;
+  margin-bottom: 0.25rem;
+}
+
+.xp-track[data-live] .xp-projects dd {
+  display: block;
+}
+
+/* Here the scene brings each role in itself; the log's scroll-linked focus and rise stand down. */
+.xp-track[data-live] .xp-body,
+.xp-track[data-live] .xp-facts,
+.xp-track[data-live] .split-m > span {
+  animation: none;
 }

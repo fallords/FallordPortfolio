@@ -10,10 +10,10 @@ import "./hero.css";
 /*
  * The first screen is a dark stage with him in it, the whole width of the
  * page, and one light cutting through the dark (HeroLight): the pointer
- * carries it, a reticle tracks it and reads out where it is. The screen is
+ * carries it, and round it the picture is seen through a night scope. The screen is
  * held for one more screen of scroll, and the scroll works it: the portrait
  * turns from profile to face the visitor (Portrait's `scrub`), the darkness
- * opens, and the night scope inside the reticle widens until the whole
+ * opens, and the night scope round the light widens until the whole
  * stage is seen through it. The words stay where they
  * are: who he is, bottom-left, with the two things to do next; what the
  * instrument reads about him, top-left.
@@ -29,7 +29,7 @@ export default function Hero() {
                 <ErrorBoundary fallback={<div aria-hidden="true" className="hero-portrait" />}>
                     {/* focalX 0: on a wide screen the crop is taken from the left of the frame, which moves his face right of the words. */}
                     <Portrait scrub className="hero-portrait" focalX={0} captionClassName="hero-caption">
-                        {/* The night scope: inside the reticle's ring the picture is lifted, turned green and scanned (hero.css). */}
+                        {/* The night scope: round the light the picture is lifted, turned green and scanned (hero.css). */}
                         <span aria-hidden="true" className="hero-scope hero-scope-gain" />
                         <span aria-hidden="true" className="hero-scope hero-scope-tint" />
                         <span aria-hidden="true" className="hero-scope hero-scope-lines" />
@@ -38,7 +38,7 @@ export default function Hero() {
                 <HeroLight />
 
                 {/* What the instrument reads about him, set as a block of code the way the reference sets its telemetry. */}
-                <div className="hero-code label rise" style={{ animationDelay: "240ms" }}>
+                <div className="hero-code label rise" style={{ "--rise-delay": "240ms" } as React.CSSProperties}>
                     <p aria-hidden="true">{"//"}</p>
                     <p data-decode>Portfolio loaded — Indonesia, UTC+7.</p>
                     <p data-decode className="hero-code-in">
@@ -54,16 +54,16 @@ export default function Hero() {
                 </div>
 
                 <div className="hero-foot">
-                    <p aria-hidden="true" className="label rise flex gap-1.5">
+                    <p aria-hidden="true" className="label rise flex">
                         <span className="tag">_Portfolio</span>
                         <span className="tag" data-solid>
                             2026
                         </span>
                     </p>
-                    <h1 className="hero-title display">
+                    <h1 data-flicker="view" className="hero-title display">
                         <Words text="I’m Fadhlan Bani, a developer and designer from Indonesia" />
                     </h1>
-                    <div className="hero-next rise" style={{ animationDelay: "160ms" }}>
+                    <div className="hero-next rise" style={{ "--rise-delay": "160ms" } as React.CSSProperties}>
                         <p className="text-pretty text-[length:var(--step-body)] leading-[1.4] text-[var(--fg-soft)]">
                             I build web apps, AI tools and firmware for small boards.
                         </p>

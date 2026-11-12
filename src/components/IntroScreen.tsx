@@ -88,6 +88,7 @@ export default function IntroScreen() {
             <span className="intro-corner" data-at="tr" />
             <span className="intro-corner" data-at="bl" />
             <span className="intro-corner" data-at="br" />
+            <span className="intro-block" />
             <p className="intro-name label">Fadhlan Bani</p>
 
             {/* The line: the square travels from "Loading" to the address as the page gets ready. */}

@@ -1,10 +1,9 @@
 "use client";
 
-import { useEffect, useRef, useState, useSyncExternalStore } from "react";
+import { useEffect, useRef, useState } from "react";
 import Link from "next/link";
 import { usePathname } from "next/navigation";
 import LocalTime from "./LocalTime";
-import { OPEN_PALETTE_EVENT } from "./CommandPalette";
 
 // Nothing from content/: this runs in the browser, and importing writing.ts would ship every essay with it.
 const links = [
@@ -13,8 +12,6 @@ const links = [
     { label: "Writing", id: "writing" },
     { label: "Contact", id: "contact" },
 ];
-
-const noopSubscribe = () => () => {};
 
 /*
  * The strip's bars: 160 of them, each a fixed, irregular height, like the
@@ -30,7 +27,6 @@ const BARS = Array.from({ length: 160 }, (_, i) => {
     const h = 4 + 20 * (0.55 * noise(i) + 0.25 * noise(i * 0.37 + 11) + 0.2 * (0.5 + 0.5 * Math.sin(i * 0.11)));
     return `M${i * 4} ${(24 - h).toFixed(1)}h2V24h-2z`;
 }).join("");
-const isMac = () => /Mac|iPhone|iPad/.test(navigator.platform || navigator.userAgent);
 
 /** Sections that don't have their own link light up the one before them. */
 const OWNER: Record<string, string> = { experience: "work", certificates: "about" };
@@ -54,8 +50,6 @@ export default function Header() {
     const overHero = pathname === "/" && atHero;
     const percent = useRef<HTMLSpanElement>(null);
     const strip = useRef<HTMLSpanElement>(null);
-    // The server can't know the platform; it renders "Ctrl" and the client corrects it.
-    const mac = useSyncExternalStore(noopSubscribe, isMac, () => false);
 
     useEffect(() => {
         const home = pathname === "/";
@@ -137,6 +131,7 @@ export default function Header() {
                                             prefetch={prefetch}
                                             aria-current={isActive ? "location" : undefined}
                                             data-scramble
+                                            data-flick
                                             // On a phone the full height of the bar is the hit area, not the ~16px of the text.
                                             className={`flex h-[var(--bar-h)] items-center transition-colors hover:text-[var(--accent)] md:h-6 ${
                                                 isActive ? "text-[var(--accent)]" : "text-[var(--fg)]"
@@ -168,14 +163,6 @@ export default function Header() {
                     %
                 </p>
 
-                <button
-                    type="button"
-                    onClick={() => window.dispatchEvent(new Event(OPEN_PALETTE_EVENT))}
-                    aria-label="Open command menu"
-                    className="label hidden h-7 shrink-0 items-center gap-1 bg-[var(--surface-raised)] px-2 text-[var(--fg-muted)] transition-colors hover:bg-[var(--fg)] hover:text-[var(--surface)] lg:flex"
-                >
-                    {mac ? "⌘" : "Ctrl"} K
-                </button>
                 <Link href="/#contact" prefetch={prefetch} className="action hidden !min-h-9 shrink-0 md:inline-flex">
                     Contact
                 </Link>

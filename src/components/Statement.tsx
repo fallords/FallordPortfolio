@@ -7,6 +7,8 @@ const clamp = (v: number) => (v < 0 ? 0 : v > 1 ? 1 : v);
 const ease = (t: number) => t * t * (3 - 2 * t);
 /* How far the camera goes into the mark: far enough that its ring is wider than the screen. */
 const DEPTH = 18;
+/* Ten columns, and the order they rise in: each one's start, in steps of the scroll (statement.css), shuffled once and fixed so every visit looks the same. */
+const BARS = [3.2, 6.8, 0, 8.4, 5, 1.1, 7.6, 2.3, 5.9, 4.1];
 
 /**
  * Between the hero and the work, one statement, held on stage for about two
@@ -94,6 +96,12 @@ export default function Statement() {
 
     return (
         <section ref={track} id="brief" aria-labelledby="brief-title" className="zoom-track">
+            {/* The way in from the hero: columns of the dark rising over it in a shuffled order (statement.css). */}
+            <div aria-hidden="true" className="zoom-bars">
+                {BARS.map((d) => (
+                    <span key={d} style={{ "--d": d } as React.CSSProperties} />
+                ))}
+            </div>
             <div className="zoom-stage">
                 <h2 id="brief-title" className="zoom-label label">
                     <span aria-hidden="true" className="text-[var(--accent)]">

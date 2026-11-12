@@ -3,6 +3,7 @@
 import { useEffect, useRef, type ReactNode } from "react";
 import useScrollFade from "@/lib/useScrollFade";
 import SwipeHint from "./SwipeHint";
+import { decode, shuffle } from "./motion/textfx";
 import "./work-stage.css";
 
 /*
@@ -136,11 +137,16 @@ export default function WorkStage({ items, skipTo }: { items: StageItem[]; /** W
             return { stage, sticky: window.innerHeight - stage, span: Math.max(1, el.offsetHeight - stage) };
         };
 
+        /** The project on show (-1: none yet); its words, readouts and callouts follow this. */
         const show = (index: number) => {
             if (index === active) return;
             active = index;
-            // The project on show: its words, its readouts and its callouts follow this.
             articles.current.forEach((article, i) => article?.toggleAttribute("data-active", i === index));
+            // Each time a project comes on, its words come in the way the reference's chapters do: the title as a signal (motion.css), the text jumbled and settling, the readouts decoding.
+            const article = articles.current[index];
+            if (!article || still.matches) return;
+            article.querySelectorAll('[data-shuffle="active"]').forEach(shuffle);
+            article.querySelectorAll('.ws-fig, .ws-note, [data-decode="active"]').forEach(decode);
         };
 
         const update = () => {
@@ -175,7 +181,8 @@ export default function WorkStage({ items, skipTo }: { items: StageItem[]; /** W
                 pose(machines.current[j] ?? null, parts[j] ?? [], t);
                 machines.current[j]?.toggleAttribute("data-gone", t >= 1);
             });
-            show(count > 1 && u >= 0.5 ? i + 1 : i);
+            // Nothing is on show until the stage is halfway up the screen, so the first project's words come in as it arrives (and again if it is scrolled back to).
+            show(top > vh * 0.45 ? -1 : count > 1 && u >= 0.5 ? i + 1 : i);
             if (bar.current) bar.current.style.scale = `${held} 1`;
         };
 

@@ -8,7 +8,9 @@ import type { CSSProperties } from "react";
  *
  * `Chars` is for a heading of one to three words (and the address in
  * Contact, one word); `Words` for anything longer. Each piece carries its
- * place in the order as --i, which the CSS turns into a stagger.
+ * place in the order as --i, which the CSS turns into a stagger. It sits on
+ * the mask, so both the rise inside it and the signal flicker on it
+ * (motion.css, data-flicker) read the same order.
  */
 const piece = (i: number) => ({ "--i": i }) as CSSProperties;
 
@@ -24,8 +26,8 @@ export function Chars({ text, start = 0 }: { text: string; start?: number }) {
                         {/* A word's letters never part across a line break. */}
                         <span className="whitespace-nowrap">
                             {[...word].map((ch) => (
-                                <span key={i} className="split-m">
-                                    <span style={piece(i++)}>{ch}</span>
+                                <span key={i} className="split-m" style={piece(i++)}>
+                                    <span>{ch}</span>
                                 </span>
                             ))}
                         </span>
@@ -44,10 +46,8 @@ export function Words({ text, className = "" }: { text: string; className?: stri
                 {text.split(" ").map((word, i) => (
                     <span key={i}>
                         {i > 0 && " "}
-                        <span className="split-m">
-                            <span className={className} style={piece(i)}>
-                                {word}
-                            </span>
+                        <span className="split-m" style={piece(i)}>
+                            <span className={className}>{word}</span>
                         </span>
                     </span>
                 ))}

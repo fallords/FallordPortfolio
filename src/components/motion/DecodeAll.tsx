@@ -2,90 +2,100 @@
 
 import { useEffect } from "react";
 import { usePathname } from "next/navigation";
+import { decode, finishAll, shuffle } from "./textfx";
 
-const GLYPHS = "ABCDEFGHIJKLMNOPQRSTUVWXYZ0123456789/_";
-const DURATION = 560;
-const STEP = 45;
+/* After the intro starts to lift, how long the page waits before its words come in, so they arrive as the sheet clears. */
+const AFTER_INTRO_MS = 650;
+/* Readouts that come into view together decode one after another, this far apart. */
+const STAGGER_MS = 60;
 
 /**
- * Every element marked `data-decode` decodes itself the first time it
- * comes into view, and anything marked `data-scramble` (and every
- * `.action`) does it again each time the pointer comes onto it: its letters settle left to right out of random ones, in
- * about half a second, the way the reference's readouts come in.
+ * How text comes in, page-wide, the way the reference's does.
  *
- * Only the values of the existing text nodes are changed, never the nodes
- * themselves, so React's hold on them is untouched; mark only short,
- * monospaced readouts whose text does not change after it is rendered.
- * With motion turned down nothing happens.
+ * - `data-decode`: a short readout decodes itself (textfx.ts) the first
+ *   time it comes into view. Several at once go one after another.
+ * - `data-shuffle`: running text has its letters jumbled and settling the
+ *   first time it comes into view.
+ * - `data-flicker="view"`: a heading's letters come in as a signal does,
+ *   flashing green and flickering before they hold (motion.css). It is lit
+ *   (`data-lit`) as it comes up, and put out again when it leaves past the
+ *   foot of the screen, so scrolling back down to it plays it once more.
+ * - `data-scramble`, and every `.action`: decodes again each time the
+ *   pointer comes onto it.
+ * - The value "active" (`data-decode="active"`, `data-shuffle="active"`,
+ *   `data-flicker="active"`) hands the element to its own scene, which
+ *   plays it each time it brings the element on (WorkStage); it is left
+ *   alone here.
+ *
+ * On the first visit nothing starts under the intro: it all waits until the
+ * intro lifts. With motion turned down nothing happens at all.
  */
 export default function DecodeAll() {
     const pathname = usePathname();
 
     useEffect(() => {
         if (window.matchMedia("(prefers-reduced-motion: reduce)").matches) return;
-        const frames = new Set<number>();
-        const finish: (() => void)[] = [];
-        const busy = new WeakSet<Element>();
-
-        const run = (el: Element) => {
-            if (busy.has(el)) return;
-            busy.add(el);
-            const walker = document.createTreeWalker(el, NodeFilter.SHOW_TEXT);
-            const nodes: Text[] = [];
-            while (walker.nextNode()) nodes.push(walker.currentNode as Text);
-            const texts = nodes.map((n) => n.nodeValue ?? "");
-            const total = texts.reduce((sum, t) => sum + t.length, 0);
-            if (!total) return void busy.delete(el);
-            const restore = () => {
-                nodes.forEach((n, i) => (n.nodeValue = texts[i]));
-                busy.delete(el);
-            };
-            finish.push(restore);
-            const start = performance.now();
-            const tick = (now: number) => {
-                const t = (now - start) / DURATION;
-                if (t >= 1) return restore();
-                const settled = Math.floor(t * total);
-                const seed = Math.floor(now / STEP);
-                let at = 0;
-                nodes.forEach((n, k) => {
-                    n.nodeValue = [...texts[k]]
-                        .map((ch) => {
-                            const i = at++;
-                            return i < settled || !/[A-Za-z0-9]/.test(ch) ? ch : GLYPHS[(seed * 7 + i * 13) % GLYPHS.length];
-                        })
-                        .join("");
-                });
-                const id = requestAnimationFrame(tick);
-                frames.add(id);
-            };
-            frames.add(requestAnimationFrame(tick));
+        const html = document.documentElement;
+        const timers = new Set<ReturnType<typeof setTimeout>>();
+        const later = (fn: () => void, ms: number) => {
+            const id = setTimeout(() => {
+                timers.delete(id);
+                fn();
+            }, ms);
+            timers.add(id);
         };
 
-        const io = new IntersectionObserver(
+        // Waits for the intro to lift, then a moment more; with no intro, runs now.
+        let waiting: (() => void)[] = [];
+        const gate = new MutationObserver(() => {
+            if (html.dataset.intro === "show") return;
+            gate.disconnect();
+            const queued = waiting;
+            waiting = [];
+            later(() => queued.forEach((fn) => fn()), AFTER_INTRO_MS);
+        });
+        if (html.dataset.intro === "show") gate.observe(html, { attributes: true, attributeFilter: ["data-intro"] });
+        const whenClear = (fn: () => void) => (html.dataset.intro === "show" ? waiting.push(fn) : fn());
+
+        const once = new IntersectionObserver(
             (entries) => {
-                for (const entry of entries) {
-                    if (!entry.isIntersecting) continue;
-                    io.unobserve(entry.target);
-                    run(entry.target);
-                }
+                const coming = entries.filter((entry) => entry.isIntersecting).map((entry) => entry.target);
+                coming.forEach((el) => once.unobserve(el));
+                whenClear(() =>
+                    coming.forEach((el, k) => later(() => (el.hasAttribute("data-shuffle") ? shuffle(el) : decode(el)), k * STAGGER_MS))
+                );
             },
             { rootMargin: "0px 0px -8% 0px" }
         );
-        document.querySelectorAll("[data-decode]").forEach((el) => io.observe(el));
+        // "active" ones are run by their own scene each time it brings them on (WorkStage), not here.
+        document.querySelectorAll('[data-decode]:not([data-decode="active"]), [data-shuffle]:not([data-shuffle="active"])').forEach((el) => once.observe(el));
+
+        const lit = new IntersectionObserver(
+            (entries) => {
+                for (const { target, isIntersecting, boundingClientRect } of entries) {
+                    if (isIntersecting) whenClear(() => target.setAttribute("data-lit", ""));
+                    // Gone below the screen (scrolled back up): ready to come in again.
+                    else if (boundingClientRect.top > 0) target.removeAttribute("data-lit");
+                }
+            },
+            { rootMargin: "0px 0px -10% 0px" }
+        );
+        document.querySelectorAll('[data-flicker="view"]').forEach((el) => lit.observe(el));
 
         // Under the pointer: once per visit to the element, not once per child crossed inside it.
         const onOver = (event: PointerEvent) => {
             if (event.pointerType !== "mouse") return;
             const el = (event.target as Element).closest?.("[data-scramble], .action");
-            if (el && !el.contains(event.relatedTarget as Node | null)) run(el);
+            if (el && !el.contains(event.relatedTarget as Node | null)) decode(el);
         };
         document.addEventListener("pointerover", onOver, { passive: true });
         return () => {
             document.removeEventListener("pointerover", onOver);
-            io.disconnect();
-            frames.forEach((id) => cancelAnimationFrame(id));
-            finish.forEach((restore) => restore());
+            once.disconnect();
+            lit.disconnect();
+            gate.disconnect();
+            timers.forEach(clearTimeout);
+            finishAll();
         };
     }, [pathname]);
 

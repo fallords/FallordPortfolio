@@ -44,3 +44,35 @@ export default function LocalTime({ className = "", withSeconds = false }: { cla
         </time>
     );
 }
+
+const stampFormat = new Intl.DateTimeFormat("en-GB", {
+    timeZone: "Asia/Jakarta",
+    day: "2-digit",
+    month: "2-digit",
+    year: "numeric",
+    hour: "2-digit",
+    minute: "2-digit",
+    hour12: false,
+});
+
+/**
+ * The date and time in Indonesia set the way the reference stamps its
+ * pages: "12 11 2026", "09 38", "UTC +7", each its own piece (the footer
+ * spaces them). Ticks with the minutes clock.
+ */
+export function LocalStamp({ className = "" }: { className?: string }) {
+    const tick = useSyncExternalStore(minutes.subscribe, minutes.snapshot, getServerSnapshot);
+    const parts: Record<string, string> = tick === 0 ? {} : Object.fromEntries(stampFormat.formatToParts(new Date()).map((p) => [p.type, p.value]));
+    const part = (type: string, blank = "--") => parts[type] ?? blank;
+    return (
+        <span suppressHydrationWarning className={`tabular-nums ${className}`}>
+            <span>
+                {part("day")} {part("month")} {part("year", "----")}
+            </span>
+            <span>
+                {part("hour")} {part("minute")}
+            </span>
+            <span>UTC +7</span>
+        </span>
+    );
+}

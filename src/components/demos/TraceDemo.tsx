@@ -76,7 +76,7 @@ export default function TraceDemo() {
                     ))}
                 </div>
 
-                <ul className="mt-1.5 flex flex-col gap-1 leading-tight sm:mt-2 sm:gap-2 sm:leading-normal">
+                <ul className="mt-1.5 flex flex-col gap-1 leading-tight sm:mt-2 sm:gap-2 sm:leading-normal md:gap-3">
                     {spans.map((s) => {
                         const active = t >= s.start && t < s.end;
                         const grown = Math.min(1, Math.max(0, (t - s.start) / (s.end - s.start)));
@@ -90,7 +90,7 @@ export default function TraceDemo() {
                                 >
                                     {s.name}
                                 </span>
-                                <span className="relative h-3 flex-1">
+                                <span className="relative h-3 flex-1 md:h-4">
                                     <span
                                         className="absolute inset-y-0"
                                         style={{

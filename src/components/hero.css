@@ -99,7 +99,7 @@
   mask-image: radial-gradient(circle at var(--lx) var(--ly), #000 0, transparent calc(26vmax + var(--open) * 14vmax));
 }
 
-/* The reticle tracking the light, with where it is read out beside it. */
+/* Nothing drawn: an empty box that travels with the light and gives the night scope its resting size (HeroLight measures it). */
 .hero-track {
   position: absolute;
   top: 0;
@@ -107,31 +107,7 @@
   width: 8rem;
   aspect-ratio: 1;
   translate: calc(var(--lx) - 50%) calc(var(--ly) - 50%);
-}
-
-.hero-track svg {
-  width: 100%;
-  height: 100%;
-  overflow: visible;
-  stroke: rgb(221 221 221 / 0.35);
-  stroke-width: 1;
-}
-
-.hero-track svg * {
-  vector-effect: non-scaling-stroke;
-}
-
-.hero-track-mark {
-  stroke: var(--accent);
-}
-
-.hero-coords {
-  position: absolute;
-  top: calc(100% + 0.5rem);
-  left: 50%;
-  translate: -50% 0;
-  white-space: nowrap;
-  color: var(--accent);
+  pointer-events: none;
 }
 
 /* ------------------------------------------------------------ the words */
@@ -221,7 +197,7 @@
   /* The heading's words rise out of their masks one after another as the page opens; they wait under the intro. */
   .hero-title .split-m > span {
     animation: split-rise 1000ms var(--ease-expo) both;
-    animation-delay: calc(140ms + var(--i) * 45ms);
+    animation-delay: calc(140ms + var(--i) * 45ms + var(--intro-wait, 0ms));
   }
 
   html[data-intro="show"] .hero-title .split-m > span {
@@ -250,14 +226,6 @@
   }
 
   @supports ((animation-timeline: scroll()) and (animation-range: 0svh 100svh)) {
-    /* Wide and a quarter-turn off as the page opens; closed and level by the time he looks at you. */
-    @keyframes hero-reticle-close {
-      from {
-        rotate: -90deg;
-        scale: 1.6;
-      }
-    }
-
     /* The picture itself comes a step closer over the same stretch. */
     @keyframes hero-push {
       from {
@@ -269,12 +237,6 @@
       to {
         opacity: 0;
       }
-    }
-
-    .hero-track svg {
-      animation: hero-reticle-close auto linear both;
-      animation-timeline: scroll(root block);
-      animation-range: 0svh 100svh;
     }
 
     .hero-portrait canvas {

@@ -44,7 +44,6 @@ export default function CommandPalette() {
         return [
             { group: "Go to", label: "Work", run: go("work") },
             { group: "Go to", label: "Experience", run: go("experience") },
-            { group: "Go to", label: "In numbers", run: go("numbers") },
             { group: "Go to", label: "What I do", run: go("about") },
             { group: "Go to", label: "Certificates", run: go("certificates") },
             { group: "Go to", label: "Writing", run: go("writing") },

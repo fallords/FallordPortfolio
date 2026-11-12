@@ -1,16 +1,120 @@
 /*
- * The capabilities panel (About.tsx), after the reference's system section:
- * the selected demo in a wide viewport, the five cards in a row beneath it.
- * The cards are a row to swipe below 1024px.
+ * What I do (About.tsx), after the reference's specs section: the lettered
+ * list down the left, the demo large beside it. First the layout that sits
+ * still (a phone, a tablet, motion turned down): the list above the
+ * viewport on a phone, beside it from 768px. Under [data-live] (a laptop)
+ * the two are held on a stage and the scroll moves the selection.
  */
 .sys {
   display: grid;
-  gap: 1.25rem;
+  gap: 1.5rem;
 }
 
-/* The viewport first on screen, though the tabs come first in the reading order. */
+@media (min-width: 768px) {
+  .sys {
+    grid-template-columns: minmax(0, 18rem) minmax(0, 1fr);
+    align-items: start;
+    gap: 2rem;
+  }
+}
+
+.sys-tabs {
+  display: grid;
+  border-top: 1px solid var(--rule);
+}
+
+/* One capability: its letter and name, and under them, while it is on show, what it is and its tools. */
+.sys-tab {
+  position: relative;
+  display: grid;
+  padding: 0.875rem 0 0.875rem 1rem;
+  border-bottom: 1px solid var(--rule);
+  text-align: left;
+  opacity: 0.6;
+  transition: opacity 300ms ease;
+}
+
+.sys-tab:hover,
+.sys-tab[aria-selected="true"] {
+  opacity: 1;
+}
+
+/* The line along its edge: a faint track, and over it the green that fills (all at once here, with the scroll when held). */
+.sys-tab::before,
+.sys-tab::after {
+  content: "";
+  position: absolute;
+  top: -1px;
+  left: 0;
+  width: 1px;
+}
+
+.sys-tab::before {
+  bottom: -1px;
+  background: var(--rule-strong);
+}
+
+.sys-tab[aria-selected="true"]::after {
+  height: calc(var(--fill, 1) * (100% + 2px));
+  width: 2px;
+  background: var(--accent);
+}
+
+.sys-tab-head {
+  display: flex;
+  align-items: baseline;
+  gap: 0.75rem;
+}
+
+/* The letter in green, in its own narrow column, as the reference sets "A." to "E.". */
+.sys-tab-num {
+  flex: none;
+  width: 1.25rem;
+  color: var(--accent);
+}
+
+.sys-tab-title {
+  font-size: 1.25rem;
+  font-weight: 500;
+  line-height: 1.2;
+  letter-spacing: -0.02em;
+  color: var(--fg);
+}
+
+/* Shut to nothing, open to its own height (grid rows from 0fr to 1fr). */
+.sys-tab-more {
+  display: grid;
+  grid-template-rows: 0fr;
+  transition: grid-template-rows 500ms var(--ease-expo);
+}
+
+.sys-tab[aria-selected="true"] .sys-tab-more {
+  grid-template-rows: 1fr;
+}
+
+.sys-tab-inner {
+  min-height: 0;
+  overflow: hidden;
+  padding-left: 2rem;
+}
+
+.sys-tab-desc {
+  display: block;
+  margin-top: 0.5rem;
+  font-size: 0.9375rem;
+  line-height: 1.55;
+  color: var(--fg-soft);
+  text-wrap: pretty;
+}
+
+.sys-tab-tools {
+  display: block;
+  margin-top: 0.5rem;
+  color: var(--fg-dim);
+}
+
+/* The viewport: the selected demo. */
 .sys-panels {
-  order: -1;
   display: grid;
 }
 
@@ -19,8 +123,14 @@
   min-width: 0;
 }
 
-.sys-panel-inner {
-  display: grid;
+/* A panel hidden "until found" still has its box, stacked over the selected one: it must not take the pointer, or the demo cannot be used. */
+.sys-panel[hidden] {
+  pointer-events: none;
+}
+
+.sys-panel:not([hidden]) {
+  position: relative;
+  z-index: 1;
 }
 
 .sys-view {
@@ -55,84 +165,6 @@
   display: none;
 }
 
-/* The cards: a row to swipe until there is room for all five. */
-.sys-tabs {
-  display: flex;
-  gap: 0.75rem;
-  margin-inline: -1.25rem;
-  padding-inline: 1.25rem;
-  scroll-padding-inline: 1.25rem;
-  overflow-x: auto;
-  scroll-snap-type: inline proximity;
-  scrollbar-width: none;
-}
-
-.sys-tabs::-webkit-scrollbar {
-  display: none;
-}
-
-.sys-tab {
-  position: relative;
-  display: grid;
-  flex: 0 0 min(17rem, 78%);
-  grid-template-columns: auto minmax(0, 1fr);
-  align-content: start;
-  gap: 0.5rem 0.625rem;
-  padding: 1rem 1rem 1.125rem;
-  scroll-snap-align: start;
-  border-top: 1px solid var(--rule-strong);
-  background: var(--surface-card);
-  color: var(--fg-muted);
-  text-align: left;
-  transition:
-    background-color 200ms ease,
-    color 200ms ease;
-}
-
-.sys-tab:hover {
-  background: var(--surface-raised);
-  color: var(--fg);
-}
-
-.sys-tab-num {
-  color: var(--accent);
-  line-height: 1.6rem;
-}
-
-.sys-tab-title {
-  font-size: 1.125rem;
-  font-weight: 500;
-  line-height: 1.6rem;
-  letter-spacing: -0.02em;
-  color: var(--fg);
-}
-
-.sys-tab-desc {
-  grid-column: 1 / -1;
-  font-size: 0.9375rem;
-  line-height: 1.55;
-  text-wrap: pretty;
-}
-
-.sys-tab-tools {
-  grid-column: 1 / -1;
-  margin-top: 0.25rem;
-  color: var(--fg-dim);
-}
-
-/* Selected: the card's ground lifts, and a green bar runs along its top (a border, so forced colours keep it). */
-.sys-tab[aria-selected="true"] {
-  background: var(--accent-wash);
-  color: var(--fg-soft);
-}
-
-.sys-tab[aria-selected="true"]::after {
-  content: "";
-  position: absolute;
-  inset: -1px 0 auto;
-  border-top: 2px solid var(--accent);
-}
-
 @media (min-width: 768px) {
   .sys-view {
     height: 30rem;
@@ -140,20 +172,37 @@
   }
 }
 
-@media (min-width: 1024px) {
-  .sys-tabs {
-    display: grid;
-    grid-template-columns: repeat(5, minmax(0, 1fr));
-    gap: 1rem;
-    margin: 0;
-    padding: 0;
-    overflow: visible;
-    mask-image: none;
-  }
+/* ------------------------------------------------------------ the held scene */
 
-  .sys-view {
-    height: 32rem;
-  }
+/* A screen, and most of another for each capability. */
+.sys-track[data-live] {
+  height: calc(100svh + 5 * 70svh);
+}
+
+.sys-track[data-live] .sys {
+  position: sticky;
+  top: var(--bar-h);
+  height: calc(100svh - var(--bar-h));
+  grid-template-columns: minmax(0, 24rem) minmax(0, 1fr);
+  align-items: center;
+  gap: 3rem;
+  /* Clear of the frame's chapter rail on the right and its readouts along the foot (HudFrame). */
+  padding: 2.5rem 2.5rem 3.5rem 0;
+}
+
+/* The way out at the top right, above the viewport. */
+.sys-track[data-live] .scene-skip {
+  top: 0.75rem;
+  right: 2.5rem;
+  bottom: auto;
+}
+
+.sys-track[data-live] .sys-tab-title {
+  font-size: 1.5rem;
+}
+
+.sys-track[data-live] .sys-view {
+  height: min(36rem, calc(100svh - var(--bar-h) - 7rem));
 }
 
 @media (prefers-reduced-motion: no-preference) {
@@ -190,17 +239,5 @@
     border-top: 1px solid var(--accent);
     pointer-events: none;
     animation: sys-scan 900ms var(--ease-in-out) both;
-  }
-
-  /* The bar along the top of the selected card draws itself from the left. */
-  @keyframes sys-bar {
-    from {
-      scale: 0 1;
-    }
-  }
-
-  .sys-tab[aria-selected="true"]::after {
-    transform-origin: left;
-    animation: sys-bar 500ms var(--ease-out) both;
   }
 }

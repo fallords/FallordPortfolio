@@ -108,8 +108,14 @@ export default function SensorDemo() {
         const v = sampleAt(n - WINDOW + i, injected);
         return `${(i / (WINDOW - 1)) * 600},${200 - (Math.min(v, Y_MAX) / Y_MAX) * 190}`;
     }).join(" ");
-    const thresholdY = 200 - (THRESHOLD / Y_MAX) * 190;
+    const yOf = (v: number) => 200 - (Math.min(v, Y_MAX) / Y_MAX) * 190;
+    const thresholdY = yOf(THRESHOLD);
     const latest = sampleAt(n, injected);
+    const stats = [
+        { label: "stored events", value: String(events) },
+        { label: "last peak", value: log[0] ? log[0].value.toFixed(2) : "—", unit: log[0] ? "m/s²" : "" },
+        { label: "last signal", value: log[0] ? String(log[0].rssi) : "—", unit: log[0] ? "dBm" : "" },
+    ];
 
     return (
         <div ref={rootRef} className="flex h-full flex-col gap-2.5 p-3.5 font-mono text-xs sm:gap-3 sm:p-5">
@@ -120,12 +126,28 @@ export default function SensorDemo() {
                 </span>
             </div>
 
-            {/* The chart itself is a big tap target for the same action. */}
-            <button type="button" onClick={shake} aria-label="Simulate an impact on the sensor" className="block w-full cursor-pointer">
-                <svg viewBox="0 0 600 200" preserveAspectRatio="none" className="h-20 w-full sm:h-32" aria-hidden="true">
+            {/* The chart itself is a big tap target for the same action. It takes whatever height the panel has. */}
+            <button type="button" onClick={shake} aria-label="Simulate an impact on the sensor" className="relative block min-h-20 w-full flex-1 cursor-pointer sm:min-h-32">
+                <svg viewBox="0 0 600 200" preserveAspectRatio="none" className="absolute inset-0 h-full w-full" aria-hidden="true">
+                    {[0, 20, 40, 60].map((v) => (
+                        <line key={v} x1="0" x2="600" y1={yOf(v)} y2={yOf(v)} stroke="var(--rule)" vectorEffect="non-scaling-stroke" />
+                    ))}
                     <line x1="0" x2="600" y1={thresholdY} y2={thresholdY} stroke="var(--gold)" strokeDasharray="4 4" strokeOpacity={0.7} vectorEffect="non-scaling-stroke" />
                     <polyline points={points} fill="none" stroke="var(--fg-soft)" strokeWidth={1.5} strokeLinejoin="round" vectorEffect="non-scaling-stroke" />
+                    {/* The leading edge: where each new sample comes in. */}
+                    <line x1="599" x2="599" y1="0" y2="200" stroke="var(--rule-strong)" vectorEffect="non-scaling-stroke" />
                 </svg>
+                {/* The scale, in HTML so the stretched chart does not stretch its numbers. */}
+                <span aria-hidden="true" className="pointer-events-none absolute inset-0 text-[10px] text-[var(--fg-dim)]">
+                    {[20, 40, 60].map((v) => (
+                        <span key={v} className="absolute left-0 -translate-y-full pb-0.5" style={{ top: `${(yOf(v) / 200) * 100}%` }}>
+                            {v}
+                        </span>
+                    ))}
+                    <span className="absolute right-1 -translate-y-full pb-0.5 text-[var(--gold)]" style={{ top: `${(thresholdY / 200) * 100}%` }}>
+                        fall · {THRESHOLD}
+                    </span>
+                </span>
             </button>
 
             <div className="flex flex-wrap items-center justify-between gap-2 text-[var(--fg-dim)]">
@@ -142,25 +164,42 @@ export default function SensorDemo() {
                 </button>
             </div>
 
-            {/* The event's path, hop by hop. */}
+            {/* The event's path, hop by hop: each one lights as the event reaches it, and the link before it fills. */}
             <ol className="flex flex-wrap items-center gap-x-1.5 gap-y-2" aria-label="Event pipeline">
                 {HOPS.map((h, i) => (
                     <li key={h} className="flex items-center gap-1.5">
-                        {i > 0 && <span aria-hidden="true" className="text-[var(--fg-faint)]">→</span>}
+                        {i > 0 && <span aria-hidden="true" className={`h-px w-3 transition-colors duration-200 sm:w-4 ${i <= hop ? "bg-[var(--gold)]" : "bg-[var(--rule-strong)]"}`} />}
                         <span
                             className={`border px-1.5 py-0.5 transition-colors duration-200 ${
-                                i <= hop ? "border-[var(--gold)] text-[var(--fg)]" : "border-[var(--rule-strong)] text-[var(--fg-dim)]"
+                                i === hop ? "border-[var(--gold)] bg-[var(--gold)] text-[var(--surface)]" : i < hop ? "border-[var(--gold)] text-[var(--fg)]" : "border-[var(--rule-strong)] text-[var(--fg-dim)]"
                             }`}
                         >
+                            <span aria-hidden="true" className="mr-1 opacity-60">
+                                {String(i + 1).padStart(2, "0")}
+                            </span>
                             {h}
                         </span>
                     </li>
                 ))}
             </ol>
 
+            {/* What the server has kept, read out the way the page reads its figures. */}
+            <dl className="hidden grid-cols-3 gap-3 border-t border-[var(--rule)] pt-3 sm:grid">
+                {stats.map((s) => (
+                    <div key={s.label}>
+                        <dt className="text-[11px] uppercase tracking-wide text-[var(--fg-dim)]">{s.label}</dt>
+                        <dd className="mt-1 font-sans text-xl font-medium tabular-nums tracking-tight text-[var(--fg)]">
+                            {s.value}
+                            {s.unit && <span className="ml-1 font-mono text-xs text-[var(--fg-dim)]">{s.unit}</span>}
+                        </dd>
+                    </div>
+                ))}
+            </dl>
+
             {/* No aria-live: an event lands every ~8s on its own, and each one would interrupt a screen reader. */}
-            <ul className="mt-auto flex flex-col gap-1 border-t border-[var(--rule)] pt-3 text-[var(--fg-dim)]">
-                <li className="flex justify-between">
+            <ul className="flex flex-col gap-1 border-t border-[var(--rule)] pt-3 text-[var(--fg-dim)]">
+                {/* The count is in the readouts above from 640px. */}
+                <li className="flex justify-between sm:hidden">
                     <span>stored events</span>
                     <span className="tabular-nums text-[var(--fg-soft)]">{events}</span>
                 </li>
