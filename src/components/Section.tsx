@@ -48,7 +48,7 @@ export default function Section({
     return (
         <section id={id} className={className}>
             <div className={`shell grid-12 ${padding}`}>
-                <div data-reveal className="relative col-span-4 flex items-end gap-x-5 border-b border-[var(--rule)] pb-5 md:col-span-12 md:gap-x-8 md:pb-7">
+                <div data-reveal data-vel className="relative col-span-4 flex items-end gap-x-5 border-b border-[var(--rule)] pb-5 md:col-span-12 md:gap-x-8 md:pb-7">
                     {index && (
                         <span aria-hidden="true" className="chapter-num">
                             <Roll value={index} />

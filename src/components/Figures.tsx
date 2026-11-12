@@ -89,8 +89,14 @@ export default function Figures({ items }: { items: Figure[] }) {
                         </span>
                         In numbers
                     </h2>
-                    <p aria-hidden="true" className="fig-count label tabular-nums">
-                        {active + 1} of {items.length}
+                    <p className="fig-count label tabular-nums">
+                        <span aria-hidden="true">
+                            {active + 1} of {items.length}
+                        </span>
+                        {/* A way out of the held scene. */}
+                        <a href="#about" className="scene-skip label" data-scramble>
+                            Skip <span aria-hidden="true">↓</span>
+                        </a>
                     </p>
                 </div>
 

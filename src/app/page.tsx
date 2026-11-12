@@ -2,6 +2,8 @@ import Hero from "@/components/Hero";
 import Statement from "@/components/Statement";
 import Works, { PROJECT_COUNT } from "@/components/Works";
 import Figures from "@/components/Figures";
+import Marquee from "@/components/Marquee";
+import DotField from "@/components/DotField";
 import { experience } from "@/content/experience";
 import { certifications } from "@/content/certifications";
 import Experience from "@/components/Experience";
@@ -33,10 +35,15 @@ const figures = [
 export default function Home() {
     return (
         <>
-            <main>
+            {/* The page is a sheet over the footer: as it ends, it lifts off and the footer is found waiting under it (globals.css, .page-main). */}
+            <main className="page-main">
+                <ErrorBoundary fallback={null}>
+                    <DotField />
+                </ErrorBoundary>
                 <Hero />
                 <Statement />
                 <Works />
+                <Marquee />
                 <Experience />
                 <Figures items={figures} />
                 {/* The two sections run in the browser; if one fails, it says so in its place and the rest stays. */}
@@ -61,7 +68,7 @@ export default function Home() {
                 <Writing />
                 <Contact />
             </main>
-            <Footer />
+            <Footer curtain />
         </>
     );
 }

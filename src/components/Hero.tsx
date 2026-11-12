@@ -12,8 +12,9 @@ import "./hero.css";
  * page, and one light cutting through the dark (HeroLight): the pointer
  * carries it, a reticle tracks it and reads out where it is. The screen is
  * held for one more screen of scroll, and the scroll works it: the portrait
- * turns from profile to face the visitor (Portrait's `scrub`), and the
- * darkness opens until the whole stage is lit. The words stay where they
+ * turns from profile to face the visitor (Portrait's `scrub`), the darkness
+ * opens, and the night scope inside the reticle widens until the whole
+ * stage is seen through it. The words stay where they
  * are: who he is, bottom-left, with the two things to do next; what the
  * instrument reads about him, top-left.
  *
@@ -27,7 +28,12 @@ export default function Hero() {
                 {/* Should the portrait fail, its box stays and the layout holds. */}
                 <ErrorBoundary fallback={<div aria-hidden="true" className="hero-portrait" />}>
                     {/* focalX 0: on a wide screen the crop is taken from the left of the frame, which moves his face right of the words. */}
-                    <Portrait scrub className="hero-portrait" focalX={0} captionClassName="hero-caption" />
+                    <Portrait scrub className="hero-portrait" focalX={0} captionClassName="hero-caption">
+                        {/* The night scope: inside the reticle's ring the picture is lifted, turned green and scanned (hero.css). */}
+                        <span aria-hidden="true" className="hero-scope hero-scope-gain" />
+                        <span aria-hidden="true" className="hero-scope hero-scope-tint" />
+                        <span aria-hidden="true" className="hero-scope hero-scope-lines" />
+                    </Portrait>
                 </ErrorBoundary>
                 <HeroLight />
 
@@ -62,10 +68,10 @@ export default function Hero() {
                             I build web apps, AI tools and firmware for small boards.
                         </p>
                         <div className="flex flex-wrap items-center gap-2.5">
-                            <a href={`mailto:${EMAIL}`} className="action" data-solid>
+                            <a href={`mailto:${EMAIL}`} className="action" data-solid data-cursor="Write">
                                 Email me
                             </a>
-                            <a href="#work" className="action">
+                            <a href="#work" className="action" data-cursor="Go">
                                 See my work <span aria-hidden="true">↓</span>
                             </a>
                         </div>

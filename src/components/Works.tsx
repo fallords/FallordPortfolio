@@ -156,11 +156,11 @@ function words(project: Project, index: number) {
                     {project.stack.map((tool) => tool.replaceAll(" ", " ")).join(" · ")}
                 </p>
                 {external ? (
-                    <a href={project.href} target="_blank" rel="noopener noreferrer" className="action shrink-0">
+                    <a href={project.href} target="_blank" rel="noopener noreferrer" className="action shrink-0" data-cursor="Open">
                         {project.action} ↗
                     </a>
                 ) : (
-                    <Link href={project.href} className="action shrink-0">
+                    <Link href={project.href} className="action shrink-0" data-cursor="Read">
                         {project.action} →
                     </Link>
                 )}
@@ -217,6 +217,7 @@ export default function Works() {
     return (
         <Section id="work" index="01" title="Work" meta={`${projects.length} projects`} wide>
             <WorkStage
+                skipTo="#experience"
                 items={projects.map((project, index) => ({
                     id: project.title,
                     label: project.title,

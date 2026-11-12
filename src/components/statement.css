@@ -87,6 +87,23 @@
   left: var(--edge-x, 1.25rem);
 }
 
+/* The way out: bottom-left, clear of the note and of the frame's readout under it. */
+.zoom-track[data-live] .scene-skip {
+  right: auto;
+  bottom: 2rem;
+  left: var(--edge-x, 1.25rem);
+}
+
+/* On a phone the note runs the stage's width, so the way out goes to the top, across from the label. */
+@media (max-width: 767px) {
+  .zoom-track[data-live] .scene-skip {
+    top: calc(var(--bar-h) + 1.5rem);
+    bottom: auto;
+    right: var(--edge-x, 1.25rem);
+    left: auto;
+  }
+}
+
 .zoom-track[data-live] .zoom-note {
   position: absolute;
   right: var(--edge-x, 1.25rem);

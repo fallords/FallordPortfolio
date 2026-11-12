@@ -408,6 +408,9 @@ button:not(:disabled),
     line-height: 1;
     /* The digits stand on the row's bottom edge, not on the empty foot of their line. */
     margin-bottom: -0.13em;
+    /* They hang back a little while the page is scrolled fast (--vel, set by HudFrame). */
+    translate: 0 calc(var(--vel, 0) * 3px);
+    transition: translate 300ms cubic-bezier(0.22, 1, 0.36, 1);
     letter-spacing: -0.06em;
     color: var(--fg-faint);
     font-variant-numeric: tabular-nums;
@@ -581,6 +584,63 @@ html[data-intro="show"] .rise {
 }
 
 /*
+ * The page's sheet. Opaque, one layer above the footer, so the footer can
+ * wait under it; its dot grid is set off by the bar's height, which puts it
+ * on the same dots as the body's (DotField draws on them). The green line
+ * along its foot is the edge that lifts off the footer.
+ */
+.page-main {
+  position: relative;
+  z-index: 1;
+  border-bottom: 1px solid var(--green);
+  background:
+    radial-gradient(circle, rgba(221, 221, 221, 0.075) 0.75px, transparent 1.25px) 0 calc(-1 * var(--bar-h) - 1px) / 20px 20px,
+    var(--surface);
+}
+
+/* The live dots: on the sheet's ground, under everything on it. */
+.dotfield {
+  position: fixed;
+  inset: 0;
+  z-index: -1;
+  width: 100%;
+  height: 100%;
+  pointer-events: none;
+}
+
+/* A way out of a held scene: only shown where the scene is held. */
+.scene-skip {
+  display: none;
+}
+
+[data-live] .scene-skip {
+  position: absolute;
+  z-index: 3;
+  right: 0;
+  bottom: 0.25rem;
+  display: inline-flex;
+  min-height: 1.5rem;
+  align-items: center;
+  gap: 0.375rem;
+  color: var(--fg-dim);
+  transition: color 180ms ease;
+}
+
+[data-live] .scene-skip:hover {
+  color: var(--accent);
+}
+
+/* A panel turning to face the pointer (Crosshair sets where the pointer is on it, -0.5 to 0.5 each way). */
+[data-tilt] {
+  transition: transform 500ms cubic-bezier(0.22, 1, 0.36, 1);
+}
+
+[data-tilt][data-tilting] {
+  transform: perspective(64rem) rotateX(calc(var(--tilt-y, 0) * -7deg)) rotateY(calc(var(--tilt-x, 0) * 7deg));
+  transition-duration: 120ms;
+}
+
+/*
  * The crosshair pointer (Crosshair.tsx): the system arrow is hidden only
  * once the crosshair is running, and comes back over anything typed into.
  */
@@ -630,6 +690,35 @@ html.has-crosshair .crosshair {
 .crosshair[data-away],
 .crosshair[data-hidden] {
   opacity: 0;
+}
+
+/* The word beside it: what pressing here will do. */
+.crosshair-word {
+  display: none;
+}
+
+html.has-crosshair .crosshair-word {
+  position: fixed;
+  top: 0;
+  left: 0;
+  z-index: 200;
+  display: block;
+  margin: 0.875rem 0 0 0.875rem;
+  padding: 0.125rem 0.375rem;
+  background: var(--green);
+  color: var(--accent-ink);
+  white-space: nowrap;
+  pointer-events: none;
+  opacity: 0;
+  clip-path: inset(0 100% 0 0);
+  transition:
+    opacity 150ms ease,
+    clip-path 250ms cubic-bezier(0.22, 1, 0.36, 1);
+}
+
+html.has-crosshair .crosshair-word[data-on]:not([data-away]) {
+  opacity: 1;
+  clip-path: inset(0);
 }
 
 /* Between pages (PageLoading): fills the view under the sticky header. */

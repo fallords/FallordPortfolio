@@ -11,15 +11,16 @@ import "./footer.css";
  * width-to-size ratio, 5.72 in Inter 500), rising letter by letter as the
  * page runs out.
  */
-export default function Footer() {
+export default function Footer({ curtain = false }: { curtain?: boolean }) {
     return (
-        <footer className="footer-field overflow-clip">
+        // `curtain`: on the home page the footer waits under the page and is uncovered as the page ends (footer.css).
+        <footer className="footer-field overflow-clip" data-curtain={curtain || undefined}>
             {/* The last row clears the home indicator on phones that have one. */}
             <div className="shell @container pb-[max(1.25rem,env(safe-area-inset-bottom))] pt-10 md:pt-14">
                 <div className="grid-12 gap-y-8">
                     <div className="col-span-4 md:col-span-3">
                         <p className="label footer-head">(Contact)</p>
-                        <a href={`mailto:${EMAIL}`} className="label link mt-3 inline-block">
+                        <a href={`mailto:${EMAIL}`} className="label link mt-3 inline-block" data-cursor="Write">
                             {EMAIL}
                         </a>
                     </div>
@@ -54,7 +55,7 @@ export default function Footer() {
                         Next.js · Inter · Geist Mono
                     </p>
                 </div>
-                <p aria-hidden="true" data-reveal="entry" className="display mt-14 whitespace-nowrap text-[calc(100cqw/5.8)] leading-[0.74] text-[var(--fg)] md:mt-20">
+                <p aria-hidden="true" data-reveal="entry" data-vel className="footer-name display mt-14 whitespace-nowrap text-[calc(100cqw/5.8)] leading-[0.74] text-[var(--fg)] md:mt-20">
                     <Chars text="Fadhlan Bani" />
                 </p>
             </div>

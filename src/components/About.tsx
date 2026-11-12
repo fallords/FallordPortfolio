@@ -1,6 +1,6 @@
 "use client";
 
-import { useEffect, useRef, useState, type KeyboardEvent } from "react";
+import { useEffect, useRef, useState, type CSSProperties, type KeyboardEvent } from "react";
 import Section from "./Section";
 import ErrorBoundary from "./ErrorBoundary";
 import FallbackNotice from "./FallbackNotice";
@@ -142,7 +142,7 @@ export default function About() {
     return (
         <Section id="about" index="03" title="What I do" meta={`${services.length} demos`} wide>
             <div ref={root} className="sys">
-                <div role="tablist" aria-label="What I do" onKeyDown={onKeyDown} className="sys-tabs scroll-fade">
+                <div role="tablist" aria-label="What I do" onKeyDown={onKeyDown} data-reveal className="sys-tabs scroll-fade">
                     {services.map((service, i) => (
                         <button
                             key={service.title}
@@ -159,6 +159,8 @@ export default function About() {
                             onClick={() => select(i)}
                             // Selection follows focus, however focus got there.
                             onFocus={() => i !== active && select(i)}
+                            data-cursor="Run"
+                            style={{ "--k": i } as CSSProperties}
                             className="sys-tab"
                         >
                             <span className="label sys-tab-num">{letter(i)}.</span>
@@ -203,7 +205,7 @@ export default function About() {
                                             </span>
                                         </p>
                                         {/* A working piece of interface, with its own borders and controls. */}
-                                        <div className="sys-demo" data-ui>
+                                        <div className="sys-demo" data-ui data-cursor="Try it">
                                             {on && shown && (
                                                 // A demo that breaks is replaced by a notice, in its own panel only.
                                                 <ErrorBoundary

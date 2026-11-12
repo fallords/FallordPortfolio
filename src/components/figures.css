@@ -85,8 +85,15 @@
 }
 
 .fig-track[data-live] .fig-count {
-  display: block;
+  display: flex;
+  align-items: baseline;
+  gap: 1.25rem;
   color: var(--fg-dim);
+}
+
+/* In the head's own row here, not pinned to the stage's foot. */
+.fig-track[data-live] .fig-count .scene-skip {
+  position: static;
 }
 
 .fig-track[data-live] .fig-reticle {

@@ -232,7 +232,12 @@ export default function Portrait({
 
         const tick = (now: number) => {
             s.raf = 0;
-            if (s.phase === "loop") s.current = (track && scrubFrame(track)) ?? loopFrame(now - s.loopStart);
+            if (s.phase === "loop") {
+                const want = track && scrubFrame(track);
+                // Driven by the scroll, the turn eases towards it, so a wheel's steps do not show as jumps.
+                if (want == null) s.current = loopFrame(now - s.loopStart);
+                else s.current = Math.abs(want - s.current) < 0.4 ? want : s.current + (want - s.current) * 0.2;
+            }
 
             draw(Math.round(s.current));
 

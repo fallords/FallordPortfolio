@@ -49,6 +49,11 @@ export default function HudFrame() {
         let frame = 0;
         let current: string | null = null;
         let decode = 0;
+        // What leans with the speed of the scroll (the band of words, the chapter numbers, the name in the footer).
+        const movers = [...document.querySelectorAll<HTMLElement>("[data-vel]")];
+        let lastY = window.scrollY;
+        let lastT = performance.now();
+        let vel = 0;
 
         const say = (text: string) => {
             const node = sector.current;
@@ -72,6 +77,17 @@ export default function HudFrame() {
         const update = () => {
             frame = 0;
             el.style.setProperty("--sy", String(Math.round(window.scrollY)));
+            // Speed in px per ms, eased and capped; it decays to 0 over a few frames once the scroll stops.
+            const now = performance.now();
+            const want = reduced ? 0 : Math.max(-9, Math.min(9, ((window.scrollY - lastY) / Math.max(8, now - lastT)) * 3.2));
+            lastY = window.scrollY;
+            lastT = now;
+            const next = Math.abs(want) < 0.05 && Math.abs(vel) < 0.05 ? 0 : vel + (want - vel) * 0.25;
+            if (next !== vel) {
+                vel = next;
+                movers.forEach((m) => m.style.setProperty("--vel", vel.toFixed(2)));
+                frame = requestAnimationFrame(update);
+            }
             // Over the hero (while its stage is still held at the top) the frame steps back.
             const stage = document.querySelector("[data-turn-track] > *");
             el.toggleAttribute("data-quiet", !!stage && stage.getBoundingClientRect().top > -1);
@@ -122,7 +138,7 @@ export default function HudFrame() {
                 <ol>
                     {RAIL.map(([id, c]) => (
                         <li key={id}>
-                            <a href={`#${id}`} aria-label={`${c.num}: ${c.name}`} aria-current={active === id ? "location" : undefined} className="label">
+                            <a href={`#${id}`} aria-label={`${c.num}: ${c.name}`} aria-current={active === id ? "location" : undefined} data-cursor={c.name} className="label">
                                 {c.num}
                             </a>
                         </li>

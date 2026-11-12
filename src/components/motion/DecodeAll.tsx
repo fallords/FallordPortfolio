@@ -9,7 +9,8 @@ const STEP = 45;
 
 /**
  * Every element marked `data-decode` decodes itself the first time it
- * comes into view: its letters settle left to right out of random ones, in
+ * comes into view, and anything marked `data-scramble` (and every
+ * `.action`) does it again each time the pointer comes onto it: its letters settle left to right out of random ones, in
  * about half a second, the way the reference's readouts come in.
  *
  * Only the values of the existing text nodes are changed, never the nodes
@@ -24,15 +25,21 @@ export default function DecodeAll() {
         if (window.matchMedia("(prefers-reduced-motion: reduce)").matches) return;
         const frames = new Set<number>();
         const finish: (() => void)[] = [];
+        const busy = new WeakSet<Element>();
 
         const run = (el: Element) => {
+            if (busy.has(el)) return;
+            busy.add(el);
             const walker = document.createTreeWalker(el, NodeFilter.SHOW_TEXT);
             const nodes: Text[] = [];
             while (walker.nextNode()) nodes.push(walker.currentNode as Text);
             const texts = nodes.map((n) => n.nodeValue ?? "");
             const total = texts.reduce((sum, t) => sum + t.length, 0);
-            if (!total) return;
-            const restore = () => nodes.forEach((n, i) => (n.nodeValue = texts[i]));
+            if (!total) return void busy.delete(el);
+            const restore = () => {
+                nodes.forEach((n, i) => (n.nodeValue = texts[i]));
+                busy.delete(el);
+            };
             finish.push(restore);
             const start = performance.now();
             const tick = (now: number) => {
@@ -45,7 +52,7 @@ export default function DecodeAll() {
                     n.nodeValue = [...texts[k]]
                         .map((ch) => {
                             const i = at++;
-                            return i < settled || /[\s·/:]/.test(ch) ? ch : GLYPHS[(seed * 7 + i * 13) % GLYPHS.length];
+                            return i < settled || !/[A-Za-z0-9]/.test(ch) ? ch : GLYPHS[(seed * 7 + i * 13) % GLYPHS.length];
                         })
                         .join("");
                 });
@@ -66,7 +73,16 @@ export default function DecodeAll() {
             { rootMargin: "0px 0px -8% 0px" }
         );
         document.querySelectorAll("[data-decode]").forEach((el) => io.observe(el));
+
+        // Under the pointer: once per visit to the element, not once per child crossed inside it.
+        const onOver = (event: PointerEvent) => {
+            if (event.pointerType !== "mouse") return;
+            const el = (event.target as Element).closest?.("[data-scramble], .action");
+            if (el && !el.contains(event.relatedTarget as Node | null)) run(el);
+        };
+        document.addEventListener("pointerover", onOver, { passive: true });
         return () => {
+            document.removeEventListener("pointerover", onOver);
             io.disconnect();
             frames.forEach((id) => cancelAnimationFrame(id));
             finish.forEach((restore) => restore());

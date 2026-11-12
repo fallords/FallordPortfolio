@@ -110,7 +110,7 @@ function pose(machine: HTMLElement | null, parts: Part[], t: number) {
     machine.style.opacity = t > 0.5 ? String(1 - smooth((t - 0.5) / 0.5)) : "";
 }
 
-export default function WorkStage({ items }: { items: StageItem[] }) {
+export default function WorkStage({ items, skipTo }: { items: StageItem[]; /** Where "Skip" leads: the section after this one. */ skipTo?: string }) {
     const track = useRef<HTMLDivElement>(null);
     const stage = useRef<HTMLDivElement>(null);
     const bar = useRef<HTMLSpanElement>(null);
@@ -236,7 +236,7 @@ export default function WorkStage({ items }: { items: StageItem[] }) {
                         className="ws-item"
                         aria-label={item.label}
                     >
-                        <div className="ws-view viewport">
+                        <div className="ws-view viewport" data-tilt>
                             {/* The scanning ring the machine sits in on the held stage. */}
                             <svg aria-hidden="true" className="ws-ring" viewBox="0 0 400 400" fill="none">
                                 <circle cx="200" cy="200" r="198" />
@@ -284,6 +284,12 @@ export default function WorkStage({ items }: { items: StageItem[] }) {
                 <span aria-hidden="true" className="ws-progress">
                     <span ref={bar} />
                 </span>
+                {/* A way out of the held scene for anyone who does not want the ride. */}
+                {skipTo && (
+                    <a href={skipTo} className="scene-skip label" data-scramble>
+                        Skip <span aria-hidden="true">↓</span>
+                    </a>
+                )}
             </div>
             <SwipeHint edges={edges} className="mt-3 text-right md:hidden" />
         </div>

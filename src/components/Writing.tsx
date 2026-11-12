@@ -85,6 +85,8 @@ function Piece({ essay, index }: { essay: Essay; index: number }) {
                 href={href}
                 tabIndex={-1}
                 aria-hidden="true"
+                data-cursor="Read"
+                data-tilt
                 className={`viewport open-frame relative block self-start overflow-hidden transition-colors hover:border-[var(--accent-line)] md:col-span-6 ${flip ? "md:order-2 md:col-start-7" : ""}`}
             >
                 {/* The drawing runs in the browser; if it fails, the empty card holds its place. */}

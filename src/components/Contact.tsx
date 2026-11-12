@@ -23,6 +23,7 @@ export default function Contact() {
                     </p>
                     <a
                         data-reveal
+                        data-cursor="Write"
                         aria-label={EMAIL}
                         style={{ "--step": "0.9%" } as CSSProperties}
                         href={`mailto:${EMAIL}`}

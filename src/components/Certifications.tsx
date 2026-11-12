@@ -72,7 +72,7 @@ export default function Certifications() {
             <ul className="cert-grid">
                 {grouped.map((group) =>
                     group.items.map(({ cert, index }, k) => (
-                        <li key={cert.name} data-reveal className="cert-card" style={{ "--k": index % 4 } as CSSProperties}>
+                        <li key={cert.name} data-reveal className="cert-card fly-in" style={{ "--k": index % 4 } as CSSProperties}>
                             <button
                                 type="button"
                                 onClick={() => {
@@ -80,6 +80,8 @@ export default function Certifications() {
                                     setOpen(true);
                                 }}
                                 aria-label={`View ${cert.name} full size`}
+                                data-cursor="View"
+                                data-tilt
                                 className="cert-frame viewport open-frame"
                             >
                                 {cert.image && (

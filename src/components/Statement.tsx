@@ -31,6 +31,8 @@ export default function Statement() {
         if (!el || !words || !target) return;
         const live = window.matchMedia("(prefers-reduced-motion: no-preference)");
         let frame = 0;
+        // Where the scene is, eased towards where the scroll is: a wheel's steps would show as jumps at these sizes.
+        let at = -1;
         // The mark's centre in the statement's own box, and the stage's centre in the same frame; layout values, so transforms do not disturb them.
         let ox = 0;
         let oy = 0;
@@ -50,7 +52,9 @@ export default function Statement() {
             frame = 0;
             if (!live.matches) return;
             const r = el.getBoundingClientRect();
-            const p = clamp(-r.top / Math.max(1, r.height - window.innerHeight));
+            const want = clamp(-r.top / Math.max(1, r.height - window.innerHeight));
+            at = at < 0 || Math.abs(want - at) < 0.0008 ? want : at + (want - at) * 0.16;
+            const p = at;
             // 0–0.25: it comes up to full ink; 0.25–0.92: the camera flies into the mark; then it gives way.
             const rise = ease(clamp(p / 0.25));
             const dive = clamp((p - 0.25) / 0.67);
@@ -59,6 +63,7 @@ export default function Statement() {
             words.style.transform = `translate(${(dx * pull).toFixed(1)}px, ${(dy * pull).toFixed(1)}px) scale(${scale.toFixed(4)})`;
             words.style.setProperty("--ink", (0.35 + 0.65 * rise).toFixed(3));
             el.style.setProperty("--gone", ease(clamp((p - 0.9) / 0.1)).toFixed(3));
+            if (at !== want) frame = requestAnimationFrame(update);
         };
         const request = () => {
             if (!frame) frame = requestAnimationFrame(update);
@@ -106,6 +111,10 @@ export default function Statement() {
                     </span>{" "}
                     and hardware
                 </p>
+                {/* A way out for anyone who does not want the ride. */}
+                <a href="#work" className="scene-skip label" data-scramble>
+                    Skip <span aria-hidden="true">↓</span>
+                </a>
                 <p data-decode className="zoom-note label">
                     Web apps, AI tools and firmware for small boards. Two of the apps below are live, and the wearable was tested on real hardware.
                 </p>

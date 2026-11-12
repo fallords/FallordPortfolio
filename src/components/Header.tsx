@@ -136,6 +136,7 @@ export default function Header() {
                                             href={`/#${link.id}`}
                                             prefetch={prefetch}
                                             aria-current={isActive ? "location" : undefined}
+                                            data-scramble
                                             // On a phone the full height of the bar is the hit area, not the ~16px of the text.
                                             className={`flex h-[var(--bar-h)] items-center transition-colors hover:text-[var(--accent)] md:h-6 ${
                                                 isActive ? "text-[var(--accent)]" : "text-[var(--fg)]"

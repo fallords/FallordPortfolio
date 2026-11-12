@@ -22,6 +22,42 @@
   color: var(--green);
 }
 
+/*
+ * The curtain. The footer sticks to the bottom of the screen for the whole
+ * page, under the page's sheet (.page-main, one layer up), so the end of the
+ * page uncovers it from the bottom up. Only where the screen is tall enough
+ * to show all of it; shorter than that, it simply follows the page.
+ */
+@media (min-height: 680px) {
+  .footer-field[data-curtain] {
+    position: sticky;
+    bottom: 0;
+    z-index: 0;
+  }
+}
+
+/* The name leans with the speed of the scroll (--vel, set by HudFrame). */
+.footer-name {
+  transform-origin: left bottom;
+  transform: skewX(calc(var(--vel, 0) * -0.8deg));
+  transition: transform 300ms var(--ease-out);
+}
+
+/*
+ * Its letters rise over the last stretch of the page's scroll, one after
+ * another. Tied to the end of the document, not to the footer coming into
+ * view: under the sheet it is "in view" all along.
+ */
+@media (prefers-reduced-motion: no-preference) {
+  @supports ((animation-timeline: scroll()) and (animation-range: 0% 100%)) {
+    .footer-field [data-reveal] .split-m > span {
+      animation: split-rise linear both;
+      animation-timeline: scroll(root block);
+      animation-range: calc(100% - 24rem + var(--i) * 1rem) calc(100% - 12rem + var(--i) * 1rem);
+    }
+  }
+}
+
 .footer-head {
   color: var(--fg-dim);
 }

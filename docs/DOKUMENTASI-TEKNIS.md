@@ -314,6 +314,20 @@ Teks lengkap ada di PDF.
 
 **In numbers (hitung).** Angka yang aktif menghitung naik ke nilainya selama 40% pertama segmennya (nilai text node diubah per frame, bukan render React).
 
+**Pointer (`Crosshair.tsx`, `DotField.tsx`, `motion/DecodeAll.tsx`).** Satu listener pointer mengatur semuanya, hanya untuk mouse/trackpad: crosshair; kata kecil di sampingnya yang bilang apa yang terjadi kalau ditekan (`data-cursor="View"`, "Read", "Write", "Run", nama bab di rail); tombol `.action` yang condong ke pointer dan lepas saat ditinggal; panel `data-tilt` (viewport Work, bingkai sertifikat, gambar Writing) yang berputar beberapa derajat menghadap pointer. `DotField`: satu canvas tetap di bawah isi halaman yang menyalakan titik-titik grid hijau di sekitar pointer dengan jejak pendek, dan klik mengirim cincin melewati titik; hanya titik yang menyala yang digambar, dan tidak ada loop saat diam. Link header, link Skip, dan semua `.action` teracak lalu terbentuk lagi tiap pointer datang (`data-scramble`). Tarikan dan tilt dimatikan dengan reduced motion.
+
+**Scope malam di hero.** Di dalam lingkaran reticle, potret terlihat lewat teropong malam: lebih terang (`color-dodge`), hijau (`color`), dan bergaris pindai; tiga lapisan di atas kanvas, masing-masing di-clip ke lingkaran `--sr` di posisi cahaya. Selama paruh kedua hold hero, lingkarannya melebar sampai seluruh panggung terlihat lewat scope. Putaran kepala dan pembukaan gelap kini dihaluskan menuju posisi scroll (tidak melompat per langkah roda).
+
+**Adegan yang ditahan.** Tiap adegan (In short, Work, In numbers) punya link "Skip ↓" ke bagian berikutnya. Pernyataan In short juga dihaluskan menuju posisi scroll.
+
+**Band kata (`Marquee.tsx`).** Di antara Work dan Experience: dua baris kata seukuran judul (Web apps, AI tools, Firmware, UI design, dengan reticle hijau) yang bergeser berlawanan arah saat band melintasi layar (scroll-driven, tanpa script), dan condong mengikuti kecepatan scroll. Disembunyikan dari pembaca layar karena kata yang sama ada di hero dan What I do.
+
+**Kecepatan scroll.** `HudFrame` menghitung kecepatan scroll (dihaluskan, dibatasi, kembali ke 0 saat berhenti) dan menulisnya sebagai `--vel` ke elemen `data-vel`: band kata dan nama footer condong, nomor bab tertinggal sedikit.
+
+**Footer tirai.** Di beranda, halaman (`.page-main`, buram, satu lapis di atas) adalah lembaran di atas footer; footer menempel di bawah layar dan terbuka dari bawah saat halaman habis, dengan garis hijau di tepi lembaran. Hanya bila layar cukup tinggi (≥680px). Huruf nama footer naik di 24rem terakhir scroll dokumen.
+
+**Kartu masuk.** Kartu sertifikat dan kartu What I do datang dari kedalaman (miring ke belakang lalu rebah) satu per satu, terkait scroll.
+
 **Ringan.** Potret memuat setiap frame kedua di laptop (91 frame) dan setiap frame keempat di HP (46 frame); frame terdekat menggantikan yang tidak dimuat. Cahaya hero hanya bekerja saat digerakkan (pointer, scroll, atau cahaya menuju posisinya) dan berhenti saat diam; berkas cahayanya tidak lagi berputar. Grain diam. Inter dimuat tanpa sumbu opsz. Thumbnail sertifikat lazy. Ukuran yang ditransfer saat halaman dibuka: sekitar 1,1 MB di laptop dan 0,58 MB di HP.
 
 **Scroll.** Scroll native saja. Lenis sempat dipakai lalu dihapus supaya halaman lebih ringan: tanpa loop rAF yang terus berjalan, dan scroll langsung mengikuti tangan.

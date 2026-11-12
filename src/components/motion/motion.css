@@ -87,6 +87,14 @@
   }
 }
 
+/* A card coming up out of depth, tipped back, to lie flat. */
+@keyframes card-in {
+  from {
+    opacity: 0;
+    transform: perspective(60rem) translate3d(0, 4.5rem, -9rem) rotateX(20deg);
+  }
+}
+
 @media (prefers-reduced-motion: no-preference) {
   @supports ((animation-timeline: view()) and (animation-range: cover 0% cover 100%)) {
     /*
@@ -121,6 +129,14 @@
       animation: ink-fill linear both;
       animation-timeline: view();
       animation-range: cover 22% cover 46%;
+    }
+
+    /* Cards in a row arrive one after another (--k is the card's place in its row). */
+    [data-reveal].fly-in,
+    [data-reveal] > .sys-tab {
+      animation: card-in linear both;
+      animation-timeline: --reveal;
+      animation-range: cover calc(var(--k, 0) * 2.5%) cover calc(24% + var(--k, 0) * 2.5%);
     }
 
     [data-reveal] .open-frame {

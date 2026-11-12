@@ -12,6 +12,11 @@
 }
 
 .hero-stage {
+  /* Where the light is, how far the dark has opened and how wide the scope is: set by HeroLight, read by everything on the stage. */
+  --lx: 50%;
+  --ly: 38%;
+  --open: 1;
+  --sr: 0px;
   position: relative;
   height: 100svh;
   min-height: 36rem;
@@ -33,10 +38,35 @@
 
 /* ------------------------------------------------------------ the light */
 
+/*
+ * The night scope. Three layers over the picture, each cut to a circle
+ * round the light: one lifts the picture (colour dodge), one turns it the
+ * page's green while keeping its light and dark (colour), one rules it in
+ * scan lines. They blend with the canvas under them, so each is clipped by
+ * itself: a clipped parent would shut them off from it.
+ */
+.hero-scope {
+  position: absolute;
+  inset: 0;
+  pointer-events: none;
+  clip-path: circle(var(--sr) at var(--lx) var(--ly));
+}
+
+.hero-scope-gain {
+  background: var(--scope-gain, #747474);
+  mix-blend-mode: color-dodge;
+}
+
+.hero-scope-tint {
+  background: var(--green);
+  mix-blend-mode: color;
+}
+
+.hero-scope-lines {
+  background: repeating-linear-gradient(to bottom, rgb(0 0 0 / 0.34) 0 1px, transparent 1px 3px);
+}
+
 .hero-light {
-  --lx: 50%;
-  --ly: 38%;
-  --open: 1;
   position: absolute;
   inset: 0;
   z-index: 1;
