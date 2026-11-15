@@ -42,6 +42,10 @@ uniform sampler2D uData;
 uniform sampler2D uPhoto;
 uniform float uA, uB, uMix, uCell, uDepth, uReveal, uTime, uScan, uPush, uRowsShown;
 uniform vec2 uPointer;
+// The swipe: the pointer's last positions on the face (xy) and how it was moving there (zw), and how fresh each one is.
+uniform vec4 uTrail[16];
+uniform float uTrailLife[16];
+varying vec3 vGlitch;
 attribute vec2 aCell;
 attribute float aRand;
 varying vec3 vNormal, vLit;
@@ -97,6 +101,48 @@ void main() {
     float push = uPush * pow(max(0.0, 1.0 - dist / 0.75), 2.0) * (0.5 + aRand);
     world.xy += (dist > 1e-4 ? away / dist : vec2(0.0)) * push * 0.55;
     world.z += push * (0.4 + aRand * 0.8);
+    // A swipe tears through him: voxels along its path are dragged the way it went, broken into blocks of glitch colour,
+    // and settle back as the path fades. Blocks of 4 x 4 cells move together, so it breaks up in chunks, not dust.
+    vec2 block = floor(aCell / 4.0);
+    float blockRand = fract(sin(dot(block, vec2(12.9898, 78.233))) * 43758.5453);
+    // Peeling: near the path each voxel lifts off at its own moment (its block sets it roughly, its own number finely),
+    // flows off the way the swipe went (see below), then settles back as the path
+    // fades. Every point of the path adds its share, so the drift changes smoothly as the path ages.
+    float r = mix(blockRand, aRand, 0.45);
+    float peel = 0.0;
+    vec2 drag = vec2(0.0);
+    for (int i = 0; i < 16; i++) {
+        float life = uTrailLife[i];
+        if (life <= 0.0) continue;
+        float near = smoothstep(0.55, 0.0, length(centre - uTrail[i].xy));
+        if (near <= 0.0) continue;
+        float local = clamp((1.0 - life - r * 0.3) / 0.7, 0.0, 1.0);
+        float k = near * smoothstep(0.0, 0.35, local) * (1.0 - smoothstep(0.45, 1.0, local));
+        peel += k;
+        drag += uTrail[i].zw * k;
+    }
+    drag /= max(peel, 1e-3);
+    float lifted = smoothstep(0.0, 1.0, clamp(peel * 0.9, 0.0, 1.0)) * step(0.15, r);
+    // Like water: no tumbling. Lifted voxels are carried by a slowly moving, winding current, off the way the swipe went,
+    // and the further they go the more they run downwards, so the stream bends and pours; the face round the path ripples.
+    vec2 q = centre * 2.6 + vec2(uTime * 0.35, -uTime * 0.28) + r * 0.6;
+    vec2 current = vec2(sin(q.y * 1.7 + sin(q.x * 1.3)), cos(q.x * 1.5 + cos(q.y * 1.1)));
+    float run = lifted * (0.7 + r * 1.1);
+    world.xy += (drag * run * 1.3 + current * run * 0.45 + vec2(0.0, -run * run * 0.55)) * 1.1;
+    world.z += lifted * (0.45 + r * 0.9);
+    float ripple = 0.0;
+    for (int i = 0; i < 16; i++) {
+        float life = uTrailLife[i];
+        if (life <= 0.0) continue;
+        float d = length(centre - uTrail[i].xy);
+        ripple += sin(d * 26.0 - (1.0 - life) * 14.0) * life * life * smoothstep(0.9, 0.0, d);
+    }
+    world.z += ripple * 0.05 * size * (1.0 - lifted);
+    vGlitch = vec3(
+        lifted,
+        step(0.6, blockRand),
+        step(0.8, fract(blockRand * 7.31 + floor(uTime * 8.0) * 0.37))
+    );
     vPush = clamp(push * 2.5, 0.0, 1.0);
 
     vNormal = normal;
@@ -117,6 +163,7 @@ varying vec3 vNormal, vLit;
 varying vec2 vLocal;
 varying vec2 vCell;
 varying float vLum, vRim, vNear, vScan, vPush;
+varying vec3 vGlitch;
 ${tile}
 
 void main() {
@@ -140,8 +187,12 @@ void main() {
     col = mix(col, uColor * 1.6 + vec3(0.35, 0.5, 0.4) * vNear, uFlash);
     // Voxels the pointer has pushed away light up, so they read as sparks scattering out of the haze.
     col = mix(col, uColor * 2.2 + vec3(0.25, 0.45, 0.3), vPush);
+    // Peeled blocks catch the light in the site's greens: some the accent, some paler, a few flickering near-white.
+    vec3 tint = vGlitch.y > 0.5 ? uColor * 2.2 : uColor * 1.5 + vec3(0.06, 0.15, 0.1);
+    vec3 peeled = mix(tint * (0.55 + 0.8 * photo), vec3(0.72, 1.0, 0.82) * (0.45 + photo), 0.25 * vGlitch.z);
+    col = mix(col, peeled, clamp(vGlitch.x * 1.9, 0.0, 1.0));
     // Faint, like a projection: dimmer, and partly see-through (fully solid only in the flash, and where pushed).
-    gl_FragColor = vec4(col * 0.85, mix(mix(uAlpha, 1.0, uFlash), 1.0, vPush));
+    gl_FragColor = vec4(col * 0.85, mix(mix(uAlpha, 1.0, uFlash), 1.0, max(vPush, vGlitch.x)));
 }
 `;
     return { vertex, fragment };
@@ -195,7 +246,9 @@ void main() {
     // then laid over the sharp grid by how much of each point it covers.
     vec4 head = texture2D(tHead, uv);
     vec4 haze = soft(uv);
-    head = mix(head, haze, 0.82 * uHaze);
+    // Peeled blocks are drawn solid (alpha near 1, the rest of the head is see-through): those stay sharp, out of the haze.
+    float solid = smoothstep(0.62, 0.8, head.a);
+    head = mix(head, haze, 0.82 * uHaze * (1.0 - solid));
     col = col * (1.0 - clamp(head.a, 0.0, 1.0)) + head.rgb + haze.rgb * 0.3 * uHaze;
     // Scan lines and a faint flicker, like a CRT feed.
     col *= 0.86 + 0.14 * step(0.5, fract(gl_FragCoord.y * 0.25));
@@ -425,6 +478,8 @@ export default function HeroVoxel({ className = "" }: { className?: string }) {
                     uScan: { value: 2 },
                     uPush: { value: 0 },
                     uPointer: { value: new THREE.Vector2(99, 99) },
+                    uTrail: { value: Array.from({ length: 16 }, () => new THREE.Vector4(99, 99, 0, 0)) },
+                    uTrailLife: { value: new Array(16).fill(0) },
                     uAlpha: { value: 0.6 },
                     uDetail: { value: 0.22 },
                 },
@@ -544,6 +599,7 @@ export default function HeroVoxel({ className = "" }: { className?: string }) {
             // Slower than life: the film runs at this fraction of its own speed, the cells morphing across the longer gaps.
             const SPEED = 0.55;
             const local = new THREE.Vector3();
+            let lastNow = 0;
             let glitchUntil = 0;
             let nextGlitch = 0;
             let frame = 0;
@@ -588,6 +644,31 @@ export default function HeroVoxel({ className = "" }: { className?: string }) {
                     }
                 }
                 u.uPush.value += ((near && t > PLAY_FROM ? 1 : 0) - u.uPush.value) * 0.08;
+                // The swipe's path: a new point each time the pointer has moved a little, each fading over about a second.
+                const trailPts = u.uTrail.value as InstanceType<typeof THREE.Vector4>[];
+                const lives = u.uTrailLife.value as number[];
+                // About three seconds for a peeled block to drift off and settle back, whatever the screen's frame rate.
+                const dt = Math.min(0.1, (now - (lastNow || now)) / 1000);
+                lastNow = now;
+                for (let i = 0; i < 16; i++) lives[i] = Math.max(0, lives[i] - dt / 3);
+                if (near && t > PLAY_FROM) {
+                    const head0 = trailPts[0];
+                    const dx = local.x - head0.x;
+                    const dy = local.y - head0.y;
+                    const moved = Math.hypot(dx, dy);
+                    if (moved > 0.03 && moved < 3) {
+                        for (let i = 15; i > 0; i--) {
+                            trailPts[i].copy(trailPts[i - 1]);
+                            lives[i] = lives[i - 1];
+                        }
+                        // A faster swipe throws the blocks further (the direction's length), every point lives the same time.
+                        const strength = Math.min(1, moved * 10);
+                        trailPts[0].set(local.x, local.y, (dx / moved) * strength, (dy / moved) * strength);
+                        lives[0] = 1;
+                    } else if (moved >= 3) {
+                        trailPts[0].set(local.x, local.y, 0, 0);
+                    }
+                }
 
                 // Now and then the feed glitches; always across the flash.
                 if (t > 4 && t > nextGlitch) {

@@ -332,3 +332,70 @@
 .xp-track[data-live] .split-m > span {
   animation: none;
 }
+
+/* A phone or a tablet: the count along the top, the drum in the top third, the role under it across the whole width. */
+@media (max-width: 1023px) {
+  .xp-track[data-live] .xp-stage {
+    --size: clamp(2.75rem, 13vw, 4.5rem);
+    --top: 2.75rem;
+    --drum-h: 32%;
+  }
+
+  .xp-track[data-live] .xp-count {
+    top: 0.75rem;
+    right: 0;
+  }
+
+  .xp-track[data-live] .xp-index {
+    display: none;
+  }
+
+  .xp-track[data-live] .xp-drum {
+    inset: var(--top) 0 auto;
+    height: var(--drum-h);
+  }
+
+  .xp-track[data-live] .xp-reticle {
+    top: calc(var(--top) + var(--drum-h) / 2);
+    left: 50%;
+    width: min(64vw, 26svh);
+  }
+
+  .xp-track[data-live] .xp-band {
+    top: calc(var(--top) + var(--drum-h) / 2);
+    right: 0;
+    left: 0;
+  }
+
+  .xp-track[data-live] .xp-list {
+    top: calc(var(--top) + var(--drum-h) + 1rem);
+    right: 0;
+    bottom: 1rem;
+    left: 0;
+    width: auto;
+    align-content: start;
+    translate: none;
+  }
+
+  .xp-track[data-live] .xp-row {
+    align-self: start;
+  }
+}
+
+/* A wide screen that is short (a tablet on its side): the panel starts under the count and the title is a size smaller. */
+@media (min-width: 1024px) and (max-height: 719px) {
+  .xp-track[data-live] .xp-list {
+    top: 3.5rem;
+    bottom: 0.75rem;
+    align-content: center;
+    translate: none;
+  }
+
+  .xp-track[data-live] .xp-title {
+    font-size: 2rem;
+  }
+
+  .xp-track[data-live] .xp-side {
+    margin-bottom: 0.5rem;
+  }
+}

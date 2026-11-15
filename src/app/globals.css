@@ -42,6 +42,8 @@
   --accent-text: var(--accent);
   --accent-wash: rgba(25, 163, 82, 0.08);
   --accent-line: rgba(25, 163, 82, 0.35);
+  /* The background grid's lines, the hero's grid green, faint. */
+  --grid-line: rgba(127, 217, 164, 0.1);
 
   /* The inverse field: the paper of the writing covers. */
   --field: #dddddd;
@@ -110,9 +112,12 @@ html {
 }
 
 body {
-  /* The ground of every screen: a fine grid of dots, the paper an instrument plots on. */
+  /*
+   * The ground of every screen, the hero's screen carried on: a grid of faint green lines.
+   */
   background:
-    radial-gradient(circle, rgba(221, 221, 221, 0.075) 0.75px, transparent 1.25px) 0 0 / 20px 20px,
+    linear-gradient(to right, var(--grid-line) 1px, transparent 1px) 10px 0 / 80px 80px,
+    linear-gradient(to bottom, var(--grid-line) 1px, transparent 1px) 0 10px / 80px 80px,
     var(--surface);
   color: var(--fg);
   font-family: var(--font-text), ui-sans-serif, system-ui, sans-serif;
@@ -648,8 +653,8 @@ html[data-intro="show"] .rise {
 
 /*
  * The page's sheet. Opaque, one layer above the footer, so the footer can
- * wait under it; its dot grid is set off by the bar's height, which puts it
- * on the same dots as the body's (DotField draws on them). The green line
+ * wait under it; its grid is set off by the bar's height, which puts it
+ * on the same lines as the body's. The green line
  * along its foot is the edge that lifts off the footer.
  */
 .page-main {
@@ -657,18 +662,24 @@ html[data-intro="show"] .rise {
   z-index: 1;
   border-bottom: 1px solid var(--green);
   background:
-    radial-gradient(circle, rgba(221, 221, 221, 0.075) 0.75px, transparent 1.25px) 0 calc(-1 * var(--bar-h) - 1px) / 20px 20px,
+    linear-gradient(to right, var(--grid-line) 1px, transparent 1px) 10px calc(-1 * var(--bar-h) - 1px) / 80px 80px,
+    linear-gradient(to bottom, var(--grid-line) 1px, transparent 1px) 0 calc(9px - var(--bar-h)) / 80px 80px,
     var(--surface);
 }
 
-/* The live dots: on the sheet's ground, under everything on it. */
-.dotfield {
+/*
+ * The CRT the hero is shown on, over the whole page: scan lines and a vignette, fixed to the screen. Faint, and never in
+ * the pointer's way; above the page, under the grain.
+ */
+body::after {
+  content: "";
   position: fixed;
   inset: 0;
-  z-index: -1;
-  width: 100%;
-  height: 100%;
+  z-index: 44;
   pointer-events: none;
+  background:
+    radial-gradient(ellipse 120% 100% at 50% 50%, transparent 55%, rgb(0 0 0 / 0.45) 100%),
+    repeating-linear-gradient(to bottom, rgb(0 0 0 / 0.16) 0 1px, transparent 1px 4px);
 }
 
 /* A way out of a held scene: only shown where the scene is held. */

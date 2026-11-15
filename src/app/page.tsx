@@ -1,7 +1,6 @@
 import Hero from "@/components/Hero";
 import Statement from "@/components/Statement";
 import Works from "@/components/Works";
-import DotField from "@/components/DotField";
 import Experience from "@/components/Experience";
 import About from "@/components/About";
 import Certifications from "@/components/Certifications";
@@ -17,9 +16,6 @@ export default function Home() {
         <>
             {/* The page is a sheet over the footer: as it ends, it lifts off and the footer is found waiting under it (globals.css, .page-main). */}
             <main className="page-main">
-                <ErrorBoundary fallback={null}>
-                    <DotField />
-                </ErrorBoundary>
                 <Hero />
                 <Statement />
                 <Works />

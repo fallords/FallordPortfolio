@@ -3,8 +3,13 @@
 import { useEffect, useRef } from "react";
 import { decode, shuffle } from "./motion/textfx";
 
-/* Held only on a screen with room for the panel, and only where motion is welcome; otherwise the roles are a plain log. */
-const LIVE = "(min-width: 1024px) and (min-height: 720px) and (prefers-reduced-motion: no-preference)";
+/*
+ * Held wherever motion is welcome and the screen is tall enough for the longest role: on a laptop or a tablet on its side
+ * (down to 560px tall) the drum and the panel side by side, on a phone or an upright tablet the drum above the panel
+ * (experience.css). Shorter screens get the plain log.
+ */
+const LIVE =
+    "(min-width: 1024px) and (min-height: 560px) and (prefers-reduced-motion: no-preference), (max-width: 1023px) and (min-height: 700px) and (prefers-reduced-motion: no-preference)";
 
 const clamp = (v: number) => (v < 0 ? 0 : v > 1 ? 1 : v);
 
