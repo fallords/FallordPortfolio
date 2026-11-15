@@ -492,3 +492,85 @@
     line-height: 1.5;
   }
 }
+
+/*
+ * The held stage on a phone or an upright tablet: the same scene, stacked. The machine in its ring takes the top of the
+ * stage, the words sit under it, and the features are their titles in one line (the descriptions stay for screen readers).
+ */
+@media (max-width: 1023px) {
+  .ws-track[data-live] > :not(.ws-stage) {
+    display: none;
+  }
+
+  .ws-track[data-live] .ws-stage {
+    display: grid;
+    margin: 0;
+    padding: 0;
+    mask-image: none;
+  }
+
+  .ws-track[data-live] .ws-item {
+    display: grid;
+    grid-template-columns: minmax(0, 1fr);
+    grid-template-rows: 36% auto auto;
+    gap: 0.75rem;
+    width: auto;
+    padding-block: 1.75rem 1.5rem;
+  }
+
+  .ws-track[data-live] .ws-view {
+    grid-area: 1 / 1;
+  }
+
+  .ws-track[data-live] .ws-ring {
+    width: min(78%, 34svh);
+  }
+
+  .ws-track[data-live] .ws-lock {
+    width: min(42%, 18svh);
+  }
+
+  .ws-track[data-live] .ws-machine {
+    padding: 0.75rem 3rem;
+  }
+
+  .ws-track[data-live] .ws-machine .iso-svg {
+    scale: 1;
+  }
+
+  .ws-track[data-live] .ws-text {
+    grid-area: 2 / 1;
+    align-self: start;
+  }
+
+  .ws-track[data-live] .ws-title {
+    font-size: clamp(1.875rem, 8vw, 2.5rem);
+  }
+
+  .ws-track[data-live] .ws-feats {
+    grid-area: 3 / 1;
+    display: flex;
+    flex-wrap: wrap;
+    gap: 0.25rem 1rem;
+    border: 0;
+  }
+
+  .ws-track[data-live] .ws-feat {
+    display: block;
+    padding: 0;
+    border: 0;
+  }
+
+  .ws-track[data-live] .ws-feat dd {
+    position: absolute;
+    width: 1px;
+    height: 1px;
+    overflow: hidden;
+    clip-path: inset(50%);
+    white-space: nowrap;
+  }
+
+  .ws-track[data-live] .ws-progress {
+    bottom: 0.5rem;
+  }
+}

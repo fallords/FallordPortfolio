@@ -41,7 +41,9 @@ export type StageItem = {
 };
 
 /* Pinned needs room for the text beside the machine; lower or narrower screens get the stack. */
-const PINNED = "(min-width: 1024px) and (min-height: 600px) and (prefers-reduced-motion: no-preference)";
+// Held on a laptop, and on a phone or an upright tablet tall enough for the stacked stage (work-stage.css).
+const PINNED =
+    "(min-width: 1024px) and (min-height: 600px) and (prefers-reduced-motion: no-preference), (max-width: 1023px) and (min-height: 700px) and (prefers-reduced-motion: no-preference)";
 const STILL = "(prefers-reduced-motion: reduce)";
 /* How much later the innermost part starts moving than the outermost. */
 const SPREAD = 0.35;

@@ -29,7 +29,8 @@ const clock = new Intl.DateTimeFormat("en-GB", { timeZone: "Asia/Jakarta", hour:
  * second, in the bottom-right. It stays out of the way of the hero, which
  * has its own readouts, and of every pointer except on the rail.
  *
- * Home page only; hidden below 1024px, where the margins are too narrow.
+ * Home page only. Below 1024px it is pared down to the corners, the sector
+ * and a row of chapter numbers to tap (hud-frame.css).
  */
 export default function HudFrame() {
     const pathname = usePathname();

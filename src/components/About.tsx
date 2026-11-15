@@ -63,7 +63,9 @@ const num = (i: number) => String(i + 1).padStart(2, "0");
 const letter = (i: number) => String.fromCharCode(65 + i);
 
 /* Held only on a screen with room for the list beside the viewport, and only where motion is welcome. */
-const LIVE = "(min-width: 1024px) and (min-height: 720px) and (prefers-reduced-motion: no-preference)";
+// Held on a laptop (list beside the viewport), and on a phone or an upright tablet (viewport above the list, about.css).
+const LIVE =
+    "(min-width: 1024px) and (min-height: 720px) and (prefers-reduced-motion: no-preference), (max-width: 1023px) and (min-height: 760px) and (prefers-reduced-motion: no-preference)";
 const clamp = (v: number) => (v < 0 ? 0 : v > 1 ? 1 : v);
 
 /**
