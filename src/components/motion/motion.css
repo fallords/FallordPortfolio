@@ -249,7 +249,7 @@
     [data-reveal] .open-frame {
       animation: frame-open linear both;
       animation-timeline: --reveal;
-      animation-range: cover 0% cover 32%;
+      animation-range: cover 0% cover 24%;
     }
 
     [data-reveal] .rule-sweep {
@@ -257,6 +257,65 @@
       animation: rule-sweep linear both;
       animation-timeline: --reveal;
       animation-range: cover 4% cover 40%;
+    }
+  }
+}
+
+/*
+ * The thread between sections: a green line runs down out of the section before, into each section's head, and ends on a
+ * node on its rule, so the page reads as one signal passing from chapter to chapter. It draws itself as the head comes up.
+ */
+.sec-head::before {
+  content: "";
+  position: absolute;
+  bottom: -1px;
+  left: 0;
+  width: 2px;
+  height: 20rem;
+  background: linear-gradient(to bottom, transparent, var(--accent) 45%, var(--accent));
+  box-shadow: 0 0 8px rgb(25 163 82 / 0.5);
+  transform-origin: bottom;
+  pointer-events: none;
+}
+
+.sec-head::after {
+  content: "";
+  position: absolute;
+  z-index: 1;
+  bottom: -4px;
+  left: -3.5px;
+  width: 9px;
+  height: 9px;
+  background: var(--accent);
+  box-shadow: 0 0 10px var(--accent);
+  pointer-events: none;
+}
+
+@keyframes thread-draw {
+  from {
+    scale: 1 0;
+  }
+}
+
+@keyframes node-in {
+  from {
+    opacity: 0;
+    scale: 0;
+  }
+}
+
+@media (prefers-reduced-motion: no-preference) {
+  @supports ((animation-timeline: view()) and (animation-range: cover 0% cover 100%)) {
+    .sec-head::before {
+      animation: thread-draw linear both;
+      animation-timeline: --reveal;
+      animation-range: cover 0% cover 24%;
+    }
+
+    .sec-head::after {
+      animation: node-in linear both;
+      animation-timeline: --reveal;
+      animation-range: cover 10% cover 22%;
     }
   }
 }
