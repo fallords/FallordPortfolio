@@ -40,11 +40,13 @@ vec2 tileUv(float view, vec2 inTile) {
     const vertex = /* glsl */ `
 uniform sampler2D uData;
 uniform sampler2D uPhoto;
-uniform float uA, uB, uMix, uCell, uDepth, uReveal, uTime, uScan, uPush, uRowsShown;
-uniform vec2 uPointer;
-// The swipe: the pointer's last positions on the face (xy) and how it was moving there (zw), and how fresh each one is.
-uniform vec4 uTrail[16];
-uniform float uTrailLife[16];
+uniform float uA, uB, uMix, uCell, uDepth, uReveal, uTime, uScan, uRowsShown;
+// The swipe simulation's state (see SIM_FRAG): where each voxel has been thrown to, and how it is moving.
+uniform sampler2D uSimPos;
+uniform sampler2D uSimVel;
+uniform vec2 uSimSize;
+uniform float uSimScale;
+attribute float aIndex;
 varying vec3 vGlitch;
 attribute vec2 aCell;
 attribute float aRand;
@@ -93,56 +95,27 @@ void main() {
     // Alive: every voxel breathes a little in and out, and now and then a scan passes down the face, lifting what it crosses.
     float scan = exp(-pow((aCell.y / ${rows}.0 - uScan) * 16.0, 2.0));
     world.z += (sin(uTime * 2.1 + aRand * 31.0) * 0.012 + scan * 0.09) * size;
-    // The pointer pushes the voxels away: those near it scatter outwards and towards us, each by its own amount, and drift
-    // back as it leaves (uPush eases in and out). Measured from each voxel's centre, so a box moves whole.
-    vec2 centre = vec2(aCell.x - ${cols}.0 * 0.5 + 0.5, ${rows}.0 * 0.5 - aCell.y - 0.5) * uCell;
-    vec2 away = centre - uPointer;
-    float dist = length(away);
-    float push = uPush * pow(max(0.0, 1.0 - dist / 0.75), 2.0) * (0.5 + aRand);
-    world.xy += (dist > 1e-4 ? away / dist : vec2(0.0)) * push * 0.55;
-    world.z += push * (0.4 + aRand * 0.8);
-    // A swipe tears through him: voxels along its path are dragged the way it went, broken into blocks of glitch colour,
-    // and settle back as the path fades. Blocks of 4 x 4 cells move together, so it breaks up in chunks, not dust.
-    vec2 block = floor(aCell / 4.0);
-    float blockRand = fract(sin(dot(block, vec2(12.9898, 78.233))) * 43758.5453);
-    // Peeling: near the path each voxel lifts off at its own moment (its block sets it roughly, its own number finely),
-    // flows off the way the swipe went (see below), then settles back as the path
-    // fades. Every point of the path adds its share, so the drift changes smoothly as the path ages.
-    float r = mix(blockRand, aRand, 0.45);
-    float peel = 0.0;
-    vec2 drag = vec2(0.0);
-    for (int i = 0; i < 16; i++) {
-        float life = uTrailLife[i];
-        if (life <= 0.0) continue;
-        float near = smoothstep(0.55, 0.0, length(centre - uTrail[i].xy));
-        if (near <= 0.0) continue;
-        float local = clamp((1.0 - life - r * 0.3) / 0.7, 0.0, 1.0);
-        float k = near * smoothstep(0.0, 0.35, local) * (1.0 - smoothstep(0.45, 1.0, local));
-        peel += k;
-        drag += uTrail[i].zw * k;
+    // Thrown by the swipe (SIM_FRAG): the voxel stands where the simulation has carried it, stretched three times along
+    // its flight and thinned to 46% while it moves, and fades with distance; back home it fades in.
+    vec2 simUv = (vec2(mod(aIndex, uSimSize.x), floor(aIndex / uSimSize.x)) + 0.5) / uSimSize;
+    vec4 simPos = texture2D(uSimPos, simUv);
+    vec4 simVel = texture2D(uSimVel, simUv);
+    vec3 vel = simVel.xyz * simVel.w;
+    float speed = length(vel);
+    float moving = smoothstep(0.0, 0.02 * uSimScale, speed);
+    if (speed > 1e-5) {
+        vec3 dir = vel / speed;
+        vec3 shape = vec3(p.xy * 0.84 * size * uCell, 0.0);
+        vec3 streak = (shape + dir * dot(shape, dir) * 2.0) * 0.46;
+        world.xy += (streak.xy - shape.xy) * moving;
     }
-    drag /= max(peel, 1e-3);
-    float lifted = smoothstep(0.0, 1.0, clamp(peel * 0.9, 0.0, 1.0)) * step(0.15, r);
-    // Like water: no tumbling. Lifted voxels are carried by a slowly moving, winding current, off the way the swipe went,
-    // and the further they go the more they run downwards, so the stream bends and pours; the face round the path ripples.
-    vec2 q = centre * 2.6 + vec2(uTime * 0.35, -uTime * 0.28) + r * 0.6;
-    vec2 current = vec2(sin(q.y * 1.7 + sin(q.x * 1.3)), cos(q.x * 1.5 + cos(q.y * 1.1)));
-    float run = lifted * (0.7 + r * 1.1);
-    world.xy += (drag * run * 1.3 + current * run * 0.45 + vec2(0.0, -run * run * 0.55)) * 1.1;
-    world.z += lifted * (0.45 + r * 0.9);
-    float ripple = 0.0;
-    for (int i = 0; i < 16; i++) {
-        float life = uTrailLife[i];
-        if (life <= 0.0) continue;
-        float d = length(centre - uTrail[i].xy);
-        ripple += sin(d * 26.0 - (1.0 - life) * 14.0) * life * life * smoothstep(0.9, 0.0, d);
-    }
-    world.z += ripple * 0.05 * size * (1.0 - lifted);
-    vGlitch = vec3(
-        lifted,
-        step(0.6, blockRand),
-        step(0.8, fract(blockRand * 7.31 + floor(uTime * 8.0) * 0.37))
-    );
+    world += simPos.xyz;
+    float lim = (1.0 + (aRand - 0.5) * 1.2);
+    float near = 1.0 - clamp((length(simPos.xyz) - lim * 0.5 * uSimScale) / (lim * 1.06 * uSimScale - lim * 0.5 * uSimScale), 0.0, 1.0);
+    float fast = speed / (0.05 * uSimScale);
+    float seen = near * (1.0 - simPos.w) * min(mix(0.66, 1.0, clamp(fast / 0.5, 0.0, 1.0)), clamp((1.0 - fast) / 0.5, 0.0, 1.0));
+    vGlitch = vec3(moving, step(0.6, aRand), 1.0 - mix(1.0, seen, step(1e-4, length(simPos.xyz) + simPos.w)));
+    float push = 0.0;
     vPush = clamp(push * 2.5, 0.0, 1.0);
 
     vNormal = normal;
@@ -189,10 +162,12 @@ void main() {
     col = mix(col, uColor * 2.2 + vec3(0.25, 0.45, 0.3), vPush);
     // Peeled blocks catch the light in the site's greens: some the accent, some paler, a few flickering near-white.
     vec3 tint = vGlitch.y > 0.5 ? uColor * 2.2 : uColor * 1.5 + vec3(0.06, 0.15, 0.1);
-    vec3 peeled = mix(tint * (0.55 + 0.8 * photo), vec3(0.72, 1.0, 0.82) * (0.45 + photo), 0.25 * vGlitch.z);
+    vec3 peeled = tint * (0.55 + 0.8 * photo);
     col = mix(col, peeled, clamp(vGlitch.x * 1.9, 0.0, 1.0));
     // Faint, like a projection: dimmer, and partly see-through (fully solid only in the flash, and where pushed).
-    gl_FragColor = vec4(col * 0.85, mix(mix(uAlpha, 1.0, uFlash), 1.0, max(vPush, vGlitch.x)));
+    float alpha = mix(mix(uAlpha, 1.0, uFlash), 1.0, max(vPush, vGlitch.x)) * (1.0 - vGlitch.z);
+    if (alpha < 0.02) discard;
+    gl_FragColor = vec4(col * 0.85, alpha);
 }
 `;
     return { vertex, fragment };
@@ -278,6 +253,73 @@ varying float vAge;
 void main() {
     // Square points: voxels too.
     gl_FragColor = vec4(uColor * (1.4 - vAge), (1.0 - vAge) * uAlpha);
+}
+`;
+
+/*
+ * The swipe, simulated the way the reference simulates it: every voxel has its own offset and velocity, kept in two float
+ * textures (one texel per voxel) and stepped 120 times a second. The pointer, moving, pushes the voxels within reach of
+ * where it is on the face the way it moves, as hard as it moves; a pushed voxel that gets going keeps going (never slower
+ * than a floor speed, the rest bled off by drag) until it is far enough out, then it is put back home, invisible, and
+ * fades in. A click sends a ring out. The reference's constants, scaled by uScale from its voxel size to ours.
+ */
+const SIM_VERT = /* glsl */ `
+void main() {
+    gl_Position = vec4(position.xy, 0.0, 1.0);
+}
+`;
+
+const SIM_FRAG = /* glsl */ `
+precision highp float;
+uniform sampler2D uPos;
+uniform sampler2D uVel;
+uniform sampler2D uHome;
+uniform vec2 uCursor;
+uniform vec2 uCursorVel;
+uniform vec2 uWaveOrigin;
+uniform float uWaveProgress;
+uniform float uScale;
+uniform float uStep;
+layout(location = 0) out highp vec4 outPos;
+layout(location = 1) out highp vec4 outVel;
+
+void main() {
+    ivec2 at = ivec2(gl_FragCoord.xy);
+    vec4 d = texelFetch(uPos, at, 0);
+    vec4 m = texelFetch(uVel, at, 0);
+    vec4 home = texelFetch(uHome, at, 0);
+    float S = uScale;
+    vec3 here = vec3(home.xy, 0.0) + d.xyz;
+    // The push: from the pointer's motion, within 1.1 of it.
+    float near = smoothstep(1.1 * S, 0.0, distance(here.xy, uCursor));
+    float a = length(uCursorVel);
+    float strength = smoothstep(0.0, 0.01 * S, a) * clamp(a, 0.0, 2.0 * S);
+    vec3 force = vec3(uCursorVel / max(a, 1e-4), 0.0) * near * 0.45 * strength;
+    // The ring a click sends out.
+    vec2 fromWave = here.xy - uWaveOrigin;
+    float h = length(fromWave);
+    float ring = smoothstep(2.3 * S, 0.0, abs(h - uWaveProgress * 18.0 * S)) * (1.0 - uWaveProgress);
+    force += vec3(fromWave / max(h, 1e-4), 0.0) * ring * 0.015 * S / uStep;
+    m.xyz += force * uStep;
+    float drag = 1.0 - min(0.85 * uStep, 0.98);
+    float floorSpeed = 0.0075 * S;
+    float x = length(m.xyz);
+    m.w = max(m.w, step(floorSpeed, x));
+    if (m.w > 0.0) {
+        m.xyz = m.xyz / max(x, 1e-6) * max(x * drag, floorSpeed);
+        d.xyz += m.xyz;
+    } else {
+        m.xyz *= drag;
+    }
+    float lim = (1.0 + (home.z - 0.5) * 1.2) * 1.06 * S;
+    if (length(d.xyz) >= lim) {
+        d = vec4(0.0, 0.0, 0.0, 1.0);
+        m = vec4(0.0);
+    } else {
+        d.w = max(d.w - uStep / 0.16, 0.0);
+    }
+    outPos = d;
+    outVel = m;
 }
 `;
 
@@ -443,6 +485,9 @@ export default function HeroVoxel({ className = "" }: { className?: string }) {
             for (let i = 0; i < count; i++) rand[i] = Math.random();
             geo.setAttribute("aRand", new THREE.InstancedBufferAttribute(rand, 1));
             geo.instanceCount = count;
+            const index = new Float32Array(count);
+            for (let i = 0; i < count; i++) index[i] = i;
+            geo.setAttribute("aIndex", new THREE.InstancedBufferAttribute(index, 1));
 
             const dataTex = new THREE.Texture(dataImg);
             dataTex.flipY = false;
@@ -454,6 +499,67 @@ export default function HeroVoxel({ className = "" }: { className?: string }) {
             photoTex.minFilter = THREE.LinearFilter;
             photoTex.generateMipmaps = false;
             photoTex.needsUpdate = true;
+
+            // The swipe simulation: one texel per voxel, two states to swap between.
+            const SIM_W = 128;
+            const SIM_H = Math.ceil(count / SIM_W);
+            // The reference's voxel is about 0.09 across, ours CELL: its distances and speeds scale by the ratio.
+            const SIM_SCALE = (3.4 / cols) / 0.09;
+            const homes = new Float32Array(SIM_W * SIM_H * 4);
+            for (let i = 0; i < count; i++) {
+                homes[i * 4] = (cells[i * 2] - cols / 2 + 0.5) * (3.4 / cols);
+                homes[i * 4 + 1] = (rows / 2 - cells[i * 2 + 1] - 0.5) * (3.4 / cols);
+                homes[i * 4 + 2] = rand[i];
+            }
+            const homeTex = new THREE.DataTexture(homes, SIM_W, SIM_H, THREE.RGBAFormat, THREE.FloatType);
+            homeTex.needsUpdate = true;
+            const floatOk = renderer.extensions.has("EXT_color_buffer_float");
+            const simTarget = () =>
+                new THREE.WebGLRenderTarget(SIM_W, SIM_H, {
+                    count: 2,
+                    type: floatOk ? THREE.FloatType : THREE.HalfFloatType,
+                    minFilter: THREE.NearestFilter,
+                    magFilter: THREE.NearestFilter,
+                    depthBuffer: false,
+                    generateMipmaps: false,
+                });
+            let simRead = simTarget();
+            let simWrite = simTarget();
+            for (const t of [simRead, simWrite]) {
+                renderer.setRenderTarget(t);
+                renderer.setClearColor(0x000000, 0);
+                renderer.clear();
+            }
+            renderer.setRenderTarget(null);
+            renderer.setClearColor(0x050505, 1);
+            const simMat = new THREE.ShaderMaterial({
+                glslVersion: THREE.GLSL3,
+                vertexShader: SIM_VERT,
+                fragmentShader: SIM_FRAG,
+                uniforms: {
+                    uPos: { value: null },
+                    uVel: { value: null },
+                    uHome: { value: homeTex },
+                    uCursor: { value: new THREE.Vector2(99, 99) },
+                    uCursorVel: { value: new THREE.Vector2() },
+                    uWaveOrigin: { value: new THREE.Vector2(99, 99) },
+                    uWaveProgress: { value: 1 },
+                    uScale: { value: SIM_SCALE },
+                    uStep: { value: 1 / 120 },
+                },
+                depthTest: false,
+                depthWrite: false,
+            });
+            const simScene = new THREE.Scene();
+            simScene.add(new THREE.Mesh(new THREE.PlaneGeometry(2, 2), simMat));
+            const simCam = new THREE.OrthographicCamera(-1, 1, 1, -1, 0, 1);
+            const simStep = () => {
+                simMat.uniforms.uPos.value = simRead.textures[0];
+                simMat.uniforms.uVel.value = simRead.textures[1];
+                renderer.setRenderTarget(simWrite);
+                renderer.render(simScene, simCam);
+                [simRead, simWrite] = [simWrite, simRead];
+            };
 
             const { vertex, fragment } = voxelShaders(manifest);
             const voxelMat = new THREE.ShaderMaterial({
@@ -476,10 +582,10 @@ export default function HeroVoxel({ className = "" }: { className?: string }) {
                     uRim: { value: 0 },
                     uTime: { value: 0 },
                     uScan: { value: 2 },
-                    uPush: { value: 0 },
-                    uPointer: { value: new THREE.Vector2(99, 99) },
-                    uTrail: { value: Array.from({ length: 16 }, () => new THREE.Vector4(99, 99, 0, 0)) },
-                    uTrailLife: { value: new Array(16).fill(0) },
+                    uSimPos: { value: null },
+                    uSimVel: { value: null },
+                    uSimSize: { value: new THREE.Vector2(SIM_W, SIM_H) },
+                    uSimScale: { value: SIM_SCALE },
                     uAlpha: { value: 0.6 },
                     uDetail: { value: 0.22 },
                 },
@@ -579,6 +685,14 @@ export default function HeroVoxel({ className = "" }: { className?: string }) {
                 pointer.last = performance.now();
             };
             window.addEventListener("pointermove", onMove, { passive: true });
+            // A press on the face sends a ring out through the voxels (the wave, in the simulation).
+            const onDown = (e: PointerEvent) => {
+                if (e.pointerType !== "mouse" && e.pointerType !== "pen") return;
+                onMove(e);
+                pendingWave = true;
+            };
+            let pendingWave = false;
+            window.addEventListener("pointerdown", onDown, { passive: true });
             const ray = new THREE.Raycaster();
             const plane = new THREE.Plane(new THREE.Vector3(0, 0, 1), -0.9);
             const hit = new THREE.Vector3();
@@ -600,6 +714,10 @@ export default function HeroVoxel({ className = "" }: { className?: string }) {
             const SPEED = 0.55;
             const local = new THREE.Vector3();
             let lastNow = 0;
+            let simDebt = 0;
+            let cursorOn = false;
+            const cursorSmooth = new THREE.Vector2();
+            const cursorPrev = new THREE.Vector2();
             let glitchUntil = 0;
             let nextGlitch = 0;
             let frame = 0;
@@ -632,43 +750,55 @@ export default function HeroVoxel({ className = "" }: { className?: string }) {
                 const scanT = ((t - 3.5) % 5.2) / 1.4;
                 u.uScan.value = t > 3.5 && scanT < 1 ? scanT * 1.3 - 0.15 : 2;
                 const pointing = pointer.active && now - pointer.last < 2500;
-                // Where the pointer is on the face's plane, in the head's own coordinates; the push eases in and out.
-                let near = false;
-                if (pointing) {
+                // The pointer on the face's plane, in the head's own coordinates, smoothed, and how fast it moves there
+                // (the reference's cursor velocity: per second, decaying fast once the pointer stops).
+                const dt = Math.min(0.1, (now - (lastNow || now)) / 1000);
+                lastNow = now;
+                const sim = simMat.uniforms;
+                let onFace = false;
+                if (pointing && t > PLAY_FROM && Math.abs(pointer.x) <= 1 && Math.abs(pointer.y) <= 1) {
                     ray.setFromCamera(ndc.set(pointer.x, pointer.y), camera);
                     if (ray.ray.intersectPlane(plane, hit)) {
                         local.copy(hit);
                         head.worldToLocal(local);
-                        u.uPointer.value.set(local.x, local.y);
-                        near = Math.abs(pointer.x) <= 1 && Math.abs(pointer.y) <= 1;
+                        onFace = true;
                     }
                 }
-                u.uPush.value += ((near && t > PLAY_FROM ? 1 : 0) - u.uPush.value) * 0.08;
-                // The swipe's path: a new point each time the pointer has moved a little, each fading over about a second.
-                const trailPts = u.uTrail.value as InstanceType<typeof THREE.Vector4>[];
-                const lives = u.uTrailLife.value as number[];
-                // About three seconds for a peeled block to drift off and settle back, whatever the screen's frame rate.
-                const dt = Math.min(0.1, (now - (lastNow || now)) / 1000);
-                lastNow = now;
-                for (let i = 0; i < 16; i++) lives[i] = Math.max(0, lives[i] - dt / 3);
-                if (near && t > PLAY_FROM) {
-                    const head0 = trailPts[0];
-                    const dx = local.x - head0.x;
-                    const dy = local.y - head0.y;
-                    const moved = Math.hypot(dx, dy);
-                    if (moved > 0.03 && moved < 3) {
-                        for (let i = 15; i > 0; i--) {
-                            trailPts[i].copy(trailPts[i - 1]);
-                            lives[i] = lives[i - 1];
-                        }
-                        // A faster swipe throws the blocks further (the direction's length), every point lives the same time.
-                        const strength = Math.min(1, moved * 10);
-                        trailPts[0].set(local.x, local.y, (dx / moved) * strength, (dy / moved) * strength);
-                        lives[0] = 1;
-                    } else if (moved >= 3) {
-                        trailPts[0].set(local.x, local.y, 0, 0);
+                if (onFace && dt > 0) {
+                    if (!cursorOn) {
+                        cursorOn = true;
+                        cursorSmooth.set(local.x, local.y);
+                        cursorPrev.copy(cursorSmooth);
+                    }
+                    const follow = 1 - Math.exp(-60 * dt);
+                    cursorSmooth.x += (local.x - cursorSmooth.x) * follow;
+                    cursorSmooth.y += (local.y - cursorSmooth.y) * follow;
+                    const mx = cursorSmooth.x - cursorPrev.x;
+                    const my = cursorSmooth.y - cursorPrev.y;
+                    if (mx * mx + my * my > 1e-8) sim.uCursorVel.value.set(mx / dt, my / dt);
+                    else sim.uCursorVel.value.multiplyScalar(Math.exp(-15 * dt));
+                    cursorPrev.copy(cursorSmooth);
+                    sim.uCursor.value.copy(cursorSmooth);
+                } else {
+                    cursorOn = false;
+                    sim.uCursorVel.value.set(0, 0);
+                }
+                if (pendingWave) {
+                    pendingWave = false;
+                    if (onFace) {
+                        sim.uWaveOrigin.value.set(local.x, local.y);
+                        sim.uWaveProgress.value = 0;
                     }
                 }
+                sim.uWaveProgress.value = Math.min(1, sim.uWaveProgress.value + dt / 1.2);
+                // Fixed steps of 1/120 s, at most four a frame.
+                simDebt = Math.min(simDebt + dt, 4 / 120);
+                while (simDebt >= 1 / 120) {
+                    simDebt -= 1 / 120;
+                    simStep();
+                }
+                u.uSimPos.value = simRead.textures[0];
+                u.uSimVel.value = simRead.textures[1];
 
                 // Now and then the feed glitches; always across the flash.
                 if (t > 4 && t > nextGlitch) {
@@ -734,6 +864,7 @@ export default function HeroVoxel({ className = "" }: { className?: string }) {
                 resize.disconnect();
                 document.removeEventListener("visibilitychange", onVis);
                 window.removeEventListener("pointermove", onMove);
+                window.removeEventListener("pointerdown", onDown);
                 [box, geo, gridGeo, trailGeo, post.geometry].forEach((g) => g.dispose());
                 view.traverse((o) => {
                     if (o instanceof THREE.Mesh || o instanceof THREE.LineSegments) o.geometry.dispose();
@@ -743,6 +874,10 @@ export default function HeroVoxel({ className = "" }: { className?: string }) {
                 [dataTex, photoTex].forEach((tex) => tex.dispose());
                 target.dispose();
                 headTarget.dispose();
+                simRead.dispose();
+                simWrite.dispose();
+                homeTex.dispose();
+                simMat.dispose();
                 renderer.dispose();
                 renderer.domElement.remove();
             };
