@@ -867,27 +867,6 @@ html.has-crosshair .crosshair-word[data-on]:not([data-away]) {
   }
 }
 
-/*
- * Scroll reveal. Used on section headings and a few feature blocks only —
- * if everything rises on scroll, nothing is being pointed at.
- */
-.reveal {
-  transition:
-    opacity 500ms cubic-bezier(0.22, 1, 0.36, 1),
-    transform 500ms cubic-bezier(0.22, 1, 0.36, 1);
-  transition-delay: var(--delay, 0ms);
-}
-
-/*
- * Hidden, ready to rise, only while JavaScript is running the page (the boot
- * script's data-js): without it, or if the app never starts, nothing would
- * ever reveal them, so they simply show.
- */
-html[data-js] .reveal:not([data-shown]) {
-  opacity: 0;
-  transform: translateY(14px);
-}
-
 /* Strokes that draw themselves: give the element pathLength="1". */
 @keyframes draw {
   to {

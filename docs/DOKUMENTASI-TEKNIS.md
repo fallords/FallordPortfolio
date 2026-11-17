@@ -161,7 +161,7 @@ Error di dalam halaman ditangani `app/error.tsx`. Error di root layout ditangani
 
 **Komponen server dan client.** Komponen tanpa `"use client"` dirender saat build saja: `layout`, `page`, `Hero`, `Works`, `Writing`, `Contact`, `Footer`, `Section`, `SwipeHint`, dan halaman tulisan. Komponen dengan `"use client"` ikut dijalankan di browser:
 
-- **Bagian halaman:** `About`, `Certifications`, `CertificateLightbox`, `CommandPalette`, `Header`, `IntroScreen`, `PageLoading`, `Portrait`, `Reveal`, `ReadingProgress`, `LocalTime`, `CopyEmail`, `GridOverlay`, `SwipeRow`.
+- **Bagian halaman:** `About`, `Certifications`, `CertificateLightbox`, `CommandPalette`, `Header`, `IntroScreen`, `PageLoading`, `HeroVoxel`, `ReadingProgress`, `LocalTime`, `CopyEmail`, `GridOverlay`.
 - **Penanganan error:** `ErrorBoundary`, `FallbackNotice`, `error.tsx`, `global-error.tsx`.
 - **Demo:** kelima komponen di `demos/`.
 - **Figur:** `LoraLive` di `figures/lora/live.tsx`, serta `CvLive`, `SeraLive`, `WearableLive` dan `DoorLive` di `figures/thumbs/live.tsx`. Gambar statisnya dibuat di server (`art.tsx` masing-masing) dan dikirim sebagai elemen.
@@ -187,7 +187,7 @@ Urutan diatur di `app/page.tsx`.
 
 | Section | `id` | Komponen | Sumber data |
 |---|---|---|---|
-| Hero | | `Hero.tsx`, `Portrait.tsx`, `LocalTime.tsx` | teks di `Hero.tsx`, email di `site.ts` |
+| Hero | | `Hero.tsx`, `HeroVoxel.tsx`, `LocalTime.tsx` | teks di `Hero.tsx`, email di `site.ts` |
 | In short | `brief` | `Statement.tsx` | teks di `Statement.tsx` |
 | Work | `work` | `Works.tsx`, `WorkStage.tsx` | array `projects` di `Works.tsx` |
 | Experience | `experience` | `Experience.tsx`, `ExperienceDrum.tsx` | `content/experience.ts` |
@@ -216,14 +216,14 @@ Di HP, satu proyek per layar (kartu 88% lebar, snap) yang digeser lewat `SwipeRo
 
 | Kartu | Demo | Isi |
 |---|---|---|
-| Code | `CodeDemo` | Mengetik `loadOrder` milik potret, lalu menjalankan fungsi aslinya (diimpor dari `Portrait.tsx`) dan menyalakan 181 kotak sesuai urutan muat |
+| Code | `CodeDemo` | Mengetik `loadOrder` yang dipakai hero pertama situs ini, lalu menjalankannya dan menyalakan 181 kotak sesuai urutan muat |
 | Design | `WireframeDemo` | Wireframe hero dan desain jadinya, dengan slider di antara keduanya. Bentuk panel memilih versi lebar atau HP lewat container query |
 | Systems | `TraceDemo` | Trace request `POST /api/analyze`, diputar 2,5× lebih lambat |
 | AI | `StreamDemo` | Jawaban chat yang mengalir per token. Jawabannya sudah ditulis, tidak ada API |
 | Hardware | `SensorDemo` | Sinyal akselerometer dengan ambang jatuh 23.1 m/s², lalu jalur MPU6050 → ESP32 → LoRa → Receiver → HTTP POST → MySQL. Berhenti saat panel tidak terlihat |
 
 Cara kerjanya:
-- **Isi kartu:** nama dan petunjuk "coba ini" (berdenyut emas sampai demonya dipakai, lalu berganti keterangan seperti "Portrait.tsx, code from this site"), panel demo, satu kalimat deskripsi, dan tools-nya.
+- **Isi kartu:** nama dan petunjuk "coba ini" (berdenyut emas sampai demonya dipakai, lalu berganti keterangan seperti "loadOrder(), code this site has run"), panel demo, satu kalimat deskripsi, dan tools-nya.
 - **Satu bingkai saja:** hanya panel demo yang berbingkai, supaya tidak ada kartu di dalam kartu.
 - **Demo mulai saat terlihat:** demo di-mount saat kartunya pertama kali terlihat (IntersectionObserver, 35%), jadi demo yang berjalan sekali seperti kode mengetik, trace, dan jawaban chat diputar saat ada yang melihat. Di HP, kartu yang belum digeser masuk belum menjalankan apa pun.
 - **Tinggi panel:** mulai 768px tingginya tetap, yaitu 440px untuk Code dan Design, dan 440px di tablet atau 400px di desktop untuk tiga demo lainnya. Di HP setinggi isinya, dengan ruang 20rem yang dijaga sampai demonya muncul.
@@ -381,7 +381,7 @@ Rincian tipografi, skala, dan catatan desain ada di halaman "Catatan Desain Fadh
 - **Hemat.** Render berhenti saat hero di luar layar (IntersectionObserver) atau tab tersembunyi. DPR maks. 1,6 (HP 1,4).
 - **Fallback.** Reduced motion atau WebGL gagal: `voxel-still.png` buram sebagai siluet dengan bingkai. Selain itu tidak ada gambar apa pun sebelum boot, dan gambar diam tidak diunduh.
 - **Progres ke intro.** `reportPortraitProgress(1)` dikirim begitu data termuat (atau gagal), lewat `lib/portraitProgress.ts`.
-- **`Portrait.tsx` dan `public/frames/`** tidak lagi dipakai hero; masih dipakai demo Code (konstanta urutan muat) dan Design (gambar wireframe → desain).
+- **`Portrait.tsx` dan 543 frame potret lama** sudah dihapus. `loadOrder` kini tinggal di `CodeDemo.tsx`; `public/frames/still-*.jpg` tetap ada untuk demo Design.
 
 ## 10. Loading, error, dan ketahanan
 
@@ -589,7 +589,6 @@ Selama pengembangan, pemeriksaan ini dijalankan otomatis dengan Chrome headless 
 
 - Tanpa JavaScript, potret kosong (kotak hijau dengan keterangan "Frame 001 / 181").
 - Di desktop, What I do setinggi sekitar 1370px, karena kelima demo tampil sekaligus. Di HP muat satu layar (811px di 390px).
-- `Reveal.tsx` dan kelas `.reveal` tidak dipakai lagi sejak judul section dan panel demo tidak lagi muncul dengan animasi. Keduanya bisa dihapus.
 - Index sertifikat di laptop memakai nama lengkap, jadi beberapa baris turun ke dua baris. Ini disengaja: memotong nama akan menyembunyikan informasi.
 - Bentuk header masih bar standar (nama di kiri, empat tautan dan tombol Contact di kanan; command palette hanya dari keyboard). Untuk empat tautan ini pilihan yang paling mudah dipakai.
 - Skrip pembuat frame potret tidak ada di repo.

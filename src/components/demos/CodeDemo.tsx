@@ -1,12 +1,11 @@
 "use client";
 
 import { useEffect, useState } from "react";
-import { COARSE_COUNT as PLAYABLE, TOTAL, loadOrder } from "../Portrait";
 
 /*
- * The loader behind the portrait at the top of the site
- * (components/Portrait.tsx), trimmed. The demo types it out, then runs it:
- * the strip below lights up the 181 frames in the order this code returns.
+ * The loader the site's first hero used for its 181-frame head turn,
+ * trimmed. The demo types it out, then runs it: the strip below lights up
+ * the 181 frames in the order this code returns.
  */
 const SOURCE = `// Rough frames first, then fill in the gaps.
 function loadOrder(total: number) {
@@ -25,10 +24,27 @@ function loadOrder(total: number) {
 }`;
 
 /*
- * The strip runs the portrait's own loadOrder() (imported above), so what it
- * lights up is the order the portrait really loads in. PLAYABLE is the
- * frames needed before it can start turning: every 8th, plus both ends.
+ * The strip runs the same loadOrder() the demo shows, so what it lights up is
+ * the order the frames really loaded in. PLAYABLE is the frames needed
+ * before the turn could start: every 8th, plus both ends.
  */
+const TOTAL = 181;
+function loadOrder() {
+    const order: number[] = [];
+    const seen = new Set<number>();
+    const push = (i: number) => {
+        if (i < 1 || i > TOTAL || seen.has(i)) return;
+        seen.add(i);
+        order.push(i);
+    };
+    push(1);
+    push(TOTAL);
+    for (const stride of [32, 16, 8, 4, 2, 1]) {
+        for (let i = 1; i <= TOTAL; i += stride) push(i);
+    }
+    return order;
+}
+const PLAYABLE = Math.ceil(TOTAL / 8) + 1;
 const ORDER = loadOrder();
 /** Position of each frame in the load order, for colouring the strip. */
 const RANK = (() => {

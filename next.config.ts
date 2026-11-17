@@ -59,8 +59,8 @@ const nextConfig: NextConfig = {
   images: {
     formats: ["image/avif", "image/webp"],
     // Only the images the site shows can go through the optimizer, so no one
-    // can spend its quota on other files. /frames is the portrait (Portrait.tsx
-    // and the design demo build optimizer URLs for it themselves).
+    // can spend its quota on other files. /frames holds the stills the design demo
+    // shows (it builds optimizer URLs for them itself).
     localPatterns: [
       { pathname: "/frames/**", search: "" },
       { pathname: "/certificates/**", search: "" },

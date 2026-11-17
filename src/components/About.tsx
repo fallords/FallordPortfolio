@@ -21,7 +21,7 @@ const services = [
         title: "Code",
         desc: "I write software in TypeScript, Python and C++: web apps and the servers behind them, tools built on AI models, and firmware for small boards.",
         tools: ["Next.js", "React", "TypeScript", "Tailwind CSS"],
-        meta: "Portrait.tsx, code from this site",
+        meta: "loadOrder(), code this site has run",
         hint: "watch it, then rerun",
         Demo: CodeDemo,
     },
@@ -175,7 +175,6 @@ export default function About() {
         });
         return () => cleanups.forEach((stop) => stop());
         // select only reads refs; re-binding on `active` alone is enough.
-        // eslint-disable-next-line react-hooks/exhaustive-deps
     }, [active]);
 
     const onKeyDown = (event: KeyboardEvent<HTMLDivElement>) => {
