@@ -151,7 +151,8 @@ export function stage(
     const size = () => {
         w = Math.max(1, host.clientWidth);
         h = Math.max(1, host.clientHeight);
-        renderer.setPixelRatio(Math.min(window.devicePixelRatio, 2));
+        // Sharp enough for thin lines, without filling a phone's whole pixel count several times over.
+        renderer.setPixelRatio(Math.min(window.devicePixelRatio, window.innerWidth < 768 ? 1.25 : 1.5));
         renderer.setSize(w, h, false);
         camera.aspect = w / h;
         camera.position.set(0, 0, h / 2 / Math.tan((camera.fov * Math.PI) / 360));

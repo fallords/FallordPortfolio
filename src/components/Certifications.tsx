@@ -46,7 +46,7 @@ const SLIDE_MS = 5000;
  * the foot of the scan for as long as the slide stays; when it reaches the
  * end the next one comes on.
  *
- * It holds still while the pointer or the keyboard is on it, while it is
+ * It holds still while the pointer is on the certificate or the controls, while the keyboard is on it, while it is
  * off the screen, while a certificate is open full size, and when Pause is
  * pressed (WCAG 2.2.2). The arrows step through by hand, and the row of
  * numbers goes to any one. With motion turned down it never turns on its
@@ -107,7 +107,8 @@ export default function Certifications() {
                 className="cc-stage"
                 data-paused={paused || undefined}
                 style={{ "--n": TOTAL, "--active": cur, "--slide": `${SLIDE_MS}ms` } as CSSProperties}
-                onPointerEnter={(e) => e.pointerType === "mouse" && setPointed(true)}
+                // Held only while the pointer is on the certificate itself or the controls, not anywhere over the stage.
+                onPointerOver={(e) => e.pointerType === "mouse" && setPointed(!!(e.target as Element).closest(".cc-frame, .cc-controls"))}
                 onPointerLeave={() => setPointed(false)}
                 onFocus={() => setFocused(true)}
                 onBlur={(e) => !e.currentTarget.contains(e.relatedTarget as Node | null) && setFocused(false)}

@@ -1,6 +1,5 @@
 "use client";
 
-import { FrameReel } from "./scenes";
 import { useEffect, useState } from "react";
 
 /*
@@ -137,7 +136,7 @@ export default function CodeDemo() {
 
     return (
         <div className="flex h-full flex-col">
-            <pre className="relative min-h-0 flex-1 overflow-hidden px-4 py-2.5 font-mono text-xs leading-[1.45] text-[var(--fg-muted)] sm:px-5 sm:py-3.5 sm:leading-[1.6] lg:py-4 lg:text-[12.5px] lg:leading-[1.55]">
+            <pre className="min-h-0 flex-1 overflow-hidden px-4 py-2.5 font-mono text-xs leading-[1.45] text-[var(--fg-muted)] sm:px-5 sm:py-3.5 sm:leading-[1.6] lg:py-4 lg:text-[12.5px] lg:leading-[1.55]">
                 {/*
                  * Every line is laid out from the start, the untyped part
                  * invisible. On a phone the panel is only as tall as this, so
@@ -165,10 +164,6 @@ export default function CodeDemo() {
                         </div>
                     );
                 })}
-                {/* On a wide panel, the frames on a turning reel beside the code, lit in the same order as the strip below. */}
-                <span className="absolute inset-y-0 right-0 hidden w-[40%] lg:block">
-                    <FrameReel loaded={loaded} total={TOTAL} rank={RANK} playable={PLAYABLE} />
-                </span>
             </pre>
 
             {/* The code's output: every frame, lit in the order loadOrder() returns. */}

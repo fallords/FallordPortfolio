@@ -2,160 +2,149 @@
 
 import { useEffect, useRef } from "react";
 import * as THREE from "three";
-import { circle, edgesOf, lines, polyline, seg, wire, type Lines, type V } from "./three/wire";
 
 /*
- * Behind every section after the hero, one thin green wireframe of its own, drawn on one canvas fixed to the screen
- * (one WebGL context for the whole page). The section across the middle of the screen has its figure on show; the
- * others fade out. The hero covers the canvas with its own stage. Turns with time and with the scroll through its
- * section, leans a little to the pointer; still under reduced motion.
+ * One field of glowing green particles behind every section after the hero, on one canvas fixed to the screen. As
+ * the section across the middle of the screen changes, the particles come loose and re-form into that section's
+ * shape: rolling ground under the statement, a double helix by the writing, a globe by the contact form. Where a
+ * section has a 3D drawing of its own (the work bench, the drum, the demos, the certificates), they thin out into a
+ * slow dust, so nothing competes with it. The pointer pushes them aside as it passes. Still under reduced motion.
  */
 
-// Statement: a field of lines rolling like ground seen from low down (the wave is in the shader).
-function terrain(): Lines {
-    const l = lines();
-    const X = 14, Z = 10, NX = 40, NZ = 20;
-    for (let j = 0; j <= NZ; j++) {
-        const z = -Z + (j / NZ) * Z * 2;
-        polyline(l, Array.from({ length: NX + 1 }, (_, i) => [-X + (i / NX) * X * 2, 0, z] as V));
-    }
-    for (let i = 0; i <= NX; i += 2) {
-        const x = -X + (i / NX) * X * 2;
-        polyline(l, Array.from({ length: NZ + 1 }, (_, j) => [x, 0, -Z + (j / NZ) * Z * 2] as V));
-    }
-    return l;
-}
+type Shape = "dust" | "ground" | "helix" | "globe";
 
-// Work: solids nested in a cage, what gets built.
-function polyhedra(): Lines {
-    const l = lines();
-    edgesOf(l, new THREE.IcosahedronGeometry(2.1, 1));
-    edgesOf(l, new THREE.OctahedronGeometry(1.1));
-    edgesOf(l, new THREE.BoxGeometry(3.4, 3.4, 3.4));
-    return l;
-}
-
-// Experience: a gyroscope, the drum's reticle in three dimensions.
-function gyro(): Lines {
-    const l = lines();
-    polyline(l, circle(2.4, 96, (a) => [Math.cos(a), Math.sin(a), 0]), true);
-    polyline(l, circle(2.1, 96, (a) => [Math.cos(a), 0, Math.sin(a)]), true);
-    polyline(l, circle(1.8, 96, (a) => [0, Math.cos(a), Math.sin(a)]), true);
-    for (let i = 0; i < 72; i++) {
-        const a = (i / 72) * Math.PI * 2;
-        const r = i % 6 ? 2.75 : 2.6;
-        seg(l, [Math.cos(a) * 2.9, Math.sin(a) * 2.9, 0], [Math.cos(a) * r, Math.sin(a) * r, 0]);
-    }
-    seg(l, [0, -3.2, 0], [0, 3.2, 0]);
-    return l;
-}
-
-// What I do: a network of nodes, each tied to its nearest neighbours, signals running along the ties.
-function network(): Lines {
-    const l = lines();
-    const n = 64;
-    const pts: V[] = [];
-    let s = 7;
-    const rand = () => ((s = (s * 16807) % 2147483647) / 2147483647);
-    for (let i = 0; i < n; i++) {
-        const y = 1 - (i / (n - 1)) * 2;
-        const r = Math.sqrt(1 - y * y);
-        const a = i * 2.39996;
-        const k = 2.4 * (0.85 + rand() * 0.3);
-        pts.push([Math.cos(a) * r * k, y * k, Math.sin(a) * r * k]);
-    }
-    const seen = new Set<string>();
-    pts.forEach((p, i) => {
-        pts.map((q, j) => [j, (p[0] - q[0]) ** 2 + (p[1] - q[1]) ** 2 + (p[2] - q[2]) ** 2] as const)
-            .filter(([j]) => j !== i)
-            .sort((a, b) => a[1] - b[1])
-            .slice(0, 3)
-            .forEach(([j]) => {
-                const key = i < j ? `${i}-${j}` : `${j}-${i}`;
-                if (seen.has(key)) return;
-                seen.add(key);
-                const t = rand();
-                seg(l, p, pts[j], t, t + 0.2);
-            });
-        // A small cross on each node.
-        const c = 0.08;
-        seg(l, [p[0] - c, p[1], p[2]], [p[0] + c, p[1], p[2]]);
-        seg(l, [p[0], p[1] - c, p[2]], [p[0], p[1] + c, p[2]]);
-    });
-    return l;
-}
-
-// Certificates: a fanned stack of frames, a cross through each.
-function cards(): Lines {
-    const l = lines();
-    for (let k = 0; k < 6; k++) {
-        const a = (k - 2.5) * 0.16;
-        const z = (k - 2.5) * 0.45;
-        const at = (x: number, y: number): V => [x * Math.cos(a) - y * Math.sin(a), x * Math.sin(a) + y * Math.cos(a), z];
-        const w = 1.5, h = 1.05;
-        polyline(l, [at(-w, -h), at(w, -h), at(w, h), at(-w, h)], true);
-        if (k === 5) {
-            seg(l, at(-w, -h), at(w, h));
-            seg(l, at(-w, h), at(w, -h));
-        }
-        for (let r = 0; r < 3; r++) seg(l, at(-w + 0.25, h - 0.35 - r * 0.22), at(-w + 0.25 + (r ? 1.4 : 2.2), h - 0.35 - r * 0.22));
-    }
-    return l;
-}
-
-// Writing: a double helix, words strung along it.
-function helix(): Lines {
-    const l = lines();
-    const N = 220, H = 6.4, turns = 3.2, R = 1.3;
-    const at = (i: number, off: number): V => {
-        const a = (i / N) * turns * Math.PI * 2 + off;
-        return [Math.cos(a) * R, -H / 2 + (i / N) * H, Math.sin(a) * R];
-    };
-    for (const off of [0, Math.PI]) polyline(l, Array.from({ length: N + 1 }, (_, i) => at(i, off)));
-    for (let i = 0; i <= N; i += 10) seg(l, at(i, 0), at(i, Math.PI), i / N, i / N);
-    return l;
-}
-
-// Contact: a globe, signals arcing between points on it.
-function globe(): Lines {
-    const l = lines();
-    const R = 2.3;
-    for (let la = -60; la <= 60; la += 30) {
-        const y = Math.sin((la * Math.PI) / 180), r = Math.cos((la * Math.PI) / 180);
-        polyline(l, circle(R, 96, (a) => [Math.cos(a) * r, y, Math.sin(a) * r]), true);
-    }
-    for (let lo = 0; lo < 180; lo += 30) {
-        const c = Math.cos((lo * Math.PI) / 180), s = Math.sin((lo * Math.PI) / 180);
-        polyline(l, circle(R, 96, (a) => [Math.cos(a) * c, Math.sin(a), Math.cos(a) * s]), true);
-    }
-    const on = (lat: number, lon: number) =>
-        new THREE.Vector3().setFromSphericalCoords(R, ((90 - lat) * Math.PI) / 180, (lon * Math.PI) / 180);
-    const arcs: [number, number, number, number][] = [
-        [-6, 107, 35, 139], [-6, 107, 51, 0], [-6, 107, 37, -122], [-6, 107, 1, 104], [-6, 107, -33, 151],
-    ];
-    for (const [a1, o1, a2, o2] of arcs) {
-        const p = on(a1, o1), q = on(a2, o2);
-        const pts: V[] = [];
-        for (let i = 0; i <= 48; i++) {
-            const t = i / 48;
-            const v = p.clone().lerp(q, t).normalize().multiplyScalar(R * (1 + Math.sin(t * Math.PI) * 0.28));
-            pts.push([v.x, v.y, v.z]);
-        }
-        polyline(l, pts);
-    }
-    return l;
-}
-
-// Which figure stands behind which section; on a wide screen `side` puts it right (1) or left (-1) of the middle, clear of the section's own panel.
-const SCENES = [
-    { id: "brief", make: terrain, wave: 1, pulse: 0, spin: 0, side: 0 },
-    { id: "work", make: polyhedra, wave: 0, pulse: 0, spin: 0.12, side: -1 },
-    { id: "experience", make: gyro, wave: 0, pulse: 0, spin: 0.18, side: 1 },
-    { id: "about", make: network, wave: 0, pulse: 1, spin: 0.08, side: 1 },
-    { id: "certificates", make: cards, wave: 0, pulse: 0, spin: 0.1, side: -1 },
-    { id: "writing", make: helix, wave: 0, pulse: 1, spin: 0.16, side: 1 },
-    { id: "contact", make: globe, wave: 0, pulse: 1, spin: 0.07, side: 1 },
+// Which shape stands behind which section, and where on a wide screen (x: 0 the middle, 1 right of the words, 1.55 at the right edge).
+const SECTIONS: { id: string; shape: Shape; x: number }[] = [
+    { id: "brief", shape: "ground", x: 0 },
+    { id: "work", shape: "dust", x: 0 },
+    { id: "experience", shape: "dust", x: 0 },
+    { id: "about", shape: "dust", x: 0 },
+    { id: "certificates", shape: "dust", x: 0 },
+    { id: "writing", shape: "helix", x: 1.55 },
+    { id: "contact", shape: "globe", x: 1 },
 ];
+
+/** A seeded random, so every visit draws the same shapes. */
+function random(seed: number) {
+    let s = seed;
+    return () => ((s = (s * 16807) % 2147483647) - 1) / 2147483646;
+}
+
+/** `n` points of a shape, about 5 units across, centred on the origin. */
+function sample(shape: Shape, n: number): Float32Array {
+    const out = new Float32Array(n * 3);
+    const r = random(shape.length * 7919 + 13);
+    const put = (i: number, x: number, y: number, z: number) => out.set([x, y, z], i * 3);
+    for (let i = 0; i < n; i++) {
+        if (shape === "dust") {
+            put(i, (r() - 0.5) * 26, (r() - 0.5) * 14, -2 - r() * 10);
+        } else if (shape === "ground") {
+            // A field rolling away from the viewer, lower and wider than the screen.
+            const x = (r() - 0.5) * 30, z = -r() * 16 + 2;
+            const y = -2.3 + Math.sin(x * 0.45) * 0.45 + Math.sin(z * 0.7 + x * 0.2) * 0.35;
+            put(i, x, y, z);
+        } else if (shape === "helix") {
+            // Two strands and the rungs between them.
+            const H = 7, R = 1.35, turns = 3.2;
+            const u = r();
+            const a = u * turns * Math.PI * 2;
+            const y = -H / 2 + u * H;
+            if (r() < 0.78) {
+                const off = r() < 0.5 ? 0 : Math.PI;
+                const j = 0.06;
+                put(i, Math.cos(a + off) * R + (r() - 0.5) * j, y + (r() - 0.5) * j, Math.sin(a + off) * R + (r() - 0.5) * j);
+            } else {
+                const step = Math.round(u * 40) / 40;
+                const b = step * turns * Math.PI * 2;
+                const t = r() * 2 - 1;
+                put(i, Math.cos(b) * R * t, -H / 2 + step * H, Math.sin(b) * R * t);
+            }
+        } else {
+            // The globe: mostly on its lines of latitude and longitude, some over its face, a few in arcs out from Java.
+            const R = 2.5;
+            const k = r();
+            let lat: number, lon: number, rad = R;
+            if (k < 0.35) {
+                lat = (Math.round((r() - 0.5) * 6) / 6) * Math.PI;
+                lon = r() * Math.PI * 2;
+            } else if (k < 0.7) {
+                lon = (Math.round(r() * 12) / 12) * Math.PI * 2;
+                lat = (r() - 0.5) * Math.PI;
+            } else if (k < 0.88) {
+                lat = Math.asin(r() * 2 - 1);
+                lon = r() * Math.PI * 2;
+            } else {
+                const ends = [[35, 139], [51, 0], [37, -122], [-33, 151], [1, 104]];
+                const [la2, lo2] = ends[Math.floor(r() * ends.length)]!;
+                const t = r();
+                lat = ((-6 + (la2! + 6) * t) * Math.PI) / 180;
+                lon = ((107 + (lo2! - 107) * t) * Math.PI) / 180;
+                rad = R * (1 + Math.sin(t * Math.PI) * 0.3);
+            }
+            put(i, Math.cos(lat) * Math.cos(lon) * rad, Math.sin(lat) * rad, Math.cos(lat) * Math.sin(lon) * rad);
+        }
+    }
+    return out;
+}
+
+const VERT = /* glsl */ `
+attribute vec3 aFrom;
+attribute vec3 aTo;
+attribute float aRand;
+uniform float uMix;
+uniform float uTime;
+uniform float uSpin;
+uniform vec3 uCentre;
+uniform vec2 uPointer;
+uniform float uPush;
+uniform float uSize;
+varying float vAlpha;
+varying float vLift;
+
+vec3 spin(vec3 p, vec3 c, float a) {
+    vec3 q = p - c;
+    float s = sin(a), k = cos(a);
+    return c + vec3(q.x * k + q.z * s, q.y, -q.x * s + q.z * k);
+}
+
+void main() {
+    // Each particle leaves a little later than the last, so a change runs through the field instead of jumping.
+    float t = clamp(uMix * 1.5 - aRand * 0.5, 0.0, 1.0);
+    float e = t * t * (3.0 - 2.0 * t);
+    vec3 p = mix(aFrom, spin(aTo, uCentre, uSpin), e);
+    // Loose in the middle of the move, then drawn in.
+    vec3 loose = vec3(sin(aRand * 91.0 + uTime), cos(aRand * 57.0 + uTime * 1.3), sin(aRand * 33.0 - uTime)) * 1.4;
+    p += loose * sin(e * 3.14159);
+    // Always breathing a little.
+    p += vec3(sin(uTime * 0.6 + aRand * 40.0), cos(uTime * 0.5 + aRand * 23.0), sin(uTime * 0.4 + aRand * 11.0)) * 0.04;
+    vec4 world = modelMatrix * vec4(p, 1.0);
+    // The pointer pushes them aside, on the screen's plane.
+    vec2 d = world.xy - uPointer;
+    float f = exp(-dot(d, d) / 1.2) * uPush;
+    world.xy += normalize(d + 1e-4) * f * 0.9;
+    vLift = f;
+    vec4 mv = viewMatrix * world;
+    gl_Position = projectionMatrix * mv;
+    gl_PointSize = uSize * (0.6 + aRand * 0.8) / -mv.z;
+    vAlpha = clamp(1.0 - (-mv.z - 6.0) / 18.0, 0.15, 1.0);
+}
+`;
+
+const FRAG = /* glsl */ `
+uniform vec3 uColor;
+uniform float uOpacity;
+varying float vAlpha;
+varying float vLift;
+void main() {
+    float r = length(gl_PointCoord - 0.5);
+    if (r > 0.5) discard;
+    // A soft glow with a bright core; pushed ones flare white.
+    float glow = smoothstep(0.5, 0.0, r);
+    float core = smoothstep(0.18, 0.0, r);
+    vec3 col = mix(uColor, vec3(1.0), core * 0.5 + vLift * 0.6);
+    gl_FragColor = vec4(col, (glow * 0.55 + core * 0.45) * vAlpha * uOpacity);
+}
+`;
 
 export default function SectionScenes() {
     const ref = useRef<HTMLDivElement>(null);
@@ -165,28 +154,102 @@ export default function SectionScenes() {
         if (!host) return;
         let renderer: THREE.WebGLRenderer;
         try {
-            renderer = new THREE.WebGLRenderer({ antialias: true, alpha: true, powerPreference: "low-power" });
+            renderer = new THREE.WebGLRenderer({ antialias: false, alpha: true, powerPreference: "low-power" });
         } catch {
             return;
         }
         renderer.setClearColor(0x000000, 0);
         host.appendChild(renderer.domElement);
         const still = window.matchMedia("(prefers-reduced-motion: reduce)");
-                const scene = new THREE.Scene();
+        const scene = new THREE.Scene();
         const camera = new THREE.PerspectiveCamera(35, 1, 0.1, 100);
         camera.position.set(0, 0, 11);
 
-        const figures = SCENES.map((s) => {
-            const mesh = wire(s.make(), { opacity: 0, wave: s.wave, pulse: s.pulse });
-            const mat = mesh.material;
-            mesh.visible = false;
-            const group = new THREE.Group();
-            group.add(mesh);
-            scene.add(group);
-            return { ...s, el: null as HTMLElement | null, group, mesh, mat, show: 0 };
+        // Fewer on a phone, and fewer again on a device with few cores.
+        const N = Math.round((window.innerWidth < 768 ? 7000 : 14000) * ((navigator.hardwareConcurrency || 8) <= 4 ? 0.6 : 1));
+        const shapes = Object.fromEntries((["dust", "ground", "helix", "globe"] as Shape[]).map((s) => [s, sample(s, N)])) as Record<Shape, Float32Array>;
+        const geo = new THREE.BufferGeometry();
+        const from = new Float32Array(shapes.dust);
+        const to = new Float32Array(shapes.dust);
+        const rnd = random(5);
+        const rand = new Float32Array(N).map(() => rnd());
+        geo.setAttribute("position", new THREE.BufferAttribute(new Float32Array(N * 3), 3));
+        geo.setAttribute("aFrom", new THREE.BufferAttribute(from, 3));
+        geo.setAttribute("aTo", new THREE.BufferAttribute(to, 3));
+        geo.setAttribute("aRand", new THREE.BufferAttribute(rand, 1));
+        const mat = new THREE.ShaderMaterial({
+            vertexShader: VERT,
+            fragmentShader: FRAG,
+            uniforms: {
+                uMix: { value: 1 },
+                uTime: { value: 0 },
+                uSpin: { value: 0 },
+                uCentre: { value: new THREE.Vector3() },
+                uPointer: { value: new THREE.Vector2(99, 99) },
+                uPush: { value: 0 },
+                uSize: { value: 30 },
+                uColor: { value: new THREE.Color("#19a352") },
+                uOpacity: { value: 0 },
+            },
+            transparent: true,
+            depthWrite: false,
+            blending: THREE.AdditiveBlending,
         });
+        const points = new THREE.Points(geo, mat);
+        points.frustumCulled = false;
+        scene.add(points);
+        const u = mat.uniforms;
 
-        let w = 0, h = 0, wide = false;
+        const sections = SECTIONS.map((s) => ({ ...s, el: null as HTMLElement | null }));
+        let w = 0, h = 0, wide = false, halfW = 6;
+        let current = -2;
+        let spin = 0;
+        const shapeOf = (k: number): Shape => sections[k]?.shape ?? "dust";
+        const placed = (k: number) => shapeOf(k) === "helix" || shapeOf(k) === "globe";
+        // On a narrow screen the shape goes half off the right edge, behind the words as little as it can.
+        const centreOf = (k: number) => new THREE.Vector3(!placed(k) ? 0 : wide ? sections[k]!.x * halfW * 0.55 : halfW * 0.85, 0, 0);
+        /** The positions the shape for section `k` asks for, placed for this screen. */
+        const targetOf = (k: number) => {
+            const src = shapes[shapeOf(k)];
+            const c = centreOf(k);
+            const scale = placed(k) && !wide ? 0.8 : 1;
+            const out = new Float32Array(src.length);
+            for (let i = 0; i < src.length; i += 3) {
+                out[i] = src[i]! * scale + c.x;
+                out[i + 1] = src[i + 1]! * scale + c.y;
+                out[i + 2] = src[i + 2]! * scale + c.z;
+            }
+            return out;
+        };
+        /** Where every particle is now (without its looseness), so a new move starts from there. */
+        const settle = () => {
+            const m = u.uMix.value as number;
+            const c = u.uCentre.value as THREE.Vector3;
+            const a = u.uSpin.value as number;
+            const s = Math.sin(a), k = Math.cos(a);
+            for (let i = 0; i < N; i++) {
+                const t = Math.min(1, Math.max(0, m * 1.5 - rand[i]! * 0.5));
+                const e = t * t * (3 - 2 * t);
+                const j = i * 3;
+                const qx = to[j]! - c.x, qz = to[j + 2]! - c.z;
+                const tx = c.x + qx * k + qz * s, tz = c.z - qx * s + qz * k;
+                from[j] = from[j]! + (tx - from[j]!) * e;
+                from[j + 1] = from[j + 1]! + (to[j + 1]! - from[j + 1]!) * e;
+                from[j + 2] = from[j + 2]! + (tz - from[j + 2]!) * e;
+            }
+        };
+        const go = (k: number) => {
+            settle();
+            to.set(targetOf(k));
+            (geo.attributes.aFrom as THREE.BufferAttribute).needsUpdate = true;
+            (geo.attributes.aTo as THREE.BufferAttribute).needsUpdate = true;
+            u.uCentre.value.copy(centreOf(k));
+            spin = 0;
+            u.uSpin.value = 0;
+            u.uMix.value = still.matches ? 1 : 0;
+            current = k;
+        };
+
         const resize = () => {
             w = window.innerWidth;
             h = window.innerHeight;
@@ -195,93 +258,81 @@ export default function SectionScenes() {
             renderer.setSize(w, h, false);
             camera.aspect = w / h;
             camera.updateProjectionMatrix();
-            // On a wide screen the figure stands right of the words; on a narrow one, behind them, a little smaller.
-            const halfW = Math.tan((camera.fov * Math.PI) / 360) * camera.position.z * camera.aspect;
-            for (const f of figures) {
-                if (f.wave) {
-                    f.group.position.set(0, -3.4, -2);
-                    f.group.rotation.set(0.32, 0, 0);
-                } else {
-                    f.group.position.set(wide ? f.side * halfW * 0.52 : 0, 0, 0);
-                    f.group.scale.setScalar(wide ? 1 : 0.8);
-                }
+            halfW = Math.tan((camera.fov * Math.PI) / 360) * camera.position.z * camera.aspect;
+            u.uSize.value = 75 * renderer.getPixelRatio() * (h / 900);
+            // Re-place the shape on show for the new screen.
+            if (current >= -1) {
+                to.set(targetOf(current));
+                (geo.attributes.aTo as THREE.BufferAttribute).needsUpdate = true;
+                u.uCentre.value.copy(centreOf(current));
             }
-            dirty = true;
         };
 
-        let pointerX = 0, pointerY = 0;
+        // The pointer on the plane through the origin, in world units; far away when there is none.
+        let pointerX = 99, pointerY = 99, push = 0, pushTo = 0;
         const onMove = (e: PointerEvent) => {
             if (e.pointerType !== "mouse") return;
-            pointerX = (e.clientX / w) * 2 - 1;
-            pointerY = (e.clientY / h) * 2 - 1;
+            const halfH = Math.tan((camera.fov * Math.PI) / 360) * camera.position.z;
+            pointerX = ((e.clientX / w) * 2 - 1) * halfH * camera.aspect;
+            pointerY = -((e.clientY / h) * 2 - 1) * halfH;
+            pushTo = 1;
         };
+        const onLeave = () => (pushTo = 0);
 
-        let frame = 0, last = 0, time = 0, dirty = true, drawn = false;
+        let frame = 0, last = 0, time = 0, shown = 0;
         const loop = (now: number) => {
             frame = requestAnimationFrame(loop);
             const dt = Math.min(0.05, last ? (now - last) / 1000 : 0);
             last = now;
             const moving = !still.matches;
             if (moving) time += dt;
+            // The section across the middle of the screen; none while the hero is up.
             const mid = h * 0.5;
-            let any = false;
-            for (const f of figures) {
-                f.el ??= document.getElementById(f.id);
-                const r = f.el?.getBoundingClientRect();
-                const on = !!r && r.top < mid && r.bottom > mid;
-                const target = on ? (wide ? 0.55 : 0.32) : 0;
-                const before = f.show;
-                f.show = moving ? f.show + (target - f.show) * (1 - Math.exp(-dt * 4)) : target;
-                if (Math.abs(f.show - target) < 0.002) f.show = target;
-                if (f.show !== before) dirty = true;
-                f.mesh.visible = f.show > 0;
-                if (!f.mesh.visible || !r) continue;
-                any = true;
-                f.mat.uniforms.uOpacity.value = f.show;
-                f.mat.uniforms.uTime.value = time;
-                // Turns with time and with the scroll through its section.
-                const p = moving ? (mid - r.top) / Math.max(1, r.height) : 0.3;
-                if (!f.wave) {
-                    f.mesh.rotation.y = time * f.spin + p * 1.4;
-                    f.mesh.rotation.x = 0.35 + p * 0.5;
-                }
-            }
-            if (moving && any) {
-                camera.position.x += (pointerX * 0.6 - camera.position.x) * (1 - Math.exp(-dt * 3));
-                camera.position.y += (-pointerY * 0.4 - camera.position.y) * (1 - Math.exp(-dt * 3));
-                camera.lookAt(0, 0, 0);
-                dirty = true;
-            }
-            if (!any) {
-                if (drawn) {
-                    renderer.clear();
-                    drawn = false;
-                }
+            let k = -1;
+            sections.forEach((s, i) => {
+                s.el ??= document.getElementById(s.id);
+                const r = s.el?.getBoundingClientRect();
+                if (r && r.top < mid && r.bottom > mid) k = i;
+            });
+            if (k !== current) go(k);
+            // Faint as dust, fuller as a shape; nothing over the hero.
+            const target = k < 0 ? 0 : shapeOf(k) === "dust" ? 0.35 : wide ? 1 : 0.45;
+            shown += (target - shown) * (moving ? 1 - Math.exp(-dt * 3) : 1);
+            if (shown < 0.003 && target === 0) {
+                shown = 0;
+                renderer.clear();
                 return;
             }
-            if (!dirty) return;
-            dirty = moving;
+            if (moving) {
+                u.uMix.value = Math.min(1, (u.uMix.value as number) + dt / 1.8);
+                spin += dt * 0.12;
+                u.uSpin.value = placed(k) ? spin : 0;
+                push += (pushTo - push) * (1 - Math.exp(-dt * 6));
+                // The camera leans a little towards the pointer.
+                const k2 = 1 - Math.exp(-dt * 2);
+                camera.position.x += ((pushTo ? pointerX * 0.03 : 0) - camera.position.x) * k2;
+                camera.position.y += ((pushTo ? pointerY * 0.02 : 0) - camera.position.y) * k2;
+                camera.lookAt(0, 0, 0);
+            }
+            u.uTime.value = time;
+            u.uPointer.value.set(pointerX, pointerY);
+            u.uPush.value = push;
+            u.uOpacity.value = shown;
             renderer.render(scene, camera);
-            drawn = true;
         };
 
-        const onScroll = () => {
-            dirty = true;
-        };
         resize();
         frame = requestAnimationFrame(loop);
         window.addEventListener("resize", resize);
-        window.addEventListener("scroll", onScroll, { passive: true });
         window.addEventListener("pointermove", onMove, { passive: true });
+        document.documentElement.addEventListener("pointerleave", onLeave);
         return () => {
             cancelAnimationFrame(frame);
             window.removeEventListener("resize", resize);
-            window.removeEventListener("scroll", onScroll);
             window.removeEventListener("pointermove", onMove);
-            for (const f of figures) {
-                f.mesh.geometry.dispose();
-                f.mat.dispose();
-            }
+            document.documentElement.removeEventListener("pointerleave", onLeave);
+            geo.dispose();
+            mat.dispose();
             renderer.dispose();
             renderer.domElement.remove();
         };

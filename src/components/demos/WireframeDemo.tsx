@@ -1,6 +1,5 @@
 "use client";
 
-import { ScanGate } from "./scenes";
 import { useEffect, useId, useRef, useState } from "react";
 
 /*
@@ -320,7 +319,6 @@ function DesignTall({ id }: { id: string }) {
 export default function WireframeDemo() {
     const id = useId().replace(/:/g, "");
     const [pos, setPos] = useState(100);
-    const [gate, setGate] = useState(false);
     const touched = useRef(false);
     const boxRef = useRef<HTMLDivElement>(null);
     const drag = useRef<{ id: number; x: number; y: number; moved: boolean } | null>(null);
@@ -434,11 +432,8 @@ export default function WireframeDemo() {
                 design
             </span>
 
-            {/* The divider as a gate standing into the picture (Three.js); without WebGL, a plain line. */}
-            <ScanGate pos={pos} onLive={setGate} />
-
             {/* The divider and its grip. */}
-            <div className={`pointer-events-none absolute inset-y-0 w-px ${gate ? "" : "bg-[var(--gold)]"}`} style={{ left: `${pos}%` }}>
+            <div className="pointer-events-none absolute inset-y-0 w-px bg-[var(--gold)]" style={{ left: `${pos}%` }}>
                 <span className="absolute left-1/2 top-1/2 flex h-9 w-9 -translate-x-1/2 -translate-y-1/2 items-center justify-center border border-[var(--gold)] bg-[var(--surface)] font-mono text-xs text-[var(--gold)] md:h-7 md:w-7">
                     ↔
                 </span>

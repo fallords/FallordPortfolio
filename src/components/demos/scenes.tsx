@@ -2,11 +2,12 @@
 
 import { useEffect, useRef } from "react";
 import * as THREE from "three";
-import { circle, cuboid, lines, liveWire, polyline, seg, stage, type V } from "../three/wire";
+import { cuboid, lines, liveWire, polyline, seg, stage, type V } from "../three/wire";
 
 /*
- * The What I do demos' pictures in Three.js (About.tsx): each demo keeps its own words, numbers and controls, and
- * the part that shows what is happening is drawn here in 3D, from the demo's own state. Every scene is a canvas
+ * Two of the What I do demos' pictures in Three.js (About.tsx), the ones where depth says something: the trace's
+ * spans as blocks with the playhead as a plane through them, and the sensor's past windows standing back as a
+ * waterfall. Each demo keeps its own words, numbers and controls, and the picture is drawn here in 3D, from the demo's own state. Every scene is a canvas
  * over its place in the demo, one CSS pixel to a unit at the front, so what is drawn at the front lines up with the
  * page. Where WebGL is not there, the flat picture stays.
  */
@@ -17,9 +18,9 @@ const camOf = (h: number) => h / 2 / Math.tan((15 * Math.PI) / 180);
 
 /**
  * Runs `make` once on a host div with a getter for the latest state, and redraws it when the state changes. `make`
- * returns the stage's controls, or null without WebGL; `onLive` hears whether it drew.
+ * returns the stage's controls, or null without WebGL.
  */
-function useScene<S>(state: S, make: (host: HTMLDivElement, get: () => S) => ReturnType<typeof stage>, onLive?: (live: boolean) => void) {
+function useScene<S>(state: S, make: (host: HTMLDivElement, get: () => S) => ReturnType<typeof stage>) {
     const ref = useRef<HTMLDivElement>(null);
     const latest = useRef(state);
     const ctl = useRef<ReturnType<typeof stage>>(null);
@@ -32,7 +33,6 @@ function useScene<S>(state: S, make: (host: HTMLDivElement, get: () => S) => Ret
         if (!host) return;
         const c = make(host, () => latest.current);
         ctl.current = c;
-        onLive?.(!!c);
         return () => {
             c?.stop();
             ctl.current = null;
@@ -41,55 +41,6 @@ function useScene<S>(state: S, make: (host: HTMLDivElement, get: () => S) => Ret
         // eslint-disable-next-line react-hooks/exhaustive-deps
     }, []);
     return ref;
-}
-
-/* ------------------------------------------------------------------ Code: the frames in load order */
-
-/**
- * The 181 frames of the old head turn as slats round a turning reel: each lights as loadOrder() reaches it, the
- * first ones (enough to start the turn) in green, the rest in grey, and a marker stands at the newest.
- */
-export function FrameReel({ loaded, total, rank, playable }: { loaded: number; total: number; rank: number[]; playable: number }) {
-    const ref = useScene({ loaded }, (host, get) => {
-        const reel = new THREE.Group();
-        const dim = liveWire(total * 4 + 8, { color: "#3d4d43", fade: FLAT });
-        const first = liveWire(total * 4, { fade: FLAT });
-        const rest = liveWire(total * 4, { color: "#c2c2c2", fade: FLAT });
-        reel.add(dim.mesh, first.mesh, rest.mesh);
-        let R = 100, H = 120, shown = -1;
-        const build = () => {
-            const d = lines(), f = lines(), r = lines();
-            const { loaded: n } = get();
-            for (let k = 0; k < total; k++) {
-                const a = (k / total) * Math.PI * 2;
-                const x = Math.cos(a) * R, z = Math.sin(a) * R;
-                const lit = rank[k + 1]! < n;
-                const target = !lit ? d : rank[k + 1]! < playable ? f : r;
-                seg(target, [x, -H / 2, z], [x, H / 2, z]);
-            }
-            // The rims, top and bottom.
-            for (const y of [-H / 2 - 6, H / 2 + 6]) polyline(d, circle(R, 90, (a) => [Math.cos(a), y / R, Math.sin(a)]), true);
-            dim.set(d);
-            first.set(f);
-            rest.set(r);
-            shown = n;
-        };
-        return stage(
-            host,
-            ({ scene, w, h }) => {
-                scene.add(reel);
-                R = Math.min(w * 0.36, h * 0.32);
-                H = h * 0.42;
-                build();
-            },
-            (_dt, time) => {
-                if (get().loaded !== shown) build();
-                reel.rotation.set(0.32, time * 0.25, 0);
-                return true;
-            },
-        );
-    });
-    return <div ref={ref} aria-hidden="true" className="pointer-events-none absolute inset-0" />;
 }
 
 /* ------------------------------------------------------------------ Systems: the trace's spans as blocks */
@@ -201,111 +152,5 @@ export function SignalWaterfall({ n, value, window: win, yMax, threshold }: { n:
             },
         );
     });
-    return <div ref={ref} aria-hidden="true" className="pointer-events-none absolute inset-0" />;
-}
-
-/* ------------------------------------------------------------------ AI: the tokens as blocks */
-
-/**
- * The reply's tokens as a row of blocks seen from a little above: an empty footprint for each still to come, and
- * each token dropping into its place as it arrives, the newest white, the rest green.
- */
-export function TokenBlocks({ count, total, streaming, onLive }: { count: number; total: number; streaming: boolean; onLive: (live: boolean) => void }) {
-    const ref = useScene(
-        { count, total, streaming },
-        (host, get) => {
-            const slots = liveWire(64 * 4, { color: "#2b332e", fade: FLAT });
-            const done = liveWire(64 * 12);
-            const fresh = liveWire(12, { color: "#e8e8e8" });
-            const group = new THREE.Group();
-            group.add(slots.mesh, done.mesh, fresh.mesh);
-            const arrived: number[] = [];
-            let w = 1, h = 1, clock = 0;
-            return stage(
-                host,
-                ({ scene, w: W, h: H }) => {
-                    scene.add(group);
-                    w = W;
-                    h = H;
-                    const cam = camOf(h);
-                    for (const m of [done.mesh, fresh.mesh]) (m.material as THREE.ShaderMaterial).uniforms.uFade.value.set(cam - h, cam + h);
-                },
-                (dt) => {
-                    clock += dt;
-                    const s = get();
-                    // When each token came, for its drop.
-                    if (s.count < arrived.length) arrived.length = s.count;
-                    while (arrived.length < s.count) arrived.push(clock);
-                    const n = Math.max(1, s.total);
-                    const cell = w / n;
-                    const size = Math.min(cell * 0.6, h * 0.42);
-                    const floor = -h * 0.3;
-                    const sl = lines(), dn = lines(), fr = lines();
-                    for (let i = 0; i < n; i++) {
-                        const x = -w / 2 + cell * (i + 0.5);
-                        const f: V[] = [[x - size / 2, floor, size / 2], [x + size / 2, floor, size / 2], [x + size / 2, floor, -size / 2], [x - size / 2, floor, -size / 2]];
-                        if (i >= s.count) {
-                            polyline(sl, f, true);
-                            continue;
-                        }
-                        const age = Math.min(1, (clock - arrived[i]!) / 0.35);
-                        const drop = (1 - age) ** 2 * h * 0.6;
-                        const newest = i === s.count - 1 && s.streaming;
-                        cuboid(newest ? fr : dn, [x - size / 2, floor + drop, -size / 2], [x + size / 2, floor + drop + size, size / 2]);
-                    }
-                    slots.set(sl);
-                    done.set(dn);
-                    fresh.set(fr);
-                    group.rotation.x = 0.4;
-                    return true;
-                },
-            );
-        },
-        onLive,
-    );
-    return <div ref={ref} aria-hidden="true" className="pointer-events-none absolute inset-0" />;
-}
-
-/* ------------------------------------------------------------------ Design: the divider as a scanning gate */
-
-/**
- * The slider's divider as a gate standing into the picture: a frame at the divider, its sides running back, and
- * a line scanning down it, so the wireframe is seen to pass through it and come out as the design.
- */
-export function ScanGate({ pos, onLive }: { pos: number; onLive: (live: boolean) => void }) {
-    const ref = useScene(
-        { pos },
-        (host, get) => {
-            const gate = liveWire(64, { fade: FLAT });
-            const scan = liveWire(8, { color: "#e8e8e8", fade: FLAT });
-            let w = 1, h = 1;
-            return stage(
-                host,
-                ({ scene, w: W, h: H }) => {
-                    scene.add(gate.mesh, scan.mesh);
-                    w = W;
-                    h = H;
-                },
-                (_dt, time) => {
-                    const x = (get().pos / 100) * w - w / 2;
-                    const d = Math.min(w, h) * 0.22;
-                    const g = lines();
-                    polyline(g, [[x, -h / 2, 0], [x, h / 2, 0]]);
-                    // The gate's frame running back from the divider, with ribs.
-                    polyline(g, [[x, h / 2 - 1, 0], [x, h / 2 - 1, -d], [x, -h / 2 + 1, -d], [x, -h / 2 + 1, 0]]);
-                    for (let i = 1; i < 8; i++) seg(g, [x, -h / 2 + (h * i) / 8, 0], [x, -h / 2 + (h * i) / 8, -d * 0.35]);
-                    gate.set(g);
-                    // The scan running down the gate.
-                    const y = h / 2 - ((time * 0.35) % 1) * h;
-                    const s = lines();
-                    seg(s, [x, y, 0], [x, y, -d]);
-                    seg(s, [x - 6, y, 0], [x + 6, y, 0]);
-                    scan.set(s);
-                    return true;
-                },
-            );
-        },
-        onLive,
-    );
     return <div ref={ref} aria-hidden="true" className="pointer-events-none absolute inset-0" />;
 }
