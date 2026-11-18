@@ -4,6 +4,7 @@ import { useCallback, useEffect, useRef, useState, type CSSProperties } from "re
 import Image from "next/image";
 import Section from "./Section";
 import CertificateLightbox from "./CertificateLightbox";
+import CertStack from "./CertStack";
 import { Words } from "./motion/Split";
 import { decode } from "./motion/textfx";
 import { certifications, type Certification } from "@/content/certifications";
@@ -25,6 +26,7 @@ const groupOf = (cert: Certification) => GROUPS.find((g) => g.fields.includes(ce
 /* Ordered by area; the order they are listed is the order the slides and the full-size view step through. */
 const ORDERED: Certification[] = [...GROUPS.map((g) => g.label), "Other"].flatMap((label) => certifications.filter((c) => groupOf(c) === label));
 const TOTAL = ORDERED.length;
+const IMAGES = ORDERED.map((c) => c.image);
 const ISSUERS = new Set(ORDERED.map((c) => c.issuer)).size;
 const YEARS = ORDERED.map((c) => Number(c.year)).filter(Boolean);
 const SPAN = YEARS.length ? `${Math.min(...YEARS)}–${Math.max(...YEARS)}` : "";
@@ -110,6 +112,9 @@ export default function Certifications() {
                 onFocus={() => setFocused(true)}
                 onBlur={(e) => !e.currentTarget.contains(e.relatedTarget as Node | null) && setFocused(false)}
             >
+                {/* The scans as a stack of cards in 3D, under the frames' buttons. */}
+                <CertStack images={IMAGES} active={cur} />
+
                 {/* While it turns on its own, a screen reader is not interrupted at every slide; once held, the slide is read as it changes. */}
                 <ol className="cc-list" aria-live={paused ? "polite" : "off"}>
                     {ORDERED.map((cert, i) => (

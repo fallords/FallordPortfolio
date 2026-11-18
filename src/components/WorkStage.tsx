@@ -20,8 +20,9 @@ import "./work-stage.css";
  * number large behind the drawing, its figure name in one corner and its
  * year and kind along the bottom.
  *
- * The parts are found in the drawings themselves, so any isometric figure
- * can go on the bench: every solid, line and row of dots is a part, pushed
+ * A machine drawn in 3D (WorkModel) reads how far apart it is from
+ * `data-apart` and moves its own parts. For an isometric drawing, the parts
+ * are found in the drawing itself, so any such figure can go on the bench: every solid, line and row of dots is a part, pushed
  * out from the figure's centre, the outer ones first. They move with the
  * CSS `translate` property, which adds to the `transform` each figure's own
  * loop writes, so the machines keep working while they come apart.
@@ -104,6 +105,8 @@ function partsOf(root: HTMLElement): Part[] {
 /** Moves a machine's parts to `t`: 0 assembled, 1 apart and faded out. */
 function pose(machine: HTMLElement | null, parts: Part[], t: number) {
     if (!machine) return;
+    // A machine drawn in 3D (WorkModel) reads this and takes itself apart.
+    machine.dataset.apart = t.toFixed(3);
     for (const part of parts) {
         const k = smooth((t - part.delay) / (1 - SPREAD));
         if (Math.abs(k - part.last) < 0.002) continue;

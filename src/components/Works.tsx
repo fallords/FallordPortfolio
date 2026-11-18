@@ -4,7 +4,7 @@ import Section from "./Section";
 import { Chars } from "./motion/Split";
 import ErrorBoundary from "./ErrorBoundary";
 import WorkStage from "./WorkStage";
-import { CvThumb, SeraThumb, WearableThumb } from "./figures/thumbs/art";
+import WorkModel from "./WorkModel";
 
 /*
  * Only real work belongs here: the two apps are live, and the wearable was
@@ -19,7 +19,8 @@ import { CvThumb, SeraThumb, WearableThumb } from "./figures/thumbs/art";
  * threshold, the drop-test peak, the radio and the alarm are the thesis's
  * own numbers (see figures/lora/model.ts).
  *
- * Each project's machine is a working isometric drawing of what it does:
+ * Each project's machine is a working 3D wireframe of what it does
+ * (WorkModel, Three.js, built to the sizes of the isometric drawings):
  * the CV maker as a printer feeding out a CV in the template its dial picks,
  * S.E.R.A. as a lens scanning down a chat and marking the sentences that
  * read oddly, the wearable taken apart on a cutting mat.
@@ -49,7 +50,7 @@ const projects: Project[] = [
         subtitle: "A CV builder that runs in the browser",
         description:
             "You fill in a form, and the preview lays your CV out on A4 pages as you type. Then you save it as a PDF from the print dialog, with selectable text and no watermark. It’s free and needs no account. The app is in English and Indonesian.",
-        machine: <CvThumb />,
+        machine: <WorkModel kind="cv" />,
         href: "https://fallord-cv-maker.vercel.app/",
         action: "Open the app",
         year: "2026",
@@ -80,7 +81,7 @@ const projects: Project[] = [
         subtitle: "Smart Emotional Relationship Adviser",
         description:
             "A web app for reading relationship chats. You paste in a conversation or upload screenshots of it, and it writes up the patterns it sees. After that you can keep asking it questions about the result. The app is in Indonesian.",
-        machine: <SeraThumb />,
+        machine: <WorkModel kind="sera" />,
         href: "https://s-e-r-a-smart-emotional-relationshi.vercel.app/",
         action: "Open the app",
         year: "2026",
@@ -112,7 +113,7 @@ const projects: Project[] = [
         subtitle: "My thesis: an emergency alert system for the elderly",
         description:
             "A device worn at the waist in an elderly care home. It detects a fall on its own, has a button for calling help, and reaches the staff over LoRa, so it needs no phone and no Wi-Fi on the wearer. I built it and tested it on real hardware.",
-        machine: <WearableThumb />,
+        machine: <WorkModel kind="wearable" />,
         href: "/writing/lora-emergency-alert-system",
         action: "Read the case study",
         year: "2026",

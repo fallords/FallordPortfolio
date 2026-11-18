@@ -1021,3 +1021,17 @@ html.has-crosshair .crosshair-word[data-on]:not([data-away]) {
     }
   }
 }
+
+/* The wireframe behind each section (SectionScenes.tsx): fixed to the screen, over the page's ground, under its words. */
+.section-scenes {
+  position: fixed;
+  inset: 0;
+  z-index: -1;
+  pointer-events: none;
+}
+
+.section-scenes canvas {
+  display: block;
+  width: 100%;
+  height: 100%;
+}

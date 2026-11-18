@@ -54,7 +54,12 @@
   padding: 2rem 0.75rem 2.25rem;
 }
 
-/* The drawing fills its box and centres itself (the viewBox keeps its proportions). */
+/* The drawing fills its box and centres itself (the viewBox keeps its proportions; the 3D model's canvas fills it). */
+.ws-model {
+  position: relative;
+}
+
+.ws-machine .ws-model,
 .ws-machine .iso-thumb,
 .ws-machine .iso-thumb > div,
 .ws-machine .iso-stage,

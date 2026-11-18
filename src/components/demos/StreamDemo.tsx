@@ -1,5 +1,6 @@
 "use client";
 
+import { TokenBlocks } from "./scenes";
 import { useEffect, useState } from "react";
 
 /*
@@ -37,6 +38,7 @@ export default function StreamDemo() {
     const [count, setCount] = useState(0);
     const [stopped, setStopped] = useState(false);
     const [run, setRun] = useState(0);
+    const [blocks, setBlocks] = useState(false);
 
     const tokens = tokensOf(EXAMPLES[pick].reply);
     const done = count >= tokens.length;
@@ -131,13 +133,16 @@ export default function StreamDemo() {
                         {count}/{tokens.length}
                     </span>
                 </div>
-                <div className="mt-2 flex h-5 gap-[3px]">
-                    {tokens.map((_, i) => (
-                        <span
-                            key={i}
-                            className={`flex-1 transition-colors duration-150 ${i < count ? (i === count - 1 && streaming ? "bg-[var(--fg)]" : "bg-[var(--gold)]") : "bg-[var(--surface-raised)]"}`}
-                        />
-                    ))}
+                {/* Drawn as blocks dropping into place (Three.js); without WebGL, the flat row of ticks. */}
+                <div className={`relative mt-2 flex gap-[3px] ${blocks ? "h-20" : "h-5"}`}>
+                    {!blocks &&
+                        tokens.map((_, i) => (
+                            <span
+                                key={i}
+                                className={`flex-1 transition-colors duration-150 ${i < count ? (i === count - 1 && streaming ? "bg-[var(--fg)]" : "bg-[var(--gold)]") : "bg-[var(--surface-raised)]"}`}
+                            />
+                        ))}
+                    <TokenBlocks count={count} total={tokens.length} streaming={streaming} onLive={setBlocks} />
                 </div>
             </div>
 

@@ -383,6 +383,14 @@ Rincian tipografi, skala, dan catatan desain ada di halaman "Catatan Desain Fadh
 - **Progres ke intro.** `reportPortraitProgress(1)` dikirim begitu data termuat (atau gagal), lewat `lib/portraitProgress.ts`.
 - **`Portrait.tsx` dan 543 frame potret lama** sudah dihapus. `loadOrder` kini tinggal di `CodeDemo.tsx`; `public/frames/still-*.jpg` tetap ada untuk demo Design.
 
+**Wireframe di belakang section (`SectionScenes.tsx`).** Satu canvas Three.js tetap di layar (`.section-scenes`, `z-index: -1` di dalam `.page-main`: di atas grid latar, di bawah isi), satu konteks WebGL untuk semua section setelah hero. Tiap section punya figur garis hijau sendiri: Statement medan bergelombang, Work polihedron dalam kerangka, Experience giroskop, What I do jaringan simpul dengan sinyal, Certificates tumpukan bingkai (di kiri), Writing heliks ganda, Contact globe dengan busur sinyal. Section yang melintasi tengah layar tampil, yang lain memudar; figur berputar dengan waktu dan scroll, condong sedikit ke pointer (mouse). Di layar ≥900px figur di samping isi, di HP di tengah dan lebih redup. Reduced motion: diam. Hero menutupinya dengan panggungnya sendiri; footer tidak ikut. Tidak menggambar apa pun saat tidak ada section yang tampil.
+
+**Komponen Three.js lain (`components/three/wire.ts`).** Satu modul untuk semua gambar wireframe: builder garis (`seg`, `polyline`, `circle`, `box`, `cuboid`), `wire()` (shader garis hijau dengan fade kedalaman, sinyal berjalan, bidang potong `uClip`), `liveWire()` untuk garis yang dibangun ulang tiap frame, dan `stage()` (canvas mengisi host, kamera perspektif dengan 1 unit = 1 px CSS di z = 0, hanya menggambar saat host di layar dan ada yang berubah, diam dengan reduced motion). Tanpa WebGL, tampilan datar lama tetap.
+- **Experience (`ExperienceDrum.tsx`).** Drum tanggal 3D yang berputar ke peran aktif, reticle dan cincin gimbal; posisinya mengikuti `.xp-band`, jadi tata letak HP dan desktop tetap dari CSS.
+- **Work (`WorkModel.tsx`).** Printer CV, stand baca S.E.R.A. dan wearable sebagai model wireframe dari konstanta `figures/thumbs/*-view.ts`, dengan gerak masing-masing; `WorkStage` menulis `data-apart` dan bagian model terbang keluar.
+- **Certificates (`CertStack.tsx`).** Tumpukan kartu 3D di tempat scan; tombol bingkai DOM tetap di atasnya untuk klik, keyboard dan screen reader (`data-3d` menyembunyikan scan datar).
+- **What I do (`demos/scenes.tsx`).** Code: gulungan 181 frame menyala sesuai `loadOrder()`. Design: pembatas slider jadi gerbang pemindai. Systems: bar trace jadi balok, playhead jadi bidang. AI: token jadi kubus yang jatuh. Hardware: sinyal jadi waterfall dengan bidang ambang.
+
 ## 10. Loading, error, dan ketahanan
 
 **Boot script (`lib/intro.ts`, berjalan di `<head>` sebelum halaman tampil):**

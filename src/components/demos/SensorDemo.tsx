@@ -1,5 +1,6 @@
 "use client";
 
+import { SignalWaterfall } from "./scenes";
 import { useEffect, useRef, useState } from "react";
 
 /*
@@ -137,6 +138,8 @@ export default function SensorDemo() {
                     {/* The leading edge: where each new sample comes in. */}
                     <line x1="599" x2="599" y1="0" y2="200" stroke="var(--rule-strong)" vectorEffect="non-scaling-stroke" />
                 </svg>
+                {/* The windows before this one, standing back from it, and the threshold as a plane through them (Three.js). */}
+                <SignalWaterfall n={n} value={(i) => sampleAt(i, injected)} window={WINDOW} yMax={Y_MAX} threshold={THRESHOLD} />
                 {/* The scale, in HTML so the stretched chart does not stretch its numbers. */}
                 <span aria-hidden="true" className="pointer-events-none absolute inset-0 text-[10px] text-[var(--fg-dim)]">
                     {[20, 40, 60].map((v) => (

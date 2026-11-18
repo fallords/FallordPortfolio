@@ -77,7 +77,8 @@
   gap: 0.25rem 1.25rem;
 }
 
-.cc-frame {
+.cc-frame,
+.cc-3d {
   position: absolute;
   top: 0;
   right: 1.75rem;
@@ -96,12 +97,29 @@
     font-size: clamp(6rem, 12vw, 13rem);
   }
 
-  .cc-frame {
+  .cc-frame,
+  .cc-3d {
     right: 2.5rem;
     bottom: var(--foot);
     left: calc(36% + 3rem);
     height: auto;
   }
+}
+
+/*
+ * The stack of cards (CertStack, Three.js) under the frames. Once it draws, the frames are only the buttons and the
+ * caption over it: their flat scans step aside.
+ */
+.cc-3d {
+  pointer-events: none;
+}
+
+.cc-stage[data-3d] .cert-frame {
+  background: transparent;
+}
+
+.cc-stage[data-3d] :is(.cert-img, .cert-wash, .cert-marks) {
+  display: none;
 }
 
 /* One chapter on show. The others are out of sight, out of the tab order and away from screen readers (visibility, after their way out). */

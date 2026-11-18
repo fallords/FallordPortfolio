@@ -108,7 +108,6 @@
 }
 
 /* The drum scene's parts are only drawn where it is held. */
-.xp-reticle,
 .xp-count,
 .xp-index,
 .xp-band,
@@ -130,33 +129,10 @@
   /* The index's column on the left; on the right, the panel and room for the frame's chapter rail. */
   --index: 13rem;
   --side: calc(var(--panel) + 5rem);
-  /* Where the drum turns: the middle of what the index and the panel leave. */
-  --drum-x: calc(var(--index) + (100% - var(--index) - var(--side)) / 2);
   position: sticky;
   top: var(--bar-h);
   height: calc(100svh - var(--bar-h));
   overflow: clip;
-}
-
-.xp-track[data-live] .xp-reticle {
-  display: block;
-  position: absolute;
-  top: 50%;
-  left: var(--drum-x);
-  width: min(42vw, 64svh);
-  aspect-ratio: 1;
-  translate: -50% -50%;
-  stroke: var(--rule-strong);
-  stroke-width: 1;
-}
-
-.xp-reticle * {
-  vector-effect: non-scaling-stroke;
-}
-
-.xp-reticle .xp-arc {
-  stroke: var(--accent);
-  stroke-width: 2;
 }
 
 .xp-track[data-live] .xp-count {
@@ -231,36 +207,12 @@
   border-right: 1px solid var(--accent);
 }
 
-/* The drum: the column of dates, centred on the one on show, fading out above and below. */
+/* The drum and its reticle (ExperienceDrum, Three.js): a canvas over the whole stage, the drum drawn on the band. */
 .xp-track[data-live] .xp-drum {
+  display: block;
   position: absolute;
-  inset: 0 var(--side) 0 var(--index);
-  display: flex;
-  align-items: center;
-  justify-content: center;
-  mask-image: linear-gradient(to bottom, transparent 14%, #000 40%, #000 60%, transparent 86%);
-}
-
-.xp-drum-col {
-  translate: 0 calc(((var(--n) - 1) / 2 - var(--active, 0)) * var(--unit));
-  transition: translate 900ms var(--ease-expo);
-}
-
-.xp-date {
-  height: var(--unit);
-  font-size: var(--size);
-  font-weight: 500;
-  line-height: var(--unit);
-  letter-spacing: -0.055em;
-  text-align: center;
-  white-space: nowrap;
-  color: var(--fg-faint);
-  font-variant-numeric: tabular-nums;
-  transition: color 500ms ease;
-}
-
-.xp-date[data-on] {
-  color: var(--accent);
+  inset: 0;
+  pointer-events: none;
 }
 
 /* The panel: every role in one place, only the one on show seen; it rises in. */
@@ -348,17 +300,6 @@
 
   .xp-track[data-live] .xp-index {
     display: none;
-  }
-
-  .xp-track[data-live] .xp-drum {
-    inset: var(--top) 0 auto;
-    height: var(--drum-h);
-  }
-
-  .xp-track[data-live] .xp-reticle {
-    top: calc(var(--top) + var(--drum-h) / 2);
-    left: 50%;
-    width: min(64vw, 26svh);
   }
 
   .xp-track[data-live] .xp-band {

@@ -78,7 +78,7 @@ function Row({ role, index }: { role: Role; index: number }) {
 /**
  * Where I have worked, newest first, on the reference's number scene: on a
  * laptop the section holds still for a screen of scroll per role while a
- * drum of dates turns inside a reticle, the one in the band green (when
+ * drum of dates turns inside a reticle (drawn in Three.js), the one in the band green (when
  * the role began, stamped the way the footer stamps the date), the role
  * itself in the panel beside it, and an index of all of them down the
  * left. Everywhere else, and with motion turned down, it is a plain log of
@@ -93,7 +93,6 @@ export default function Experience() {
         <Section id="experience" index="02" title="Experience" meta={`${experience.length} roles · since ${since}`} wide>
             <div className="xp-track" style={{ "--n": experience.length } as CSSProperties}>
                 <div className="xp-stage">
-                    <ExperienceDrum />
 
                     <p aria-hidden="true" className="xp-count label tabular-nums">
                         <span>
@@ -119,15 +118,7 @@ export default function Experience() {
                     {/* The band the date on show stands in. */}
                     <span aria-hidden="true" className="xp-band" />
 
-                    <div aria-hidden="true" className="xp-drum">
-                        <div className="xp-drum-col">
-                            {experience.map((role) => (
-                                <p key={`${role.org}-${role.start}`} className="xp-date">
-                                    {stamp(role.start)}
-                                </p>
-                            ))}
-                        </div>
-                    </div>
+                    <ExperienceDrum dates={experience.map((role) => stamp(role.start))} />
 
                     <ol className="xp-list">
                         {experience.map((role, i) => (

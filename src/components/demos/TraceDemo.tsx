@@ -1,5 +1,6 @@
 "use client";
 
+import { TraceBlocks } from "./scenes";
 import { useEffect, useState } from "react";
 
 /*
@@ -92,6 +93,7 @@ export default function TraceDemo() {
                                 </span>
                                 <span className="relative h-3 flex-1 md:h-4">
                                     <span
+                                        data-bar={s.tone === "var(--gold)" ? "lit" : ""}
                                         className="absolute inset-y-0"
                                         style={{
                                             left: pct(s.start),
@@ -108,6 +110,9 @@ export default function TraceDemo() {
                         );
                     })}
                 </ul>
+
+                {/* The spans as blocks standing back from their bars, the playhead as a plane through them (Three.js). */}
+                <TraceBlocks t={t} total={TOTAL_MS} />
 
                 {/* The playhead, over the bars only. */}
                 <div className="pointer-events-none absolute inset-y-0 left-[7.5rem] right-14 sm:left-[9.5rem]">
