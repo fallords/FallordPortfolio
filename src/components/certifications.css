@@ -11,15 +11,16 @@
 .cc-stage {
   --foot: 5.75rem;
   position: relative;
-  height: min(46rem, calc(100svh - var(--bar-h) - 2rem));
-  min-height: 34rem;
+  /* What the screen leaves under the chapter's head and padding, so the whole section is one screen (SceneFlow). */
+  height: min(46rem, calc(100svh - 12.5rem));
+  min-height: 30rem;
 }
 
 @media (min-width: 768px) {
   .cc-stage {
     --foot: 4.5rem;
-    height: min(40rem, calc(100svh - var(--bar-h) - 3rem));
-    min-height: 30rem;
+    height: min(40rem, calc(100svh - 20.5rem));
+    min-height: 24rem;
   }
 }
 

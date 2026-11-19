@@ -38,9 +38,12 @@ vec2 tileUv(float view, vec2 inTile) {
 }
 `;
     const vertex = /* glsl */ `
+// How much of its cell a particle fills: well apart, so the head reads as a cloud of points.
+#define DOT 0.62
 uniform sampler2D uData;
 uniform sampler2D uPhoto;
-uniform float uA, uB, uMix, uCell, uDepth, uReveal, uTime, uScan, uRowsShown;
+uniform float uA, uB, uMix, uCell, uDepth, uReveal, uTime, uScan, uRowsShown, uScatter;
+varying float vScat;
 // The swipe simulation's state (see SIM_FRAG): where each voxel has been thrown to, and how it is moving.
 uniform sampler2D uSimPos;
 uniform sampler2D uSimVel;
@@ -86,8 +89,8 @@ void main() {
     vec3 p = position;
     float depth = (0.06 + z) * uDepth;
     vec3 world = vec3(
-        (aCell.x - ${cols}.0 * 0.5 + 0.5 + p.x * 0.84 * size) * uCell,
-        (${rows}.0 * 0.5 - aCell.y - 0.5 + p.y * 0.84 * size) * uCell,
+        (aCell.x - ${cols}.0 * 0.5 + 0.5 + p.x * DOT * size) * uCell,
+        (${rows}.0 * 0.5 - aCell.y - 0.5 + p.y * DOT * size) * uCell,
         (p.z + 0.5) * depth * size
     );
     // Arriving voxels fly in from in front of the face.
@@ -105,11 +108,15 @@ void main() {
     float moving = smoothstep(0.0, 0.02 * uSimScale, speed);
     if (speed > 1e-5) {
         vec3 dir = vel / speed;
-        vec3 shape = vec3(p.xy * 0.84 * size * uCell, 0.0);
+        vec3 shape = vec3(p.xy * DOT * size * uCell, 0.0);
         vec3 streak = (shape + dir * dot(shape, dir) * 2.0) * 0.46;
         world.xy += (streak.xy - shape.xy) * moving;
     }
     world += simPos.xyz;
+    // Scrolled away from, the head comes apart: every particle drifts off on its own line and fades, into the field below.
+    vec3 away = normalize(vec3(sin(aRand * 71.0), cos(aRand * 37.0), sin(aRand * 13.0) + 0.6));
+    world += away * uScatter * uScatter * (2.0 + aRand * 3.0);
+    vScat = uScatter;
     float lim = (1.0 + (aRand - 0.5) * 1.2);
     float near = 1.0 - clamp((length(simPos.xyz) - lim * 0.5 * uSimScale) / (lim * 1.06 * uSimScale - lim * 0.5 * uSimScale), 0.0, 1.0);
     float fast = speed / (0.05 * uSimScale);
@@ -137,10 +144,14 @@ varying vec2 vLocal;
 varying vec2 vCell;
 varying float vLum, vRim, vNear, vScan, vPush;
 varying vec3 vGlitch;
+varying float vScat;
 ${tile}
 
 void main() {
     float front = step(0.5, vNormal.z);
+    // Each voxel is a round particle: only its face, cut to a disc (stretched with it when the swipe throws it).
+    float r = length(vLocal);
+    if (front < 0.5 || r > 0.5) discard;
     // Lit from in front, a little from the left and above: as he moves, the voxels' sides catch the light or fall into shade.
     float light = 0.55 + 0.45 * max(dot(vLit, normalize(vec3(-0.35, 0.45, 1.0))), 0.0);
     // The frames laid across the voxel faces, so each cell keeps the detail inside it.
@@ -165,9 +176,11 @@ void main() {
     vec3 peeled = tint * (0.55 + 0.8 * photo);
     col = mix(col, peeled, clamp(vGlitch.x * 1.9, 0.0, 1.0));
     // Faint, like a projection: dimmer, and partly see-through (fully solid only in the flash, and where pushed).
-    float alpha = mix(mix(uAlpha, 1.0, uFlash), 1.0, max(vPush, vGlitch.x)) * (1.0 - vGlitch.z);
+    // Glowing like the particles further down the page: a bright core, a soft edge.
+    col = col * 1.25 + vec3(0.45, 0.75, 0.55) * smoothstep(0.22, 0.0, r) * 0.5;
+    float alpha = mix(mix(uAlpha, 1.0, uFlash), 1.0, max(vPush, vGlitch.x)) * (1.0 - vGlitch.z) * smoothstep(0.5, 0.3, r) * (1.0 - vScat * vScat);
     if (alpha < 0.02) discard;
-    gl_FragColor = vec4(col * 0.85, alpha);
+    gl_FragColor = vec4(col * 1.9, alpha);
 }
 `;
     return { vertex, fragment };
@@ -217,42 +230,21 @@ void main() {
         texture2D(tScene, uv).g,
         texture2D(tScene, uv - vec2(ca, 0.0)).b
     );
-    // The head alone is blurred and hazy, as if half there: its sharp layer partly given over to a soft one, with a glow of it,
+    // The head alone is soft and glowing: its particles partly given over to a blurred copy, with a glow of it,
     // then laid over the sharp grid by how much of each point it covers.
     vec4 head = texture2D(tHead, uv);
     vec4 haze = soft(uv);
     // Peeled blocks are drawn solid (alpha near 1, the rest of the head is see-through): those stay sharp, out of the haze.
     float solid = smoothstep(0.62, 0.8, head.a);
-    head = mix(head, haze, 0.82 * uHaze * (1.0 - solid));
-    col = col * (1.0 - clamp(head.a, 0.0, 1.0)) + head.rgb + haze.rgb * 0.3 * uHaze;
+    head = mix(head, haze, 0.4 * uHaze * (1.0 - solid));
+    // The haze also laid on top as a glow, so the particles bloom.
+    col = col * (1.0 - clamp(head.a, 0.0, 1.0)) + head.rgb + haze.rgb * 0.9 * uHaze;
     // Scan lines and a faint flicker, like a CRT feed.
     col *= 0.86 + 0.14 * step(0.5, fract(gl_FragCoord.y * 0.25));
     col *= 0.95 + 0.05 * rnd(floor(uTime * 30.0));
     if (uv.x < 0.0 || uv.x > 1.0 || uv.y < 0.0 || uv.y > 1.0) col = vec3(0.0);
     col *= 1.0 - 0.38 * dot(c, c);
     gl_FragColor = vec4(col, 1.0);
-}
-`;
-
-const TRAIL_VERT = /* glsl */ `
-attribute float aAge;
-uniform float uPixel;
-varying float vAge;
-void main() {
-    vAge = aAge;
-    vec4 mv = modelViewMatrix * vec4(position, 1.0);
-    gl_PointSize = uPixel * (1.0 - aAge * 0.8) * (6.0 / -mv.z);
-    gl_Position = projectionMatrix * mv;
-}
-`;
-
-const TRAIL_FRAG = /* glsl */ `
-uniform vec3 uColor;
-uniform float uAlpha;
-varying float vAge;
-void main() {
-    // Square points: voxels too.
-    gl_FragColor = vec4(uColor * (1.4 - vAge), (1.0 - vAge) * uAlpha);
 }
 `;
 
@@ -358,7 +350,8 @@ function introLifted() {
  * every move is his own, at its own speed, each cell morphing from one
  * frame to the next, and at either end it plays back the other way, so it
  * never jumps. Over it a scan passes down his face now and then, the feed
- * glitches, and a short trail of voxels follows the pointer.
+ * glitches. Each voxel is drawn as a glowing particle, and as the hero is
+ * scrolled away the particles drift apart and fade into the field below.
  *
  * Three.js, loaded only here, after the page; one canvas, paused while the
  * hero is off the screen or the tab is hidden. With motion turned down, or
@@ -443,36 +436,14 @@ export default function HeroVoxel({ className = "" }: { className?: string }) {
             grid.position.z = -2.2;
             scene.add(grid);
 
-            // The frame he stands in, like a camera's window: a darker pane, a hairline round it and bright corners. It is
-            // drawn level with his face (FRAME_Z), so what stands nearer than his shoulders still sits inside it.
+            // The window he is shown in (no longer drawn): the camera is fitted to it, and he is cut at the chest at its foot.
+            // FRAME_Z is level with his face.
             const CELL = 3.4 / cols;
             const ROWS_SHOWN = Math.round(rows * 0.86);
             const FRAME_Z = 0.8;
             const boxW = cols * CELL + 0.12;
             const boxH = ROWS_SHOWN * CELL + 0.12;
             const boxCy = rows * 0.5 * CELL - (ROWS_SHOWN * CELL) / 2;
-            const view = new THREE.Group();
-            const pane = new THREE.Mesh(new THREE.PlaneGeometry(boxW, boxH), new THREE.MeshBasicMaterial({ color: 0x050505, transparent: true, opacity: 0 }));
-            const hw = boxW / 2;
-            const hh = boxH / 2;
-            const edgeGeo = new THREE.BufferGeometry();
-            edgeGeo.setAttribute("position", new THREE.Float32BufferAttribute([-hw, -hh, 0, hw, -hh, 0, hw, -hh, 0, hw, hh, 0, hw, hh, 0, -hw, hh, 0, -hw, hh, 0, -hw, -hh, 0], 3));
-            const edgeMat = new THREE.LineBasicMaterial({ color: green, transparent: true, opacity: 0 });
-            const edge = new THREE.LineSegments(edgeGeo, edgeMat);
-            // The corners: two thin bars each, a little outside the hairline.
-            const cornerMat = new THREE.MeshBasicMaterial({ color: new THREE.Color("#3be38a"), transparent: true, opacity: 0 });
-            const arm = 0.32;
-            const bar = 0.022;
-            const corners = new THREE.Group();
-            for (const [sx, sy] of [[-1, 1], [1, 1], [-1, -1], [1, -1]] as const) {
-                const across = new THREE.Mesh(new THREE.PlaneGeometry(arm, bar), cornerMat);
-                across.position.set(sx * (hw - arm / 2 + bar / 2), sy * (hh + bar / 2), 0.001);
-                const down = new THREE.Mesh(new THREE.PlaneGeometry(bar, arm), cornerMat);
-                down.position.set(sx * (hw + bar / 2), sy * (hh - arm / 2 + bar / 2), 0.001);
-                corners.add(across, down);
-            }
-            view.add(pane, edge, corners);
-            scene.add(view);
 
             // The head: one box per cell, instanced; where each one stands is worked out in the shader.
             const box = new THREE.BoxGeometry(1, 1, 1);
@@ -586,8 +557,9 @@ export default function HeroVoxel({ className = "" }: { className?: string }) {
                     uSimVel: { value: null },
                     uSimSize: { value: new THREE.Vector2(SIM_W, SIM_H) },
                     uSimScale: { value: SIM_SCALE },
-                    uAlpha: { value: 0.6 },
-                    uDetail: { value: 0.22 },
+                    uAlpha: { value: 0.95 },
+                    uScatter: { value: 0 },
+                    uDetail: { value: 0.1 },
                 },
             });
             const head = new THREE.Mesh(geo, voxelMat);
@@ -597,29 +569,6 @@ export default function HeroVoxel({ className = "" }: { className?: string }) {
             // The head is drawn on its own layer, so it alone can be blurred (see the screen pass).
             const headScene = new THREE.Scene();
             headScene.add(rig);
-
-            // A short trail of voxels after the pointer (or, with none, round the head).
-            const TRAIL = 140;
-            const trailPos = new Float32Array(TRAIL * 3);
-            const trailAge = new Float32Array(TRAIL);
-            for (let i = 0; i < TRAIL; i++) trailAge[i] = i / TRAIL;
-            const trailGeo = new THREE.BufferGeometry();
-            trailGeo.setAttribute("position", new THREE.BufferAttribute(trailPos, 3));
-            trailGeo.setAttribute("aAge", new THREE.BufferAttribute(trailAge, 1));
-            const trailMat = new THREE.ShaderMaterial({
-                vertexShader: TRAIL_VERT,
-                fragmentShader: TRAIL_FRAG,
-                uniforms: { uColor: { value: green }, uAlpha: { value: 0 }, uPixel: { value: 7 * renderer.getPixelRatio() } },
-                transparent: true,
-                depthWrite: false,
-                blending: THREE.AdditiveBlending,
-            });
-            const trail = new THREE.Points(trailGeo, trailMat);
-            trail.frustumCulled = false;
-            // The trail goes on top of everything, sharp, after the screen pass.
-            const trailScene = new THREE.Scene();
-            trailScene.add(trail);
-            const history: { x: number; y: number; z: number }[] = Array.from({ length: TRAIL }, () => ({ x: 0, y: 0.6, z: 0.8 }));
 
             // The screen: the scene drawn off-screen, then bowed, scanned and glitched.
             const target = new THREE.WebGLRenderTarget(2, 2, { depthBuffer: false });
@@ -663,13 +612,11 @@ export default function HeroVoxel({ className = "" }: { className?: string }) {
                 const fitW = wide ? 0.4 : 0.86;
                 const dist = Math.max(boxH / (2 * tan * fitH), boxW / (2 * tan * aspect * fitW));
                 camera.position.set(0, 0, FRAME_Z + dist);
-                // The frame in the middle of the stage (a little above it on a phone, where the words sit below), a touch right on a wide screen.
-                const visW = 2 * tan * dist * aspect;
+                // The frame in the middle of the stage, a little above it, where the name runs across the foot (more so on a phone, where the words sit below).
                 const visH = 2 * tan * dist;
-                const x = wide ? visW * 0.06 : 0;
-                const y = (wide ? -0.02 : 0.1) * visH - boxCy;
+                const x = 0;
+                const y = (wide ? 0.04 : 0.1) * visH - boxCy;
                 rig.position.set(x, y, 0);
-                view.position.set(x, y + boxCy, FRAME_Z);
             };
             fit();
             const resize = new ResizeObserver(fit);
@@ -728,10 +675,6 @@ export default function HeroVoxel({ className = "" }: { className?: string }) {
                 const u = voxelMat.uniforms;
                 const boot = span(t, BOOT.grid) * (t < 0.9 ? (Math.random() < 0.85 ? 1 : 0.3) : 1);
                 gridMat.opacity = 0.55 * boot;
-                // The frame comes up with the grid.
-                (pane.material as InstanceType<typeof THREE.MeshBasicMaterial>).opacity = 0.72 * boot;
-                edgeMat.opacity = 0.5 * boot;
-                cornerMat.opacity = boot;
                 u.uReveal.value = span(t, BOOT.outline);
                 u.uOutline.value = 1 - span(t, BOOT.fill);
                 const flash = span(t, BOOT.flash);
@@ -809,35 +752,10 @@ export default function HeroVoxel({ className = "" }: { className?: string }) {
                 postMat.uniforms.uGlitch.value = Math.max(bootGlitch, t < glitchUntil ? 0.6 + Math.random() * 0.4 : 0);
                 postMat.uniforms.uTime.value = t;
 
-                // The trail: its head chases the pointer (or circles the face), the rest follows.
-                const lead = history[0];
-                let tx: number, ty: number, tz: number;
-                if (pointing) {
-                    ray.setFromCamera(ndc.set(pointer.x, pointer.y), camera);
-                    ray.ray.intersectPlane(plane, hit);
-                    tx = hit.x;
-                    ty = hit.y;
-                    tz = 0.9;
-                } else {
-                    tx = rig.position.x + Math.cos(t * 0.9) * 1.25;
-                    ty = rig.position.y + 1.25 + Math.sin(t * 1.8) * 0.35;
-                    tz = 0.6 + Math.sin(t * 0.9) * 0.8;
-                }
-                const fresh = { x: lead.x + (tx - lead.x) * 0.16, y: lead.y + (ty - lead.y) * 0.16, z: lead.z + (tz - lead.z) * 0.16 };
-                history.pop();
-                history.unshift(fresh);
-                for (let i = 0; i < TRAIL; i++) {
-                    const p = history[i];
-                    const swirl = t * 4 + i * 0.35;
-                    const r = 0.04 + i * 0.0012;
-                    trailPos[i * 3] = p.x + Math.cos(swirl) * r;
-                    trailPos[i * 3 + 1] = p.y + Math.sin(swirl) * r;
-                    trailPos[i * 3 + 2] = p.z;
-                }
-                trailGeo.attributes.position.needsUpdate = true;
-                trailMat.uniforms.uAlpha.value = 0.85 * span(t, [2.6, 3.4]);
+                // As the hero scrolls away, the head comes apart.
+                u.uScatter.value = clamp(-el.getBoundingClientRect().top / Math.max(1, el.clientHeight));
 
-                // The grid, the head on a clear layer of its own, the screen pass that joins them, then the trail on top.
+                // The grid, the head on a clear layer of its own, and the screen pass that joins them.
                 renderer.setRenderTarget(target);
                 renderer.render(scene, camera);
                 renderer.setRenderTarget(headTarget);
@@ -846,9 +764,6 @@ export default function HeroVoxel({ className = "" }: { className?: string }) {
                 renderer.setClearColor(0x050505, 1);
                 renderer.setRenderTarget(null);
                 renderer.render(postScene, postCam);
-                renderer.autoClear = false;
-                renderer.render(trailScene, camera);
-                renderer.autoClear = true;
                 if (visible && !document.hidden) loop();
             };
             function loop() {
@@ -865,12 +780,8 @@ export default function HeroVoxel({ className = "" }: { className?: string }) {
                 document.removeEventListener("visibilitychange", onVis);
                 window.removeEventListener("pointermove", onMove);
                 window.removeEventListener("pointerdown", onDown);
-                [box, geo, gridGeo, trailGeo, post.geometry].forEach((g) => g.dispose());
-                view.traverse((o) => {
-                    if (o instanceof THREE.Mesh || o instanceof THREE.LineSegments) o.geometry.dispose();
-                });
-                [pane.material, edgeMat, cornerMat].forEach((m) => m.dispose());
-                [voxelMat, gridMat, trailMat, postMat].forEach((m) => m.dispose());
+                [box, geo, gridGeo, post.geometry].forEach((g) => g.dispose());
+                [voxelMat, gridMat, postMat].forEach((m) => m.dispose());
                 [dataTex, photoTex].forEach((tex) => tex.dispose());
                 target.dispose();
                 headTarget.dispose();

@@ -27,9 +27,11 @@
  * The curtain. The footer sticks to the bottom of the screen for the whole
  * page, under the page's sheet (.page-main, one layer up), so the end of the
  * page uncovers it from the bottom up. Only where the screen is tall enough
- * to show all of it; shorter than that, it simply follows the page.
+ * to show all of it, and only with a mouse: on a touch screen a fast fling
+ * can outrun the drawing of the page, and the green under it showed through
+ * mid-scroll. Elsewhere it simply follows the page.
  */
-@media (min-height: 680px) {
+@media (min-height: 680px) and (hover: hover) and (pointer: fine) {
   .footer-field[data-curtain] {
     position: sticky;
     bottom: 0;

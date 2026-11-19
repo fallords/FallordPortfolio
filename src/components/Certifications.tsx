@@ -98,6 +98,8 @@ export default function Certifications() {
                 </>
             }
             wide
+            // Tighter than other sections: the whole chapter, head and stage, fits one screen, so it can stand as one scene.
+            padding="pt-16 pb-6 lg:pb-8"
         >
             <div
                 ref={stage}

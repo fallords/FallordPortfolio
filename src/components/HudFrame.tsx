@@ -94,6 +94,8 @@ export default function HudFrame() {
             const line = window.innerHeight * 0.4;
             let id: string | null = null;
             for (const s of sections) if (s.getBoundingClientRect().top <= line) id = s.id;
+            // Where the scenes change in place (SceneFlow) the sections are drawn where they are not; it marks the one on show.
+            if (document.querySelector(".page-main[data-scenes]")) id = document.querySelector(".page-main > [data-scene-on]")?.id ?? null;
             if (window.innerHeight + window.scrollY >= document.documentElement.scrollHeight - 2) id = sections.at(-1)?.id ?? id;
             if (id !== current) {
                 current = id;

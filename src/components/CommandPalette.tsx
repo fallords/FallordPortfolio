@@ -1,5 +1,6 @@
 "use client";
 
+import { pageTopOf } from "./SceneFlow";
 import { useEffect, useMemo, useRef, useState } from "react";
 import { usePathname, useRouter } from "next/navigation";
 import { EMAIL, SOCIALS } from "@/lib/site";
@@ -38,7 +39,9 @@ export default function CommandPalette() {
     const commands = useMemo<Command[]>(() => {
         // No `behavior` on the scrolls: the CSS decides, and turns smoothing off under reduced motion.
         const go = (id: string) => () => {
-            if (pathname === "/") document.getElementById(id)?.scrollIntoView();
+            // Measured where the section really is in the page (SceneFlow draws sections where they are not).
+            const el = pathname === "/" ? document.getElementById(id) : null;
+            if (el) window.scrollTo({ top: pageTopOf(el) });
             else router.push(`/#${id}`);
         };
         return [

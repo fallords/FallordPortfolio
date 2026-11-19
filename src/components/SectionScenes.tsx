@@ -9,7 +9,8 @@ import * as THREE from "three";
  * shape: rolling ground under the statement, a crystal by the work, a gyroscope by the experience, a network by
  * what I do, a fanned stack of cards by the certificates, a double helix by the writing, a globe by the contact
  * form. A section with a 3D drawing of its own gets its shape at the left edge, half off the screen, so the two do
- * not overlap. The pointer pushes them aside as it passes. Still under reduced motion.
+ * not overlap. Between two sections the old shape pours through one stream in the middle of the screen into the
+ * new one, so each change reads as one continuous move. The pointer pushes them aside as it passes. Still under reduced motion.
  */
 
 type Shape = "dust" | "ground" | "crystal" | "rings" | "network" | "cards" | "helix" | "globe";
@@ -156,8 +157,10 @@ uniform vec3 uCentre;
 uniform vec2 uPointer;
 uniform float uPush;
 uniform float uSize;
+uniform float uDir;
 varying float vAlpha;
 varying float vLift;
+varying float vFlight;
 
 vec3 spin(vec3 p, vec3 c, float a) {
     vec3 q = p - c;
@@ -169,10 +172,14 @@ void main() {
     // Each particle leaves a little later than the last, so a change runs through the field instead of jumping.
     float t = clamp(uMix * 1.5 - aRand * 0.5, 0.0, 1.0);
     float e = t * t * (3.0 - 2.0 * t);
-    vec3 p = mix(aFrom, spin(aTo, uCentre, uSpin), e);
-    // Loose in the middle of the move, then drawn in.
-    vec3 loose = vec3(sin(aRand * 91.0 + uTime), cos(aRand * 57.0 + uTime * 1.3), sin(aRand * 33.0 - uTime)) * 1.4;
-    p += loose * sin(e * 3.14159);
+    vec3 to = spin(aTo, uCentre, uSpin);
+    // On the way, every particle passes through one narrow tube near the middle of the screen, turning round it as it
+    // goes, so the old shape pours out as one stream and the new one fills from it (a curve from where it was, past
+    // its point on the tube, to where it is going).
+    float turn = aRand * 6.2832 + e * 7.0;
+    vec3 tube = vec3(cos(turn) * 0.6, uDir * 0.6 + sin(turn) * 0.6, 2.0);
+    vec3 p = (1.0 - e) * (1.0 - e) * aFrom + 2.0 * (1.0 - e) * e * tube + e * e * to;
+    vFlight = sin(e * 3.14159);
     // Always breathing a little.
     p += vec3(sin(uTime * 0.6 + aRand * 40.0), cos(uTime * 0.5 + aRand * 23.0), sin(uTime * 0.4 + aRand * 11.0)) * 0.04;
     vec4 world = modelMatrix * vec4(p, 1.0);
@@ -193,14 +200,16 @@ uniform vec3 uColor;
 uniform float uOpacity;
 varying float vAlpha;
 varying float vLift;
+varying float vFlight;
 void main() {
     float r = length(gl_PointCoord - 0.5);
     if (r > 0.5) discard;
     // A soft glow with a bright core; pushed ones flare white.
     float glow = smoothstep(0.5, 0.0, r);
     float core = smoothstep(0.18, 0.0, r);
-    vec3 col = mix(uColor, vec3(1.0), core * 0.5 + vLift * 0.6);
-    gl_FragColor = vec4(col, (glow * 0.55 + core * 0.45) * vAlpha * uOpacity);
+    // In the stream they burn brighter.
+    vec3 col = mix(uColor, vec3(1.0), core * 0.5 + vLift * 0.6 + vFlight * 0.12);
+    gl_FragColor = vec4(col, (glow * 0.55 + core * 0.45) * vAlpha * uOpacity * (1.0 + vFlight * 0.35));
 }
 `;
 
@@ -245,6 +254,7 @@ export default function SectionScenes() {
                 uCentre: { value: new THREE.Vector3() },
                 uPointer: { value: new THREE.Vector2(99, 99) },
                 uPush: { value: 0 },
+                uDir: { value: 1 },
                 uSize: { value: 30 },
                 uColor: { value: new THREE.Color("#19a352") },
                 uOpacity: { value: 0 },
@@ -265,7 +275,7 @@ export default function SectionScenes() {
         const shapeOf = (k: number): Shape => sections[k]?.shape ?? "dust";
         const placed = (k: number) => shapeOf(k) !== "dust" && shapeOf(k) !== "ground";
         // On a narrow screen the shape goes half off its edge, behind the words as little as it can.
-        const centreOf = (k: number) => new THREE.Vector3(!placed(k) ? 0 : wide ? sections[k]!.x * halfW * 0.55 : Math.sign(sections[k]!.x) * halfW * 0.85, 0, 0);
+        const centreOf = (k: number) => new THREE.Vector3(!placed(k) ? 0 : wide ? sections[k]!.x * halfW * 0.55 : Math.sign(sections[k]!.x) * halfW * 1.05, 0, 0);
         /** The positions the shape for section `k` asks for, placed for this screen. */
         const targetOf = (k: number) => {
             const src = shapes[shapeOf(k)];
@@ -279,25 +289,31 @@ export default function SectionScenes() {
             }
             return out;
         };
-        /** Where every particle is now (without its looseness), so a new move starts from there. */
+        /** Where every particle is now (on its curve through the tube, as the shader has it), so a new move starts from there. */
         const settle = () => {
             const m = u.uMix.value as number;
             const c = u.uCentre.value as THREE.Vector3;
             const a = u.uSpin.value as number;
             const s = Math.sin(a), k = Math.cos(a);
+            const dir = u.uDir.value as number;
             for (let i = 0; i < N; i++) {
                 const t = Math.min(1, Math.max(0, m * 1.5 - rand[i]! * 0.5));
                 const e = t * t * (3 - 2 * t);
                 const j = i * 3;
                 const qx = to[j]! - c.x, qz = to[j + 2]! - c.z;
                 const tx = c.x + qx * k + qz * s, tz = c.z - qx * s + qz * k;
-                from[j] = from[j]! + (tx - from[j]!) * e;
-                from[j + 1] = from[j + 1]! + (to[j + 1]! - from[j + 1]!) * e;
-                from[j + 2] = from[j + 2]! + (tz - from[j + 2]!) * e;
+                const turn = rand[i]! * 6.2832 + e * 7;
+                const b0 = (1 - e) * (1 - e), b1 = 2 * (1 - e) * e, b2 = e * e;
+                from[j] = b0 * from[j]! + b1 * Math.cos(turn) * 0.6 + b2 * tx;
+                from[j + 1] = b0 * from[j + 1]! + b1 * (dir * 0.6 + Math.sin(turn) * 0.6) + b2 * to[j + 1]!;
+                from[j + 2] = b0 * from[j + 2]! + b1 * 2.0 + b2 * tz;
             }
         };
         const go = (k: number) => {
+            // Down the page the stream runs high; back up, low.
+            const down = k > current;
             settle();
+            u.uDir.value = down ? 1 : -1;
             to.set(targetOf(k));
             (geo.attributes.aFrom as THREE.BufferAttribute).needsUpdate = true;
             (geo.attributes.aTo as THREE.BufferAttribute).needsUpdate = true;
@@ -352,10 +368,12 @@ export default function SectionScenes() {
                 const r = s.el?.getBoundingClientRect();
                 if (r && r.top < mid && r.bottom > mid) k = i;
             });
+            // Where the scenes change in place (SceneFlow), the one it marks as on show.
+            if (document.querySelector(".page-main[data-scenes]")) k = sections.findIndex((s) => s.el?.hasAttribute("data-scene-on"));
             if (k !== current) go(k);
             // Faint as dust, fuller as a shape; nothing over the hero.
             // Full beside plain sections; a step back beside a section with its own 3D (on the left), fainter on a narrow screen.
-            const target = k < 0 ? 0 : !wide ? 0.45 : sections[k]!.x < 0 ? 0.5 : 1;
+            const target = k < 0 ? 0 : !wide ? 0.25 : sections[k]!.x < 0 ? 0.5 : 1;
             shown += (target - shown) * (moving ? 1 - Math.exp(-dt * 3) : 1);
             if (shown < 0.003 && target === 0) {
                 shown = 0;

@@ -8,6 +8,8 @@ import Writing from "@/components/Writing";
 import Contact from "@/components/Contact";
 import Footer from "@/components/Footer";
 import SectionScenes from "@/components/SectionScenes";
+import SmoothScroll from "@/components/SmoothScroll";
+import SceneFlow from "@/components/SceneFlow";
 import Section from "@/components/Section";
 import ErrorBoundary from "@/components/ErrorBoundary";
 import FallbackNotice from "@/components/FallbackNotice";
@@ -18,6 +20,8 @@ export default function Home() {
             {/* The page is a sheet over the footer: as it ends, it lifts off and the footer is found waiting under it (globals.css, .page-main). */}
             <main className="page-main">
                 <SectionScenes />
+                <SmoothScroll />
+                <SceneFlow />
                 <Hero />
                 <Statement />
                 <Works />

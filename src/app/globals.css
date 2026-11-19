@@ -1035,3 +1035,38 @@ html.has-crosshair .crosshair-word[data-on]:not([data-away]) {
   width: 100%;
   height: 100%;
 }
+
+/*
+ * One continuous scene. The ground (the grid) stays where it is on the screen while the page scrolls, as the particle
+ * field behind it does; the sections themselves do not scroll past but change in place (SceneFlow.tsx). Lenis eases
+ * the wheel (SmoothScroll.tsx). A touch screen keeps the grid on the page (fixed backgrounds are costly there).
+ */
+html.lenis,
+html.lenis body {
+  height: auto;
+}
+
+.lenis.lenis-smooth {
+  scroll-behavior: auto !important;
+}
+
+@media (hover: hover) and (pointer: fine) {
+  body,
+  .page-main {
+    background-attachment: fixed;
+  }
+}
+
+
+/*
+ * In the scenes that change in place (SceneFlow) a section does not travel up the screen, so its scroll-linked reveals
+ * (the head's number rolling, its letters rising, the rule and the thread drawing) would stop part-way. There they are
+ * simply in place: the scene's own fade in is its entrance. The statement keeps its own.
+ */
+@media (prefers-reduced-motion: no-preference) {
+  .page-main[data-scenes] > section:not(#brief) [data-reveal] :is(.split-m > span, .roll-strip, .open-frame, .rule-sweep),
+  .page-main[data-scenes] > section:not(#brief) .sec-head::before,
+  .page-main[data-scenes] > section:not(#brief) .sec-head::after {
+    animation: none;
+  }
+}

@@ -1,7 +1,7 @@
 /*
  * The statement (Statement.tsx). At rest: a section with the statement set
  * large and centred, its label above and its note below. Under [data-live]
- * the stage is held for two screens while the camera flies into the mark.
+ * the stage is held for a screen and a half while the camera flies into the mark.
  */
 .zoom-track {
   position: relative;
@@ -65,7 +65,7 @@
 /* ------------------------------------------------------------ the held scene */
 
 .zoom-track[data-live] {
-  height: 300svh;
+  height: 250svh;
 }
 
 .zoom-track[data-live] .zoom-stage {

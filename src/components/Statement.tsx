@@ -11,8 +11,8 @@ const DEPTH = 18;
 const BARS = [3.2, 6.8, 0, 8.4, 5, 1.1, 7.6, 2.3, 5.9, 4.1];
 
 /**
- * Between the hero and the work, one statement, held on stage for about two
- * screens of scroll, the way the reference shows its "main security threat":
+ * Between the hero and the work, one statement, held on stage for about a
+ * screen and a half of scroll, the way the reference shows its "main security threat":
  * it comes up from part-ink to full ink, then the camera flies into the
  * green reticle set between its words until the reticle is bigger than the
  * screen and the work begins. The scroll drives it (a transform on one
@@ -57,11 +57,12 @@ export default function Statement() {
             const want = clamp(-r.top / Math.max(1, r.height - window.innerHeight));
             at = at < 0 || Math.abs(want - at) < 0.0008 ? want : at + (want - at) * 0.16;
             const p = at;
-            // 0–0.25: it comes up to full ink; 0.25–0.92: the camera flies into the mark; then it gives way.
-            const rise = ease(clamp(p / 0.25));
-            const dive = clamp((p - 0.25) / 0.67);
+            // 0–0.2: it comes up to full ink; 0.2–0.42: it holds, to be read; 0.42–0.92: the camera flies into the mark,
+            // turning to it first so the words open out evenly on every side; then it gives way.
+            const rise = ease(clamp(p / 0.2));
+            const dive = clamp((p - 0.42) / 0.5);
             const scale = (0.9 + 0.1 * rise) * Math.pow(DEPTH, dive * dive);
-            const pull = ease(clamp(dive * 1.6));
+            const pull = ease(clamp(dive * 4));
             words.style.transform = `translate(${(dx * pull).toFixed(1)}px, ${(dy * pull).toFixed(1)}px) scale(${scale.toFixed(4)})`;
             words.style.setProperty("--ink", (0.35 + 0.65 * rise).toFixed(3));
             el.style.setProperty("--gone", ease(clamp((p - 0.9) / 0.1)).toFixed(3));

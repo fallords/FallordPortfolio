@@ -97,19 +97,20 @@ export default function About() {
     const [shown, setShown] = useState(false);
     const held = useRef(false);
 
+    // The demos start once the stage is on the screen. Measured on scroll, not by an observer: the scenes are drawn
+    // where they are not (SceneFlow), which an observer's first reading can miss.
     useEffect(() => {
         const el = root.current;
         if (!el) return;
-        const io = new IntersectionObserver(
-            ([entry]) => {
-                if (!entry.isIntersecting) return;
-                setShown(true);
-                io.disconnect();
-            },
-            { threshold: 0.3 }
-        );
-        io.observe(el);
-        return () => io.disconnect();
+        const check = () => {
+            const r = el.getBoundingClientRect();
+            if (r.top >= window.innerHeight * 0.7 || r.bottom <= window.innerHeight * 0.3) return;
+            setShown(true);
+            window.removeEventListener("scroll", check);
+        };
+        check();
+        window.addEventListener("scroll", check, { passive: true });
+        return () => window.removeEventListener("scroll", check);
     }, []);
 
     // On the held stage the scroll chooses: the capability whose stretch it is, and how far through it (--fill).
