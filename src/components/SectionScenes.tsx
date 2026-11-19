@@ -6,20 +6,21 @@ import * as THREE from "three";
 /*
  * One field of glowing green particles behind every section after the hero, on one canvas fixed to the screen. As
  * the section across the middle of the screen changes, the particles come loose and re-form into that section's
- * shape: rolling ground under the statement, a double helix by the writing, a globe by the contact form. Where a
- * section has a 3D drawing of its own (the work bench, the drum, the demos, the certificates), they thin out into a
- * slow dust, so nothing competes with it. The pointer pushes them aside as it passes. Still under reduced motion.
+ * shape: rolling ground under the statement, a crystal by the work, a gyroscope by the experience, a network by
+ * what I do, a fanned stack of cards by the certificates, a double helix by the writing, a globe by the contact
+ * form. A section with a 3D drawing of its own gets its shape at the left edge, half off the screen, so the two do
+ * not overlap. The pointer pushes them aside as it passes. Still under reduced motion.
  */
 
-type Shape = "dust" | "ground" | "helix" | "globe";
+type Shape = "dust" | "ground" | "crystal" | "rings" | "network" | "cards" | "helix" | "globe";
 
-// Which shape stands behind which section, and where on a wide screen (x: 0 the middle, 1 right of the words, 1.55 at the right edge).
+// Which shape stands behind which section, and where on a wide screen (x: 0 the middle, ±1 beside the words, ±1.55 at an edge, ±1.8 mostly past it).
 const SECTIONS: { id: string; shape: Shape; x: number }[] = [
     { id: "brief", shape: "ground", x: 0 },
-    { id: "work", shape: "dust", x: 0 },
-    { id: "experience", shape: "dust", x: 0 },
-    { id: "about", shape: "dust", x: 0 },
-    { id: "certificates", shape: "dust", x: 0 },
+    { id: "work", shape: "crystal", x: -1.8 },
+    { id: "experience", shape: "rings", x: -1.8 },
+    { id: "about", shape: "network", x: -1.8 },
+    { id: "certificates", shape: "cards", x: -1.8 },
     { id: "writing", shape: "helix", x: 1.55 },
     { id: "contact", shape: "globe", x: 1 },
 ];
@@ -30,12 +31,69 @@ function random(seed: number) {
     return () => ((s = (s * 16807) % 2147483647) - 1) / 2147483646;
 }
 
+type P3 = [number, number, number];
+
+/** The edges of the shapes drawn as lines of particles (null for the others), about 5 units across. */
+function edgesOf(shape: Shape, r: () => number): [P3, P3][] | null {
+    const segs: [P3, P3][] = [];
+    const loop = (pts: P3[]) => pts.forEach((p, i) => segs.push([p, pts[(i + 1) % pts.length]!]));
+    const ring = (n: number, at: (a: number) => P3) => loop(Array.from({ length: n }, (_, i) => at((i / n) * Math.PI * 2)));
+    if (shape === "crystal") {
+        // An icosahedron round an octahedron: the things built, faceted.
+        for (const g of [new THREE.IcosahedronGeometry(2.4, 0), new THREE.OctahedronGeometry(1.2)]) {
+            const e = new THREE.EdgesGeometry(g).attributes.position!.array;
+            for (let i = 0; i < e.length; i += 6) segs.push([[e[i]!, e[i + 1]!, e[i + 2]!], [e[i + 3]!, e[i + 4]!, e[i + 5]!]]);
+            g.dispose();
+        }
+    } else if (shape === "rings") {
+        // A gyroscope, the drum's reticle in three dimensions: three rings and a ring of ticks.
+        ring(64, (a) => [Math.cos(a) * 2.4, Math.sin(a) * 2.4, 0]);
+        ring(64, (a) => [Math.cos(a) * 2.1, 0, Math.sin(a) * 2.1]);
+        ring(64, (a) => [0, Math.cos(a) * 1.8, Math.sin(a) * 1.8]);
+        for (let k = 0; k < 48; k++) {
+            const a = (k / 48) * Math.PI * 2, o = k % 4 ? 2.75 : 2.6;
+            segs.push([[Math.cos(a) * 2.9, Math.sin(a) * 2.9, 0], [Math.cos(a) * o, Math.sin(a) * o, 0]]);
+        }
+    } else if (shape === "network") {
+        // Nodes over a sphere, each tied to its three nearest: what talks to what.
+        const nodes: P3[] = Array.from({ length: 36 }, (_, i) => {
+            const y = 1 - (i / 35) * 2, k = Math.sqrt(1 - y * y), a = i * 2.39996, m = 2.4 * (0.85 + r() * 0.3);
+            return [Math.cos(a) * k * m, y * m, Math.sin(a) * k * m];
+        });
+        const d2 = (a: P3, b: P3) => (a[0] - b[0]) ** 2 + (a[1] - b[1]) ** 2 + (a[2] - b[2]) ** 2;
+        nodes.forEach((p, i) =>
+            nodes
+                .filter((_, j) => j !== i)
+                .sort((a, b) => d2(p, a) - d2(p, b))
+                .slice(0, 3)
+                .forEach((q) => segs.push([p, q])),
+        );
+    } else if (shape === "cards") {
+        // A fanned stack of certificates, each with a few lines of text on it.
+        for (let k = 0; k < 5; k++) {
+            const a = (k - 2) * 0.16, z = (k - 2) * 0.5;
+            const at = (x: number, y: number): P3 => [x * Math.cos(a) - y * Math.sin(a), x * Math.sin(a) + y * Math.cos(a), z];
+            loop([at(-1.6, -1.1), at(1.6, -1.1), at(1.6, 1.1), at(-1.6, 1.1)]);
+            for (let l = 0; l < 3; l++) segs.push([at(-1.3, 0.7 - l * 0.3), at(l ? 0.4 : 1.1, 0.7 - l * 0.3)]);
+        }
+    } else return null;
+    return segs;
+}
+
 /** `n` points of a shape, about 5 units across, centred on the origin. */
 function sample(shape: Shape, n: number): Float32Array {
     const out = new Float32Array(n * 3);
     const r = random(shape.length * 7919 + 13);
     const put = (i: number, x: number, y: number, z: number) => out.set([x, y, z], i * 3);
+    const segs = edgesOf(shape, r);
     for (let i = 0; i < n; i++) {
+        if (segs) {
+            // Strung along the shape's edges, a little loose.
+            const [a, b] = segs[Math.floor(r() * segs.length)]!;
+            const t = r(), j = 0.05;
+            put(i, a[0] + (b[0] - a[0]) * t + (r() - 0.5) * j, a[1] + (b[1] - a[1]) * t + (r() - 0.5) * j, a[2] + (b[2] - a[2]) * t + (r() - 0.5) * j);
+            continue;
+        }
         if (shape === "dust") {
             put(i, (r() - 0.5) * 26, (r() - 0.5) * 14, -2 - r() * 10);
         } else if (shape === "ground") {
@@ -167,7 +225,7 @@ export default function SectionScenes() {
 
         // Fewer on a phone, and fewer again on a device with few cores.
         const N = Math.round((window.innerWidth < 768 ? 7000 : 14000) * ((navigator.hardwareConcurrency || 8) <= 4 ? 0.6 : 1));
-        const shapes = Object.fromEntries((["dust", "ground", "helix", "globe"] as Shape[]).map((s) => [s, sample(s, N)])) as Record<Shape, Float32Array>;
+        const shapes = Object.fromEntries((["dust", "ground", "crystal", "rings", "network", "cards", "helix", "globe"] as Shape[]).map((s) => [s, sample(s, N)])) as Record<Shape, Float32Array>;
         const geo = new THREE.BufferGeometry();
         const from = new Float32Array(shapes.dust);
         const to = new Float32Array(shapes.dust);
@@ -205,9 +263,9 @@ export default function SectionScenes() {
         let current = -2;
         let spin = 0;
         const shapeOf = (k: number): Shape => sections[k]?.shape ?? "dust";
-        const placed = (k: number) => shapeOf(k) === "helix" || shapeOf(k) === "globe";
-        // On a narrow screen the shape goes half off the right edge, behind the words as little as it can.
-        const centreOf = (k: number) => new THREE.Vector3(!placed(k) ? 0 : wide ? sections[k]!.x * halfW * 0.55 : halfW * 0.85, 0, 0);
+        const placed = (k: number) => shapeOf(k) !== "dust" && shapeOf(k) !== "ground";
+        // On a narrow screen the shape goes half off its edge, behind the words as little as it can.
+        const centreOf = (k: number) => new THREE.Vector3(!placed(k) ? 0 : wide ? sections[k]!.x * halfW * 0.55 : Math.sign(sections[k]!.x) * halfW * 0.85, 0, 0);
         /** The positions the shape for section `k` asks for, placed for this screen. */
         const targetOf = (k: number) => {
             const src = shapes[shapeOf(k)];
@@ -296,7 +354,8 @@ export default function SectionScenes() {
             });
             if (k !== current) go(k);
             // Faint as dust, fuller as a shape; nothing over the hero.
-            const target = k < 0 ? 0 : shapeOf(k) === "dust" ? 0.35 : wide ? 1 : 0.45;
+            // Full beside plain sections; a step back beside a section with its own 3D (on the left), fainter on a narrow screen.
+            const target = k < 0 ? 0 : !wide ? 0.45 : sections[k]!.x < 0 ? 0.5 : 1;
             shown += (target - shown) * (moving ? 1 - Math.exp(-dt * 3) : 1);
             if (shown < 0.003 && target === 0) {
                 shown = 0;
