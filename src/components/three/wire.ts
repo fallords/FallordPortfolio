@@ -202,6 +202,9 @@ export function stage(
             view.disconnect();
             disposeAll(scene);
             renderer.dispose();
+            // Let the GPU context go now, not whenever it is collected: phones allow only a few, and a page that kept
+            // making new ones (the demos remount as their tabs change) ran out of memory and the browser reloaded it.
+            renderer.forceContextLoss();
             canvas.remove();
         },
     };

@@ -30,7 +30,9 @@ function useScene<S>(state: S, make: (host: HTMLDivElement, get: () => S) => Ret
     });
     useEffect(() => {
         const host = ref.current;
-        if (!host) return;
+        // Not on a phone: the demos remount as their tabs change, and each canvas is a GPU context a phone can ill
+        // spare (the page ran out of memory and the browser reloaded it). There the flat picture stands.
+        if (!host || window.matchMedia("(max-width: 767px)").matches) return;
         const c = make(host, () => latest.current);
         ctl.current = c;
         return () => {
