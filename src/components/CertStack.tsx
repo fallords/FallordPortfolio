@@ -61,7 +61,8 @@ export default function CertStack({ images, active }: { images: (string | undefi
         const stageEl = host?.closest<HTMLElement>(".cc-stage");
         if (!host || !stageEl) return;
         const n = images.length;
-        const loader = new THREE.TextureLoader();
+        // The longest side a scan is kept at: what the stage shows, less on a phone.
+        const MAX = window.innerWidth < 768 ? 640 : 1100;
         const root = new THREE.Group();
         let pos = want.current;
         let wash = 1;
@@ -117,9 +118,21 @@ export default function CertStack({ images, active }: { images: (string | undefi
             const card = { group, mat, aspect: 1.414, marks };
             cards.push(card);
             if (!src) return;
-            loader.load(src, (t) => {
+            const img = new Image();
+            img.decoding = "async";
+            img.src = src;
+            img.onload = () => {
+                // Drawn down to what the stage can show before it goes to the GPU, without mipmaps: eleven full scans
+                // were ~90 MB of texture, too much for a phone (the browser reloaded the page).
+                const k = Math.min(1, MAX / Math.max(img.naturalWidth, img.naturalHeight));
+                const c = document.createElement("canvas");
+                c.width = Math.max(1, Math.round(img.naturalWidth * k));
+                c.height = Math.max(1, Math.round(img.naturalHeight * k));
+                c.getContext("2d")!.drawImage(img, 0, 0, c.width, c.height);
+                const t = new THREE.CanvasTexture(c);
                 t.colorSpace = THREE.SRGBColorSpace;
-                t.anisotropy = 4;
+                t.generateMipmaps = false;
+                t.minFilter = THREE.LinearFilter;
                 tex.push(t);
                 mat.uniforms.uMap.value = t;
                 mat.uniforms.uReady.value = 1;
@@ -127,7 +140,7 @@ export default function CertStack({ images, active }: { images: (string | undefi
                 fit(card);
                 crosses(card);
                 ctl?.redraw();
-            });
+            };
         });
 
         // The field of crosses, every 64px of the card as drawn, as the flat scans had (in unit-card coordinates).

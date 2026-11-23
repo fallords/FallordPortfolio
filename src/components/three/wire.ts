@@ -135,7 +135,8 @@ export function stage(
 ) {
     let renderer: THREE.WebGLRenderer;
     try {
-        renderer = new THREE.WebGLRenderer({ antialias: true, alpha: true, powerPreference: "low-power" });
+        // No multisampling on a phone: four times the buffer memory for each canvas.
+        renderer = new THREE.WebGLRenderer({ antialias: window.innerWidth >= 768, alpha: true, powerPreference: "low-power" });
     } catch {
         return null;
     }

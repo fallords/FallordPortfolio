@@ -465,7 +465,17 @@ export default function HeroVoxel({ className = "" }: { className?: string }) {
             dataTex.minFilter = dataTex.magFilter = THREE.NearestFilter;
             dataTex.generateMipmaps = false;
             dataTex.needsUpdate = true;
-            const photoTex = new THREE.Texture(photoImg);
+            // On a phone the photo atlas goes to the GPU at half size: the face is a silhouette anyway (uDetail), and the
+            // full atlas alone was ~30 MB of texture on a device that reloads the page when it runs short.
+            let photoSrc: HTMLImageElement | HTMLCanvasElement = photoImg;
+            if (phone) {
+                const c = document.createElement("canvas");
+                c.width = Math.round(photoImg.naturalWidth / 2);
+                c.height = Math.round(photoImg.naturalHeight / 2);
+                c.getContext("2d")!.drawImage(photoImg, 0, 0, c.width, c.height);
+                photoSrc = c;
+            }
+            const photoTex = new THREE.Texture(photoSrc);
             photoTex.flipY = false;
             photoTex.minFilter = THREE.LinearFilter;
             photoTex.generateMipmaps = false;
