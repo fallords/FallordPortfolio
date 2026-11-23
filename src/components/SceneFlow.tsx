@@ -74,10 +74,14 @@ export default function SceneFlow() {
                 const arriving = i > 0 ? Math.max(0, tops[i]!) : 0;
                 const next = tops[i + 1];
                 const shown = arriving > 0 ? fadeIn((vh - arriving) / vh) : next === undefined ? 1 : 1 - fadeOut((vh - next) / vh);
-                s.style.translate = arriving > 0 ? `0 ${-arriving}px` : "";
-                s.style.opacity = shown >= 0.999 ? "" : shown.toFixed(3);
-                s.style.scale = shown >= 0.999 ? "" : (0.985 + 0.015 * shown).toFixed(4);
-                s.style.visibility = shown <= 0.001 ? "hidden" : "";
+                // Only a scene that is part of a handover gets a translate or an opacity: each one makes the scene a
+                // composited layer thousands of pixels tall, and on a phone a stack of them ran out of memory (the
+                // browser reloaded the page). A scene out of play stays where it is in the page, hidden.
+                const hidden = shown <= 0.001;
+                s.style.translate = arriving > 0 && !hidden ? `0 ${-arriving}px` : "";
+                // Opacity 0 as well as hidden: parts inside that set their own visibility would show through otherwise.
+                s.style.opacity = hidden ? "0" : shown >= 0.999 ? "" : shown.toFixed(3);
+                s.style.visibility = hidden ? "hidden" : "";
                 // Not the one on show: out of the pointer's reach (a part inside that sets its own visibility would
                 // otherwise still take clicks meant for the scene over it). The keyboard still reaches it (see onFocus).
                 s.style.pointerEvents = shown < 0.5 ? "none" : "";
@@ -119,7 +123,7 @@ export default function SceneFlow() {
             document.removeEventListener("focusin", onFocus);
             main.removeAttribute("data-scenes");
             scenes.forEach((s) => {
-                for (const p of ["min-height", "position", "top", "margin-bottom", "translate", "opacity", "scale", "visibility", "pointer-events"]) s.style.removeProperty(p);
+                for (const p of ["min-height", "position", "top", "margin-bottom", "translate", "opacity", "visibility", "pointer-events"]) s.style.removeProperty(p);
 
                 s.removeAttribute("data-scene-on");
             });
