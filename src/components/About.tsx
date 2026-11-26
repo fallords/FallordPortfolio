@@ -98,7 +98,7 @@ export default function About() {
     const held = useRef(false);
 
     // The demos start once the stage is on the screen. Measured on scroll, not by an observer: the scenes are drawn
-    // where they are not (SceneFlow), which an observer's first reading can miss.
+    // where they are not (the stage is sticky inside a tall track), which an observer's first reading can miss.
     useEffect(() => {
         const el = root.current;
         if (!el) return;

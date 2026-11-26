@@ -368,8 +368,6 @@ export default function SectionScenes() {
                 const r = s.el?.getBoundingClientRect();
                 if (r && r.top < mid && r.bottom > mid) k = i;
             });
-            // Where the scenes change in place (SceneFlow), the one it marks as on show.
-            if (document.querySelector(".page-main[data-scenes]")) k = sections.findIndex((s) => s.el?.hasAttribute("data-scene-on"));
             if (k !== current) go(k);
             // Faint as dust, fuller as a shape; nothing over the hero.
             // Full beside plain sections; a step back beside a section with its own 3D (on the left), fainter on a narrow screen.

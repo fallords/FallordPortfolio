@@ -11,7 +11,7 @@
 .cc-stage {
   --foot: 5.75rem;
   position: relative;
-  /* What the screen leaves under the chapter's head and padding, so the whole section is one screen (SceneFlow). */
+  /* What the screen leaves under the chapter's head and padding, so the whole section fits one screen. */
   height: min(46rem, calc(100svh - 12.5rem));
   min-height: 30rem;
 }

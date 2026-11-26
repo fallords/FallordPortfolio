@@ -171,7 +171,7 @@ export function stage(
         const dt = Math.min(0.05, last ? (now - last) / 1000 : 0);
         last = now;
         if (!still.matches) time += dt;
-        // Faded out or hidden (a scene that has handed over, SceneFlow), nothing to draw.
+        // Faded out or hidden, nothing to draw.
         if (host.checkVisibility && !host.checkVisibility({ opacityProperty: true, visibilityProperty: true })) {
             // Drawn again in full once it shows: what changed while it was hidden was never drawn.
             dirty = true;

@@ -71,8 +71,6 @@ export default function Header() {
             for (const section of sections) {
                 if (section.getBoundingClientRect().top <= line) current = section.id;
             }
-            // Where the scenes change in place (SceneFlow) the sections are drawn where they are not; it marks the one on show.
-            if (document.querySelector(".page-main[data-scenes]")) current = document.querySelector(".page-main > [data-scene-on]")?.id ?? null;
             // The last section is short; at the very bottom it can never reach the line.
             if (window.innerHeight + window.scrollY >= root.scrollHeight - 2) {
                 current = sections.at(-1)?.id ?? current;
