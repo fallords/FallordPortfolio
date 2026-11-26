@@ -15,13 +15,13 @@ import * as THREE from "three";
 
 type Shape = "dust" | "ground" | "crystal" | "rings" | "network" | "cards" | "helix" | "globe";
 
-// Which shape stands behind which section, and where on a wide screen (x: 0 the middle, ±1 beside the words, ±1.55 at an edge, ±1.8 mostly past it).
+// Which shape stands behind which section, and where on a wide screen (x: 0 the middle, ±1 beside the words, ±1.55 at an edge, ±2.05 mostly past it).
 const SECTIONS: { id: string; shape: Shape; x: number }[] = [
     { id: "brief", shape: "ground", x: 0 },
-    { id: "work", shape: "crystal", x: -1.8 },
-    { id: "experience", shape: "rings", x: -1.8 },
-    { id: "about", shape: "network", x: -1.8 },
-    { id: "certificates", shape: "cards", x: -1.8 },
+    { id: "work", shape: "crystal", x: -2.05 },
+    { id: "experience", shape: "rings", x: -2.05 },
+    { id: "about", shape: "network", x: -2.05 },
+    { id: "certificates", shape: "cards", x: -2.05 },
     { id: "writing", shape: "helix", x: 1.55 },
     { id: "contact", shape: "globe", x: 1 },
 ];
@@ -371,7 +371,7 @@ export default function SectionScenes() {
             if (k !== current) go(k);
             // Faint as dust, fuller as a shape; nothing over the hero.
             // Full beside plain sections; a step back beside a section with its own 3D (on the left), fainter on a narrow screen.
-            const target = k < 0 ? 0 : !wide ? 0.25 : sections[k]!.x < 0 ? 0.5 : 1;
+            const target = k < 0 ? 0 : !wide ? 0.18 : sections[k]!.x < 0 ? 0.35 : 1;
             shown += (target - shown) * (moving ? 1 - Math.exp(-dt * 3) : 1);
             if (shown < 0.003 && target === 0) {
                 shown = 0;
