@@ -43,7 +43,7 @@
   --accent-wash: rgba(25, 163, 82, 0.08);
   --accent-line: rgba(25, 163, 82, 0.35);
   /* The background grid's lines, the hero's grid green, faint. */
-  --grid-line: rgba(127, 217, 164, 0.1);
+  --grid-line: rgba(127, 217, 164, 0.065);
 
   /* The inverse field: the paper of the writing covers. */
   --field: #dddddd;
@@ -678,8 +678,9 @@ body::after {
   z-index: 44;
   pointer-events: none;
   background:
-    radial-gradient(ellipse 120% 100% at 50% 50%, transparent 55%, rgb(0 0 0 / 0.45) 100%),
-    repeating-linear-gradient(to bottom, rgb(0 0 0 / 0.16) 0 1px, transparent 1px 4px);
+    radial-gradient(ellipse 120% 100% at 50% 50%, transparent 60%, rgb(0 0 0 / 0.32) 100%),
+    /* Faint: it lies over every word on the page, and stronger it striped the text. */
+    repeating-linear-gradient(to bottom, rgb(0 0 0 / 0.07) 0 1px, transparent 1px 4px);
 }
 
 /* A way out of a held scene: only shown where the scene is held. */

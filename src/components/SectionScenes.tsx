@@ -371,7 +371,7 @@ export default function SectionScenes() {
             if (k !== current) go(k);
             // Faint as dust, fuller as a shape; nothing over the hero.
             // Full beside plain sections; a step back beside a section with its own 3D (on the left), fainter on a narrow screen.
-            const target = k < 0 ? 0 : !wide ? 0.18 : sections[k]!.x < 0 ? 0.35 : 1;
+            const target = k < 0 ? 0 : !wide ? 0.18 : sections[k]!.x < 0 ? 0.35 : 0.8;
             shown += (target - shown) * (moving ? 1 - Math.exp(-dt * 3) : 1);
             if (shown < 0.003 && target === 0) {
                 shown = 0;
