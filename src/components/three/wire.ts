@@ -1,7 +1,7 @@
 import * as THREE from "three";
 
 /*
- * The site's Three.js drawings in one hand: thin green wireframes (SectionScenes, the Experience drum, the Work
+ * The site's Three.js drawings in one hand: thin green wireframes (the Experience drum, the Work
  * models, the What I do scenes, the certificate stack). Lines are built as plain arrays, then made into one
  * LineSegments each; `t` runs along a line (0..1) for signals that travel it.
  */

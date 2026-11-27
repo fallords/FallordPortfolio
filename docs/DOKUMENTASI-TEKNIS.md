@@ -124,7 +124,6 @@ Catatan:
 │   │   ├── not-found.tsx, error.tsx, global-error.tsx
 │   │   └── icon.svg, apple-icon.png, favicon.ico   ikon situs: "F" putih dan titik emas di atas warna halaman. icon.svg adalah sumbernya; dua lainnya dibuat ulang dengan `node scripts/make-icons.mjs`
 │   ├── components/               semua bagian halaman (lihat bagian 7)
-│   │   ├── demos/                lima demo interaktif di "What I do"
 │   │   ├── figures/lora/         figur isometrik interaktif di halaman tulisan LoRa
 │   │   ├── figures/thumbs/       thumbnail isometrik di Work (printer, lensa) dan Writing (wearable, pintu)
 │   │   └── iso/                  kit gambar isometrik (dari skill anatomy)
@@ -163,7 +162,6 @@ Error di dalam halaman ditangani `app/error.tsx`. Error di root layout ditangani
 
 - **Bagian halaman:** `About`, `Certifications`, `CertificateLightbox`, `CommandPalette`, `Header`, `IntroScreen`, `PageLoading`, `HeroVoxel`, `ReadingProgress`, `LocalTime`, `CopyEmail`, `GridOverlay`.
 - **Penanganan error:** `ErrorBoundary`, `FallbackNotice`, `error.tsx`, `global-error.tsx`.
-- **Demo:** kelima komponen di `demos/`.
 - **Figur:** `LoraLive` di `figures/lora/live.tsx`, serta `CvLive`, `SeraLive`, `WearableLive` dan `DoorLive` di `figures/thumbs/live.tsx`. Gambar statisnya dibuat di server (`art.tsx` masing-masing) dan dikirim sebagai elemen.
 
 ## 6. Layout global
@@ -188,10 +186,9 @@ Urutan diatur di `app/page.tsx`.
 | Section | `id` | Komponen | Sumber data |
 |---|---|---|---|
 | Hero | | `Hero.tsx`, `HeroVoxel.tsx`, `LocalTime.tsx` | teks di `Hero.tsx`, email di `site.ts` |
-| In short | `brief` | `Statement.tsx` | teks di `Statement.tsx` |
 | Work | `work` | `Works.tsx`, `WorkStage.tsx` | array `projects` di `Works.tsx` |
 | Experience | `experience` | `Experience.tsx`, `ExperienceDrum.tsx` | `content/experience.ts` |
-| What I do | `about` | `About.tsx`, `demos/*` | array `services` (termasuk `tools` per kemampuan) di `About.tsx` |
+| What I do | `about` | `About.tsx`, `SysScene.tsx` | array `services` (termasuk `tools` dan `work` per kemampuan) di `About.tsx` |
 | Certificates | `certificates` | `Certifications.tsx`, `CertificateLightbox.tsx` | `content/certifications.ts` |
 | Writing | `writing` | `Writing.tsx` | `content/writing.ts` (spread besar bergantian kiri-kanan: gambar kerja di satu sisi, judul dan tombol di sisi lain) |
 | Contact | `contact` | `Contact.tsx`, `ContactForm.tsx`, `CopyEmail.tsx` | `lib/site.ts` |
@@ -213,6 +210,8 @@ Di HP, satu proyek per layar (kartu 88% lebar, snap) yang digeser lewat `SwipeRo
 - **Desktop (mulai 1024px):** grid berukuran tidak sama. Code (7 kolom) dan Design (5 kolom) di baris atas, lalu Systems, AI, dan Hardware (masing-masing 4 kolom) di baris bawah.
 - **Tablet:** dua per baris, dengan Code selebar dua kolom.
 - **HP:** satu demo per layar (88% lebar, snap) yang digeser lewat `SwipeRow`.
+
+**Sekarang (menggantikan demo):** daftar huruf A–E di kiri; di kanan satu panel per kemampuan berisi gambar wireframe 3D (`SysScene.tsx`, satu canvas Three.js di atas area `.sys-art` panel yang tampil: Code jendela kode bertumpuk, Design artboard dengan layer terangkat, Systems server dan database dengan aliran data, AI jaringan saraf dengan sinyal, Hardware papan dengan chip dan antena), lalu dua contoh kerja nyata (dari Work dan Experience) dan tools-nya. Ganti kemampuan: yang lama tenggelam, yang baru naik. Di HP tanpa gambar 3D. Catatan di bawah ini tentang demo lama sudah tidak berlaku.
 
 | Kartu | Demo | Isi |
 |---|---|---|
@@ -283,7 +282,6 @@ Teks lengkap ada di PDF.
 - `motion.css`: elemen `[data-reveal]` menamai view timeline `--reveal`; potongan di dalamnya naik terkait scroll (`--step` mengatur jeda, `data-reveal="entry"` untuk blok di ujung halaman). Juga `.fill-w` (isi tinta mulai 45%), `.open-frame` (bingkai terbuka dari atas), `.rule-sweep` (garis hijau menyapu garis kepala bab).
 - Dipakai di: kepala setiap bab (nomor bergulir, huruf judul naik, meta decode, garis menyapu), judul hero (kata naik saat muat, 45ms per kata), judul jabatan dan tulisan, alamat email di Contact (per huruf), dan wordmark footer (per huruf saat halaman berakhir).
 
-**In short (`Statement.tsx`).** Satu pernyataan antara hero dan Work yang terisi tinta per kata saat naik melewati layar; label "_In short" dan "Developer · Designer" (decode) di kolom margin.
 
 **Experience sebagai drum (`ExperienceDrum.tsx`, `experience.css` bagian bawah).** Scene "In numbers" dihapus (angkanya kurang berguna) dan konsepnya, adegan angka besar di referensi, dipakai untuk Experience. Di laptop (≥1024px lebar, ≥720px tinggi, tanpa reduced motion) track ditahan satu layar plus 70svh per peran: drum tanggal mulai tiap peran (`09 2026`, `03 2026`, `08 2025`, `05 2024`, dicap seperti stempel footer) berputar di dalam reticle, tanggal di band hijau dan ter-decode; panel kanan menampilkan peran itu (fakta, jabatan berkedip sebagai sinyal, instansi, ringkasan dan proyek teracak lalu rapi); indeks nama peran di kiri; hitungan "01 / 04" dan Skip ke What I do di kanan atas. Tidak ada peran yang tampil sampai panggung naik ke tengah layar. Semua teks peran tetap ada di DOM untuk pembaca layar. Di layar lebih kecil atau dengan reduced motion: log biasa di bawah.
 
@@ -305,7 +303,6 @@ Teks lengkap ada di PDF.
 
 **Crosshair (`Crosshair.tsx`).** Seperti referensi, panah sistem diganti crosshair (mode `difference`, jadi terlihat di terang maupun gelap) yang mengikuti pointer tanpa jeda, berputar seperempat putaran dan membesar 1,2× di atas apa pun yang bisa ditekan, dan 1,35× selama tombol mouse ditekan (`data-down`), dengan transisi 150ms seperti referensi. Koordinat X dan Y pointer dibaca di sudut bawah bingkai HUD. Hanya untuk mouse/trackpad; di atas kolom teks kursor caret sistem kembali; tersembunyi saat pointer keluar jendela.
 
-**In short (`Statement.tsx`, `statement.css`).** Adegan zoom-through seperti "main security threat" di referensi: panggung ditahan dua layar; pernyataan "I design and build for the web, AI ⊕ and hardware" naik dari 35% ke tinta penuh, lalu kamera terbang ke reticle hijau di antara kata-katanya sampai reticle lebih besar dari layar (`DEPTH` 18). Satu transform per frame pada satu elemen; tanpa `will-change` supaya teks digambar ulang tajam. Kalimat lengkap tentang karya ada kecil di sudut kanan bawah. Dengan reduced motion: pernyataan biasa tanpa hold.
 
 **Hero, telemetri.** Blok telemetri lama sudah dihapus bersama hero lama; status open to work kini satu baris di kolom kanan hero.
 
@@ -315,7 +312,7 @@ Teks lengkap ada di PDF.
 
 **Scope malam di hero.** Dihapus bersama `HeroLight.tsx` (cahaya, scope, reticle) saat hero diganti kepala voxel.
 
-**Adegan yang ditahan.** Tiap adegan (In short, Work, Experience) punya link "Skip ↓" ke bagian berikutnya. Pernyataan In short juga dihaluskan menuju posisi scroll.
+**Adegan yang ditahan.** Tiap adegan (Work, Experience) punya link "Skip ↓" ke bagian berikutnya.
 
 **Kecepatan scroll.** `HudFrame` menghitung kecepatan scroll (dihaluskan, dibatasi, kembali ke 0 saat berhenti) dan menulisnya sebagai `--vel` ke elemen `data-vel`: nama footer condong, nomor bab tertinggal sedikit.
 
@@ -327,11 +324,10 @@ Teks lengkap ada di PDF.
 
 **Flicker link.** Link (`.link`, `data-flick`: nav header, rail bab, baris footer) berkedip sekali saat disorot (`flicker`, 450ms), seperti `link-hover` referensi.
 
-**Tirai batang (`Statement.tsx`, `statement.css`).** Seperti `line-wrap` referensi: sepuluh kolom gelap setinggi satu layar berdiri di tepi atas In short, di atas layar terakhir hero. Saat section naik, kolom-kolom itu tumbuh dari bawah dengan urutan teracak (`BARS`, tetap) sampai potret tertutup. Scroll-driven, hanya transform; tanpa dukungan atau dengan reduced motion kolomnya rata dan tidak menutupi apa pun.
 
 **Tag.** `.tag` mengikuti nama section referensi: kata di atas garis tipis yang naik di ujung kiri, nilainya di chip solid di sebelahnya (`_Portfolio` `2026` di hero).
 
-**Footer tirai.** Di beranda, halaman (`.page-main`, buram, satu lapis di atas) adalah lembaran di atas footer; footer menempel di bawah layar dan terbuka dari bawah saat halaman habis, dengan garis hijau di tepi lembaran. Hanya bila layar cukup tinggi (≥680px) dan perangkatnya pakai mouse; di layar sentuh footer ikut halaman biasa, karena saat scroll cepat bagian halaman yang belum tergambar membuat hijau footer mengintip. Huruf nama footer naik di 24rem terakhir scroll dokumen.
+**Footer.** Gelap senada halaman: satu baris di bawah garis tipis, nama dan tahun di kiri, email, LinkedIn, Instagram dan "Back to top" di kanan (bertumpuk di HP). Tanpa tirai dan tanpa nama raksasa.
 
 **Latar.** Seluruh situs memakai latar yang selaras dengan hero: grid garis hijau tipis 80px (`--grid-line`), ditambah scanline dan vignette CRT yang menempel di layar (`body::after`). Pola titik dan animasi titik (`DotField`) sudah dihapus atas permintaan pemilik.
 
@@ -381,9 +377,9 @@ Rincian tipografi, skala, dan catatan desain ada di halaman "Catatan Desain Fadh
 - **Hemat.** Render berhenti saat hero di luar layar (IntersectionObserver) atau tab tersembunyi. DPR maks. 1,6 (HP 1,4).
 - **Fallback.** Reduced motion atau WebGL gagal: `voxel-still.png` buram sebagai siluet dengan bingkai. Selain itu tidak ada gambar apa pun sebelum boot, dan gambar diam tidak diunduh.
 - **Progres ke intro.** `reportPortraitProgress(1)` dikirim begitu data termuat (atau gagal), lewat `lib/portraitProgress.ts`.
-- **`Portrait.tsx` dan 543 frame potret lama** sudah dihapus. `loadOrder` kini tinggal di `CodeDemo.tsx`; `public/frames/still-*.jpg` tetap ada untuk demo Design.
+- **`Portrait.tsx` dan 543 frame potret lama** sudah dihapus. `public/frames/` sudah dihapus.
 
-**Medan partikel di belakang section (`SectionScenes.tsx`).** Satu canvas Three.js tetap di layar (`.section-scenes`, `z-index: -1` di dalam `.page-main`), satu konteks WebGL untuk semua section setelah hero: 14.000 partikel hijau bercahaya (7.000 di HP, blending additive) yang terlepas lalu terbentuk ulang setiap section di tengah layar berganti, mengikuti pola situs WebGL top (Agence F, Shopify Editions). Statement: medan bergelombang di bawah teks. Writing: heliks ganda di tepi kanan. Contact: globe dengan busur dari Indonesia. Section yang sudah punya objek 3D sendiri dapat bentuknya di tepi kiri, sebagian keluar layar dan lebih redup, supaya tidak menumpuk dengan objeknya: Work kristal (ikosahedron dan oktahedron), Experience giroskop, What I do jaringan simpul, Certificates tumpukan kartu. Di layar di bawah 900px semua bentuk di tepinya masing-masing dan lebih redup. Pointer (mouse) mendorong partikel menyingkir dan membuatnya menyala putih, kamera condong sedikit. Reduced motion: diam. Tidak menggambar apa pun saat hero di layar.
+**Latar.** Grid garis hijau tipis yang diam di layar dan efek CRT (garis scan, gelap di tepi). Medan partikel 3D di belakang section (`SectionScenes.tsx`) sudah dihapus.
 
 **Satu adegan bersambung (`SmoothScroll.tsx`, `globals.css`).** Scroll roda/trackpad dihaluskan dengan Lenis (`lerp` 0,09; anchor dengan offset header), di atas scroll native sehingga panggung sticky, animasi CSS berbasis scroll dan anchor tetap jalan; sentuhan dibiarkan native; mati dengan reduced motion. Grid latar `body` dan `.page-main` dipaku ke layar (`background-attachment: fixed`, hanya perangkat mouse) seperti medan partikel, jadi yang bergerak hanya isi. Section mengalir biasa saat di-scroll (ganti-adegan di tempat sempat dicoba lalu dibuang: terasa mengganggu dan berat di HP). Link di dalam halaman (termasuk `/#…` dari header) diluncurkan Lenis ke bawah bar header. Demo What I do mulai saat panggungnya terlihat di layar (dicek saat scroll). Di setiap pergantian section, partikel bentuk lama mengalir lewat satu tabung di tengah layar (kurva Bézier lewat titik yang berputar di tabung, lebih terang selama di jalan) lalu menyusun bentuk baru.
 
@@ -391,7 +387,7 @@ Rincian tipografi, skala, dan catatan desain ada di halaman "Catatan Desain Fadh
 - **Experience (`ExperienceDrum.tsx`).** Drum tanggal 3D yang berputar ke peran aktif, reticle dan cincin gimbal; posisinya mengikuti `.xp-band`, jadi tata letak HP dan desktop tetap dari CSS.
 - **Work (`WorkModel.tsx`).** Printer CV, stand baca S.E.R.A. dan wearable sebagai model wireframe dari konstanta `figures/thumbs/*-view.ts`, dengan gerak masing-masing; `WorkStage` menulis `data-apart` dan bagian model terbang keluar.
 - **Certificates (`CertStack.tsx`).** Tumpukan kartu 3D di tempat scan; tombol bingkai DOM tetap di atasnya untuk klik, keyboard dan screen reader (`data-3d` menyembunyikan scan datar). Autoplay hanya berhenti saat pointer di atas kartu atau kontrol, bukan di seluruh panggung.
-- **What I do (`demos/scenes.tsx`).** Hanya di demo yang kedalamannya berarti: Systems (bar trace jadi balok, playhead jadi bidang) dan Hardware (jendela sinyal sebelumnya mundur ke belakang sebagai waterfall, ambang jadi bidang). Code, Design dan AI tetap datar.
+- **What I do (`SysScene.tsx`).** Satu wireframe per kemampuan di panel yang tampil (lihat bagian What I do).
 
 ## 10. Loading, error, dan ketahanan
 

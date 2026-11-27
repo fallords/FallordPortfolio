@@ -1,61 +1,61 @@
 "use client";
 
-import { useEffect, useRef, useState, type CSSProperties, type KeyboardEvent } from "react";
+import { useCallback, useEffect, useRef, useState, type CSSProperties, type KeyboardEvent } from "react";
 import Section from "./Section";
-import ErrorBoundary from "./ErrorBoundary";
-import FallbackNotice from "./FallbackNotice";
-import CodeDemo from "./demos/CodeDemo";
-import WireframeDemo from "./demos/WireframeDemo";
-import TraceDemo from "./demos/TraceDemo";
-import StreamDemo from "./demos/StreamDemo";
-import SensorDemo from "./demos/SensorDemo";
+import SysScene from "./SysScene";
 import "./about.css";
 
 /*
  * Each capability carries the tools it is done with, so there is no separate
  * "Tools I use" list to cross-reference. All sixteen tools are here, each
- * under the one place it is used.
+ * under the one place it is used. `work` is where it was done, read off the
+ * Work and Experience entries; nothing here is claimed that is not there.
  */
-const services = [
+const services: { title: string; desc: string; tools: string[]; work: [string, string][] }[] = [
     {
         title: "Code",
         desc: "I write software in TypeScript, Python and C++: web apps and the servers behind them, tools built on AI models, and firmware for small boards.",
         tools: ["Next.js", "React", "TypeScript", "Tailwind CSS"],
-        meta: "loadOrder(), code this site has run",
-        hint: "watch it, then rerun",
-        Demo: CodeDemo,
+        work: [
+            ["Free AI CV Maker", "A Next.js app that lays a CV out on A4 pages as you type, saved as a PDF with selectable text."],
+            ["S.E.R.A.", "A Flask app that reads pasted chats and screenshots and writes up the patterns in them."],
+        ],
     },
     {
         title: "Design",
         desc: "Before I write any code, I work out the layout, the screens and what happens between them, usually in Figma.",
         tools: ["Figma"],
-        meta: "this site's hero, wireframe → design",
-        hint: "drag the slider",
-        Demo: WireframeDemo,
+        work: [
+            ["LMS Jabar", "Prototyped in Figma before it was built and deployed in Next.js."],
+            ["Ministry of Transportation", "A redesign of the public website: new content, the agency's colours, a layout for every screen size."],
+        ],
     },
     {
         title: "Systems",
         desc: "Behind the screens, I plan APIs and databases (with DFDs and ERDs), set up Linux servers, and test things properly before they go live.",
         tools: ["PHP", "MySQL", "Linux (Ubuntu, Apache)", "Vercel"],
-        meta: "POST /api/analyze",
-        hint: "send the request again",
-        Demo: TraceDemo,
+        work: [
+            ["LMS Jabar and Sipalawa", "Documented with DFDs and use case diagrams, built with cross-functional teams for government use."],
+            ["Fall Alert Wearable", "The receiver posts every event to a PHP and MySQL server, and the staff see it on a web page."],
+        ],
     },
     {
         title: "AI",
         desc: "Adding AI to a product: chat, text generation, reading images, and connecting to LLM APIs like Gemini.",
         tools: ["Python", "LLM APIs", "Google Gemini"],
-        meta: "a streamed reply",
-        hint: "pick a question",
-        Demo: StreamDemo,
+        work: [
+            ["S.E.R.A.", "Gemini reads both text and screenshots; if one model fails, it tries the next of four."],
+            ["AI Evaluator, Outlier", "Tested AI models' responses for accuracy, relevance, instruction following and reasoning."],
+        ],
     },
     {
         title: "Hardware",
         desc: "I program ESP32 boards in C++, wire up sensors, and send their data over LoRa to a server and a web dashboard. I’ve put this together and tested it on real hardware.",
         tools: ["ESP32", "Arduino (C++)", "LoRa", "MPU6050"],
-        meta: "sensor → server, live",
-        hint: "tap the chart",
-        Demo: SensorDemo,
+        work: [
+            ["Fall Alert Wearable", "An ESP32-C3 with an MPU6050 and a LoRa radio at 922 MHz; a fall over 23.1 m/s² raises the alarm."],
+            ["Drop test", "Built and tested on real hardware: the drop test peaked at 58.25 m/s²."],
+        ],
     },
 ];
 
@@ -71,7 +71,7 @@ const clamp = (v: number) => (v < 0 ? 0 : v > 1 ? 1 : v);
 /**
  * Five capabilities as the reference shows its interceptor's specs: a
  * lettered list down the left, A. to E. with the letters in green, and the
- * picture large beside it, here a working demo in a viewport. On a laptop
+ * picture large beside it, here where it was done, in a viewport. On a laptop
  * the section holds still for a screen of scroll per capability and the
  * scroll moves the selection down the list: the one on show opens out to
  * its description and tools, the rest wait at 60%, and a green line along
@@ -83,10 +83,7 @@ const clamp = (v: number) => (v < 0 ? 0 : v > 1 ? 1 : v);
  * selected one, the arrow keys (both pairs), Home and End move along it,
  * and selection follows focus. Panels that are not selected are hidden
  * "until found", so the browser's find-in-page still reaches their words.
- *
- * A demo mounts only once the section has been on screen, so the ones that
- * play once (the code typing itself, the trace, the reply) play while
- * someone is looking. Switching back to one starts it again.
+
  */
 export default function About() {
     const root = useRef<HTMLDivElement>(null);
@@ -94,24 +91,9 @@ export default function About() {
     const tabs = useRef<(HTMLButtonElement | null)[]>([]);
     const panels = useRef<(HTMLDivElement | null)[]>([]);
     const [active, setActive] = useState(0);
-    const [shown, setShown] = useState(false);
     const held = useRef(false);
-
-    // The demos start once the stage is on the screen. Measured on scroll, not by an observer: the scenes are drawn
-    // where they are not (the stage is sticky inside a tall track), which an observer's first reading can miss.
-    useEffect(() => {
-        const el = root.current;
-        if (!el) return;
-        const check = () => {
-            const r = el.getBoundingClientRect();
-            if (r.top >= window.innerHeight * 0.7 || r.bottom <= window.innerHeight * 0.3) return;
-            setShown(true);
-            window.removeEventListener("scroll", check);
-        };
-        check();
-        window.addEventListener("scroll", check, { passive: true });
-        return () => window.removeEventListener("scroll", check);
-    }, []);
+    // Where the drawing goes: the art area of the panel on show.
+    const artArea = useCallback(() => root.current?.querySelector<HTMLElement>(".sys-panel:not([hidden]) .sys-art") ?? null, []);
 
     // On the held stage the scroll chooses: the capability whose stretch it is, and how far through it (--fill).
     useEffect(() => {
@@ -197,7 +179,7 @@ export default function About() {
     };
 
     return (
-        <Section id="about" index="03" title="What I do" meta={`${services.length} demos`} wide>
+        <Section id="about" index="03" title="What I do" meta={`${services.length} areas`} wide>
             <div ref={track} className="sys-track">
                 <div ref={root} className="sys">
                     <div role="tablist" aria-label="What I do" aria-orientation="vertical" onKeyDown={onKeyDown} className="sys-tabs">
@@ -217,7 +199,7 @@ export default function About() {
                                 onClick={() => select(i)}
                                 // Selection follows focus, however focus got there.
                                 onFocus={() => i !== active && select(i)}
-                                data-cursor="Run"
+                                data-cursor="View"
                                 style={{ "--k": i } as CSSProperties}
                                 className="sys-tab"
                             >
@@ -240,57 +222,49 @@ export default function About() {
                     </div>
 
                     <div className="sys-panels">
-                        {services.map((service, i) => {
-                            const { Demo } = service;
-                            const on = i === active;
-                            return (
-                                <div
-                                    key={service.title}
-                                    ref={(node) => {
-                                        panels.current[i] = node;
-                                    }}
-                                    role="tabpanel"
-                                    aria-labelledby={`sys-tab-${i}`}
-                                    hidden={!on}
-                                    className="sys-panel"
-                                >
-                                    <div className="sys-view viewport">
-                                        <p aria-hidden="true" className="sys-view-head label">
-                                            <span>
-                                                Fig {num(i)} <span className="text-[var(--fg-dim)]">/ {service.meta}</span>
-                                            </span>
-                                            <span className="text-[var(--accent)]">
-                                                <span className="pulse-dot mr-1.5 inline-block h-1.5 w-1.5 bg-[var(--accent)] align-middle" />
-                                                {service.hint}
-                                            </span>
-                                        </p>
-                                        {/* A working piece of interface, with its own borders and controls. */}
-                                        <div className="sys-demo" data-ui data-cursor="Try it">
-                                            {on && shown && (
-                                                // A demo that breaks is replaced by a notice, in its own panel only.
-                                                <ErrorBoundary
-                                                    fallback={(retry) => (
-                                                        <FallbackNotice
-                                                            message="This demo stopped working. Starting it again usually fixes it."
-                                                            onRetry={retry}
-                                                            className="h-full min-h-[16rem] justify-center p-6"
-                                                        />
-                                                    )}
-                                                >
-                                                    <Demo />
-                                                </ErrorBoundary>
-                                            )}
-                                        </div>
-                                        {on && <span aria-hidden="true" className="sys-scan" />}
+                        {services.map((service, i) => (
+                            <div
+                                key={service.title}
+                                ref={(node) => {
+                                    panels.current[i] = node;
+                                }}
+                                role="tabpanel"
+                                aria-labelledby={`sys-tab-${i}`}
+                                hidden={i !== active}
+                                className="sys-panel"
+                            >
+                                <div className="sys-view viewport">
+                                    <p aria-hidden="true" className="sys-view-head label">
+                                        <span>
+                                            Fig {num(i)} <span className="text-[var(--fg-dim)]">/ {service.title}</span>
+                                        </span>
+                                        <span className="text-[var(--fg-dim)]">Where I have done it</span>
+                                    </p>
+                                    {/* The capability drawn in 3D (SysScene, one canvas over all the panels). */}
+                                    <div aria-hidden="true" className="sys-art" />
+                                    {/* Where the capability was used: real work, read off the Work and Experience entries. */}
+                                    <div className="sys-sum">
+                                        <ol className="sys-sum-work">
+                                            {service.work.map(([name, note]) => (
+                                                <li key={name}>
+                                                    <span className="sys-sum-name">{name}</span>
+                                                    <span className="sys-sum-note">{note}</span>
+                                                </li>
+                                            ))}
+                                        </ol>
+                                        {/* Non-breaking spaces keep each tool's name whole ("Tailwind CSS"). */}
+                                        <p className="label sys-sum-tools">{service.tools.map((tool) => tool.replaceAll(" ", " ")).join(" · ")}</p>
                                     </div>
-                                    {/* The list shows these; here they are read out with the panel. */}
-                                    <div className="sr-only">
-                                        <p>{service.desc}</p>
-                                        <p>Tools: {service.tools.join(", ")}</p>
-                                    </div>
+                                    {i === active && <span aria-hidden="true" className="sys-scan" />}
                                 </div>
-                            );
-                        })}
+                                {/* The list shows these; here they are read out with the panel. */}
+                                <div className="sr-only">
+                                    <p>{service.desc}</p>
+                                    <p>Tools: {service.tools.join(", ")}</p>
+                                </div>
+                            </div>
+                        ))}
+                        <SysScene active={active} target={artArea} />
                     </div>
 
                     {/* A way out of the held scene. */}

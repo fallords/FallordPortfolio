@@ -1,6 +1,6 @@
 /*
  * What I do (About.tsx), after the reference's specs section: the lettered
- * list down the left, the demo large beside it. First the layout that sits
+ * list down the left, where each was done large beside it. First the layout that sits
  * still (a phone, a tablet, motion turned down): the list above the
  * viewport on a phone, beside it from 768px. Under [data-live] (a laptop)
  * the two are held on a stage and the scroll moves the selection.
@@ -149,16 +149,68 @@
   border-bottom: 1px solid var(--rule);
 }
 
-.sys-demo {
-  display: flex;
-  flex: 1;
-  flex-direction: column;
-  min-height: 0;
+/* The art area: where the capability is drawn (SysScene lays its canvas over it). A phone has no drawing. */
+.sys-panels {
+  position: relative;
 }
 
-.sys-demo > * {
-  flex: 1;
-  min-height: 0;
+.sys-art {
+  display: none;
+}
+
+@media (min-width: 768px) {
+  .sys-art {
+    display: block;
+    flex: 1;
+    min-height: 8rem;
+  }
+}
+
+/* Where a capability was used: the work, then the tools along the foot. */
+.sys-sum {
+  display: grid;
+  gap: 0.875rem;
+  padding: 1rem 0.875rem;
+}
+
+.sys-sum-work {
+  display: grid;
+  border-top: 1px solid var(--rule);
+}
+
+.sys-sum-work > li {
+  display: grid;
+  gap: 0.2rem;
+  padding: 0.625rem 0;
+  border-bottom: 1px solid var(--rule);
+}
+
+.sys-sum-name {
+  font-size: 0.9375rem;
+  font-weight: 500;
+  color: var(--fg);
+}
+
+.sys-sum-note {
+  font-size: 0.875rem;
+  line-height: 1.5;
+  color: var(--fg-soft);
+  text-wrap: pretty;
+}
+
+.sys-sum-tools {
+  color: var(--fg-dim);
+}
+
+@media (min-width: 768px) {
+  .sys-sum {
+    padding: 1rem 1.5rem 1.25rem;
+  }
+
+  .sys-sum-work {
+    grid-template-columns: 1fr 1fr;
+    column-gap: 1.5rem;
+  }
 }
 
 .sys-scan {

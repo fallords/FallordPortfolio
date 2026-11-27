@@ -652,15 +652,12 @@ html[data-intro="show"] .rise {
 }
 
 /*
- * The page's sheet. Opaque, one layer above the footer, so the footer can
- * wait under it; its grid is set off by the bar's height, which puts it
- * on the same lines as the body's. The green line
- * along its foot is the edge that lifts off the footer.
+ * The page's sheet. Opaque; its grid is set off by the bar's height, which
+ * puts it on the same lines as the body's.
  */
 .page-main {
   position: relative;
   z-index: 1;
-  border-bottom: 1px solid var(--green);
   background:
     linear-gradient(to right, var(--grid-line) 1px, transparent 1px) 10px calc(-1 * var(--bar-h) - 1px) / 80px 80px,
     linear-gradient(to bottom, var(--grid-line) 1px, transparent 1px) 0 calc(9px - var(--bar-h)) / 80px 80px,
@@ -1023,23 +1020,9 @@ html.has-crosshair .crosshair-word[data-on]:not([data-away]) {
   }
 }
 
-/* The wireframe behind each section (SectionScenes.tsx): fixed to the screen, over the page's ground, under its words. */
-.section-scenes {
-  position: fixed;
-  inset: 0;
-  z-index: -1;
-  pointer-events: none;
-}
-
-.section-scenes canvas {
-  display: block;
-  width: 100%;
-  height: 100%;
-}
-
 /*
- * One continuous scene. The ground (the grid) stays where it is on the screen while the page scrolls, as the particle
- * field behind it does, so only the words move. Lenis eases the wheel (SmoothScroll.tsx). A touch screen keeps the grid on the page (fixed backgrounds are costly there).
+ * One continuous scene. The ground (the grid) stays where it is on the screen while the page scrolls, so only the
+ * words move. Lenis eases the wheel (SmoothScroll.tsx). A touch screen keeps the grid on the page (fixed backgrounds are costly there).
  */
 html.lenis,
 html.lenis body {

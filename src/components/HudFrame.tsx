@@ -6,7 +6,6 @@ import "./hud-frame.css";
 
 /* The chapters, as the rail and the sector readout name them. Sections without a number are read out by name only. */
 const CHAPTERS: Record<string, { num?: string; name: string }> = {
-    brief: { name: "In short" },
     work: { num: "01", name: "Work" },
     experience: { num: "02", name: "Experience" },
     about: { num: "03", name: "What I do" },
