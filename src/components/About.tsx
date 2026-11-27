@@ -1,9 +1,6 @@
-"use client";
-
-import { useCallback, useEffect, useRef, useState, type CSSProperties, type KeyboardEvent } from "react";
 import Section from "./Section";
-import SysScene from "./SysScene";
-import "./about.css";
+import MultiView from "./MultiView";
+import "./bento.css";
 
 /*
  * Each capability carries the tools it is done with, so there is no separate
@@ -59,219 +56,40 @@ const services: { title: string; desc: string; tools: string[]; work: [string, s
     },
 ];
 
-const num = (i: number) => String(i + 1).padStart(2, "0");
-const letter = (i: number) => String.fromCharCode(65 + i);
+/* The 3D object that stands for each capability (three/models.ts), in the same order. */
+const MODEL = ["code", "design", "systems", "ai", "hardware"] as const;
 
-/* Held only on a screen with room for the list beside the viewport, and only where motion is welcome. */
-// Held on a laptop (list beside the viewport), and on a phone or an upright tablet (viewport above the list, about.css).
-const LIVE =
-    "(min-width: 1024px) and (min-height: 720px) and (prefers-reduced-motion: no-preference), (max-width: 1023px) and (min-height: 760px) and (prefers-reduced-motion: no-preference)";
-const clamp = (v: number) => (v < 0 ? 0 : v > 1 ? 1 : v);
+/* The grid's shape on a wide screen: Code wide on the first row beside Design, the other three under them. */
+const SPAN = ["lg:col-span-4", "lg:col-span-2", "lg:col-span-2", "lg:col-span-2", "lg:col-span-2"];
 
 /**
- * Five capabilities as the reference shows its interceptor's specs: a
- * lettered list down the left, A. to E. with the letters in green, and the
- * picture large beside it, here where it was done, in a viewport. On a laptop
- * the section holds still for a screen of scroll per capability and the
- * scroll moves the selection down the list: the one on show opens out to
- * its description and tools, the rest wait at 60%, and a green line along
- * its edge fills as the page scrolls through its stretch. Choosing one
- * goes to its stretch. Elsewhere, and with motion turned down, the same
- * list and viewport sit still and choosing one selects it.
- *
- * The list is a real tab list with a roving tabindex: Tab lands on the
- * selected one, the arrow keys (both pairs), Home and End move along it,
- * and selection follows focus. Panels that are not selected are hidden
- * "until found", so the browser's find-in-page still reaches their words.
-
+ * Five capabilities as a bento grid, the way product launch pages lay out features: each card has its own object
+ * turning in 3D (one canvas over the whole grid, MultiView), which spins up and leans to the pointer while the card
+ * is pointed at; under it what it is, where it was done and the tools. Cards rise in as the grid comes up.
  */
 export default function About() {
-    const root = useRef<HTMLDivElement>(null);
-    const track = useRef<HTMLDivElement>(null);
-    const tabs = useRef<(HTMLButtonElement | null)[]>([]);
-    const panels = useRef<(HTMLDivElement | null)[]>([]);
-    const [active, setActive] = useState(0);
-    const held = useRef(false);
-    // Where the drawing goes: the art area of the panel on show.
-    const artArea = useCallback(() => root.current?.querySelector<HTMLElement>(".sys-panel:not([hidden]) .sys-art") ?? null, []);
-
-    // On the held stage the scroll chooses: the capability whose stretch it is, and how far through it (--fill).
-    useEffect(() => {
-        const el = track.current;
-        const stage = root.current;
-        if (!el || !stage) return;
-        const live = window.matchMedia(LIVE);
-        const n = services.length;
-        let frame = 0;
-        const update = () => {
-            frame = 0;
-            if (!live.matches) return;
-            const sticky = parseFloat(getComputedStyle(stage).top) || 0;
-            const r = el.getBoundingClientRect();
-            const at = clamp((sticky - r.top) / Math.max(1, r.height - stage.offsetHeight)) * n;
-            const i = Math.min(n - 1, Math.floor(at));
-            setActive(i);
-            stage.style.setProperty("--fill", clamp(at - i).toFixed(3));
-        };
-        const request = () => {
-            if (!frame) frame = requestAnimationFrame(update);
-        };
-        const sync = () => {
-            held.current = live.matches;
-            el.toggleAttribute("data-live", live.matches);
-            if (!live.matches) stage.style.removeProperty("--fill");
-            request();
-        };
-        sync();
-        window.addEventListener("scroll", request, { passive: true });
-        window.addEventListener("resize", request);
-        live.addEventListener("change", sync);
-        return () => {
-            cancelAnimationFrame(frame);
-            window.removeEventListener("scroll", request);
-            window.removeEventListener("resize", request);
-            live.removeEventListener("change", sync);
-        };
-    }, []);
-
-    const select = (i: number) => {
-        const el = track.current;
-        const stage = root.current;
-        if (held.current && el && stage) {
-            // Held: go to the capability's stretch, and the scroll selects it.
-            const sticky = parseFloat(getComputedStyle(stage).top) || 0;
-            const span = el.offsetHeight - stage.offsetHeight;
-            window.scrollTo({ top: el.getBoundingClientRect().top + window.scrollY - sticky + (span * (i + 0.05)) / services.length, behavior: "instant" });
-            return;
-        }
-        setActive(i);
-    };
-
-    // Hidden "until found" rather than plainly hidden; find-in-page opening one selects it.
-    useEffect(() => {
-        const cleanups = panels.current.map((panel, i) => {
-            if (!panel) return () => {};
-            if (i !== active) panel.setAttribute("hidden", "until-found");
-            const onMatch = () => select(i);
-            panel.addEventListener("beforematch", onMatch);
-            return () => panel.removeEventListener("beforematch", onMatch);
-        });
-        return () => cleanups.forEach((stop) => stop());
-        // select only reads refs; re-binding on `active` alone is enough.
-    }, [active]);
-
-    const onKeyDown = (event: KeyboardEvent<HTMLDivElement>) => {
-        const last = services.length - 1;
-        const next =
-            event.key === "ArrowDown" || event.key === "ArrowRight"
-                ? (active + 1) % services.length
-                : event.key === "ArrowUp" || event.key === "ArrowLeft"
-                  ? (active + last) % services.length
-                  : event.key === "Home"
-                    ? 0
-                    : event.key === "End"
-                      ? last
-                      : -1;
-        if (next < 0) return;
-        event.preventDefault();
-        select(next);
-        tabs.current[next]?.focus();
-    };
-
     return (
         <Section id="about" index="03" title="What I do" meta={`${services.length} areas`} wide>
-            <div ref={track} className="sys-track">
-                <div ref={root} className="sys">
-                    <div role="tablist" aria-label="What I do" aria-orientation="vertical" onKeyDown={onKeyDown} className="sys-tabs">
-                        {services.map((service, i) => (
-                            <button
-                                key={service.title}
-                                ref={(node) => {
-                                    tabs.current[i] = node;
-                                }}
-                                type="button"
-                                role="tab"
-                                id={`sys-tab-${i}`}
-                                aria-selected={i === active}
-                                // Named by its title alone; the description is read in the panel instead.
-                                aria-labelledby={`sys-name-${i}`}
-                                tabIndex={i === active ? 0 : -1}
-                                onClick={() => select(i)}
-                                // Selection follows focus, however focus got there.
-                                onFocus={() => i !== active && select(i)}
-                                data-cursor="View"
-                                style={{ "--k": i } as CSSProperties}
-                                className="sys-tab"
-                            >
-                                <span className="sys-tab-head">
-                                    <span className="sys-tab-num label">{letter(i)}.</span>
-                                    <span id={`sys-name-${i}`} className="sys-tab-title">
-                                        {service.title}
-                                    </span>
-                                </span>
-                                {/* Opens out under the title while this one is on show. */}
-                                <span aria-hidden="true" className="sys-tab-more">
-                                    <span className="sys-tab-inner">
-                                        <span className="sys-tab-desc">{service.desc}</span>
-                                        {/* Non-breaking spaces keep each tool's name whole ("Tailwind CSS"). */}
-                                        <span className="label sys-tab-tools">{service.tools.map((tool) => tool.replaceAll(" ", " ")).join(" · ")}</span>
-                                    </span>
-                                </span>
-                            </button>
-                        ))}
-                    </div>
-
-                    <div className="sys-panels">
-                        {services.map((service, i) => (
-                            <div
-                                key={service.title}
-                                ref={(node) => {
-                                    panels.current[i] = node;
-                                }}
-                                role="tabpanel"
-                                aria-labelledby={`sys-tab-${i}`}
-                                hidden={i !== active}
-                                className="sys-panel"
-                            >
-                                <div className="sys-view viewport">
-                                    <p aria-hidden="true" className="sys-view-head label">
-                                        <span>
-                                            Fig {num(i)} <span className="text-[var(--fg-dim)]">/ {service.title}</span>
-                                        </span>
-                                        <span className="text-[var(--fg-dim)]">Where I have done it</span>
-                                    </p>
-                                    {/* The capability drawn in 3D (SysScene, one canvas over all the panels). */}
-                                    <div aria-hidden="true" className="sys-art" />
-                                    {/* Where the capability was used: real work, read off the Work and Experience entries. */}
-                                    <div className="sys-sum">
-                                        <ol className="sys-sum-work">
-                                            {service.work.map(([name, note]) => (
-                                                <li key={name}>
-                                                    <span className="sys-sum-name">{name}</span>
-                                                    <span className="sys-sum-note">{note}</span>
-                                                </li>
-                                            ))}
-                                        </ol>
-                                        {/* Non-breaking spaces keep each tool's name whole ("Tailwind CSS"). */}
-                                        <p className="label sys-sum-tools">{service.tools.map((tool) => tool.replaceAll(" ", " ")).join(" · ")}</p>
-                                    </div>
-                                    {i === active && <span aria-hidden="true" className="sys-scan" />}
-                                </div>
-                                {/* The list shows these; here they are read out with the panel. */}
-                                <div className="sr-only">
-                                    <p>{service.desc}</p>
-                                    <p>Tools: {service.tools.join(", ")}</p>
-                                </div>
-                            </div>
-                        ))}
-                        <SysScene active={active} target={artArea} />
-                    </div>
-
-                    {/* A way out of the held scene. */}
-                    <a href="#certificates" className="scene-skip label" data-scramble>
-                        Skip <span aria-hidden="true">↓</span>
-                    </a>
-                </div>
+            <div className="relative grid gap-3 md:grid-cols-2 lg:grid-cols-6">
+                {services.map((service, i) => (
+                    <article key={service.title} data-view-card={i} className={`bento-card viewport enter-rise ${SPAN[i]}`}>
+                        <div aria-hidden="true" data-view={i} className={`bento-art ${i === 0 ? "bento-art-wide" : ""}`} />
+                        <div className="bento-text">
+                            <p aria-hidden="true" className="label text-[var(--accent)]">
+                                {String(i + 1).padStart(2, "0")}
+                            </p>
+                            <h3 className="display mt-1 text-[1.75rem] leading-[1] text-[var(--fg)]">{service.title}</h3>
+                            <p className="mt-3 text-pretty text-sm leading-relaxed text-[var(--fg-soft)]">{service.desc}</p>
+                            <p className="mt-3 text-pretty text-[13px] leading-relaxed text-[var(--fg-muted)]">
+                                <span className="text-[var(--fg-dim)]">Done in </span>
+                                {service.work.map(([name]) => name).join(", ")}
+                            </p>
+                            {/* Non-breaking spaces keep each tool's name whole ("Tailwind CSS"). */}
+                            <p className="label mt-4 text-[var(--fg-dim)]">{service.tools.map((tool) => tool.replaceAll(" ", " ")).join(" · ")}</p>
+                        </div>
+                    </article>
+                ))}
+                <MultiView models={[...MODEL]} />
             </div>
         </Section>
     );

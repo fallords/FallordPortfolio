@@ -9,7 +9,6 @@ import CommandPalette from "@/components/CommandPalette";
 import IntroScreen from "@/components/IntroScreen";
 import PageLoading from "@/components/PageLoading";
 import ErrorBoundary from "@/components/ErrorBoundary";
-import HudFrame from "@/components/HudFrame";
 import Crosshair from "@/components/Crosshair";
 import DecodeAll from "@/components/motion/DecodeAll";
 import { BOOT_SCRIPT } from "@/lib/intro";
@@ -90,9 +89,6 @@ export default function RootLayout({
           <CommandPalette />
         </ErrorBoundary>
         <DecodeAll />
-        <ErrorBoundary>
-          <HudFrame />
-        </ErrorBoundary>
         <Crosshair />
         {/* Film grain over everything, the texture of the reference's renders (globals.css, .grain). */}
         <div aria-hidden="true" className="grain" />

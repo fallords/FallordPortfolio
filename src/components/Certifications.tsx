@@ -1,14 +1,11 @@
 "use client";
 
-import { useCallback, useEffect, useRef, useState, type CSSProperties } from "react";
-import Image from "next/image";
+import { useCallback, useEffect, useRef, useState } from "react";
 import Section from "./Section";
+import CertRing from "./CertRing";
+import "./ring.css";
 import CertificateLightbox from "./CertificateLightbox";
-import CertStack from "./CertStack";
-import { Words } from "./motion/Split";
-import { decode } from "./motion/textfx";
 import { certifications, type Certification } from "@/content/certifications";
-import "./certifications.css";
 
 /*
  * Fields grouped into the four areas they actually cover. Anything with a
@@ -23,69 +20,41 @@ const GROUPS = [
 ];
 const groupOf = (cert: Certification) => GROUPS.find((g) => g.fields.includes(cert.field ?? ""))?.label ?? "Other";
 
-/* Ordered by area; the order they are listed is the order the slides and the full-size view step through. */
+/* Ordered by area; the order they are listed is the order the numbers and the full-size view step through. */
 const ORDERED: Certification[] = [...GROUPS.map((g) => g.label), "Other"].flatMap((label) => certifications.filter((c) => groupOf(c) === label));
 const TOTAL = ORDERED.length;
-const IMAGES = ORDERED.map((c) => c.image);
 const ISSUERS = new Set(ORDERED.map((c) => c.issuer)).size;
 const YEARS = ORDERED.map((c) => Number(c.year)).filter(Boolean);
+const IMAGES = ORDERED.map((c) => c.image);
 const SPAN = YEARS.length ? `${Math.min(...YEARS)}–${Math.max(...YEARS)}` : "";
-const pad = (i: number) => String(i).padStart(2, "0");
-
-/** How long each certificate stays before the next comes on; the green line under the scan runs this long. */
-const SLIDE_MS = 5000;
 
 /**
- * The certificates as the reference's photo chapters, shown one at a time
- * and turning on their own, so the page never has to be held to get
- * through all of them. Each is a chapter: its number very large and barely
- * there, its name coming in as a signal, its area, issuer and year
- * decoding under it; the scan beside it in the page's green with a field
- * of crosses over it and the reference's bracketed caption ("// … };"),
- * coming down over the last one like a shutter. A green line runs along
- * the foot of the scan for as long as the slide stays; when it reaches the
- * end the next one comes on.
- *
- * It holds still while the pointer is on the certificate or the controls, while the keyboard is on it, while it is
- * off the screen, while a certificate is open full size, and when Pause is
- * pressed (WCAG 2.2.2). The arrows step through by hand, and the row of
- * numbers goes to any one. With motion turned down it never turns on its
- * own. Pressing the scan, or "View", opens it full size, from where the
- * arrow keys step through all of them.
+ * The certificates as a ring of cards turning in 3D (CertRing): the one at the front is on show, its name, area,
+ * issuer and year under the ring with the full-size view and the issuer's own check. The ring turns to the next on
+ * its own every few seconds (a green line filling for its time), and holds while the pointer or the keyboard is on
+ * it, while it is off the screen or a certificate is open, and always with motion turned down; the arrows, the
+ * numbers or a drag turn it by hand, and pressing the front card opens it full size.
  */
 export default function Certifications() {
-    const stage = useRef<HTMLDivElement>(null);
-    const [cur, setCur] = useState(0);
-    const [stopped, setStopped] = useState(false);
-    const [inView, setInView] = useState(false);
-    const [pointed, setPointed] = useState(false);
-    const [focused, setFocused] = useState(false);
-    const [lit, setLit] = useState(0);
     const [open, setOpen] = useState(false);
+    const [cur, setCur] = useState(0);
+    const [held, setHeld] = useState(false);
+    const [seen, setSeen] = useState(false);
+    const box = useRef<HTMLDivElement>(null);
     const onClose = useCallback(() => setOpen(false), []);
-    const step = useCallback((d: 1 | -1) => setLit((i) => (i + d + TOTAL) % TOTAL), []);
+    const step = useCallback((d: 1 | -1) => setCur((i) => (i + d + TOTAL) % TOTAL), []);
     const go = (i: number) => setCur(((i % TOTAL) + TOTAL) % TOTAL);
-    const view = (i: number) => {
-        setLit(i);
-        setOpen(true);
-    };
-    const paused = stopped || !inView || pointed || focused || open;
 
     useEffect(() => {
-        const el = stage.current;
+        const el = box.current;
         if (!el) return;
-        const io = new IntersectionObserver(([entry]) => setInView(entry.isIntersecting), { threshold: 0.35 });
+        const io = new IntersectionObserver(([e]) => setSeen(e.isIntersecting), { threshold: 0.4 });
         io.observe(el);
         return () => io.disconnect();
     }, []);
 
-    // Each time a certificate comes on, its readouts decode.
-    useEffect(() => {
-        if (window.matchMedia("(prefers-reduced-motion: reduce)").matches) return;
-        stage.current?.querySelectorAll(`.cc-item:nth-child(${cur + 1}) :is(.cc-meta, .cc-cap)`).forEach(decode);
-    }, [cur]);
-
     if (TOTAL === 0) return null;
+    const cert = ORDERED[cur]!;
 
     return (
         <Section
@@ -98,142 +67,54 @@ export default function Certifications() {
                 </>
             }
             wide
-            // Tighter than other sections: the whole chapter, head and stage, fits one screen, so it can stand as one scene.
-            padding="pt-16 pb-6 lg:pb-8"
         >
             <div
-                ref={stage}
+                ref={box}
                 role="region"
                 aria-roledescription="carousel"
                 aria-label="Certificates"
-                className="cc-stage"
-                data-paused={paused || undefined}
-                style={{ "--n": TOTAL, "--active": cur, "--slide": `${SLIDE_MS}ms` } as CSSProperties}
-                // Held only while the pointer is on the certificate itself or the controls, not anywhere over the stage.
-                onPointerOver={(e) => e.pointerType === "mouse" && setPointed(!!(e.target as Element).closest(".cc-frame, .cc-controls"))}
-                onPointerLeave={() => setPointed(false)}
-                onFocus={() => setFocused(true)}
-                onBlur={(e) => !e.currentTarget.contains(e.relatedTarget as Node | null) && setFocused(false)}
+                className="ring"
+                data-paused={held || !seen || open || undefined}
+                onPointerEnter={(e) => e.pointerType === "mouse" && setHeld(true)}
+                onPointerLeave={() => setHeld(false)}
+                onFocus={() => setHeld(true)}
+                onBlur={(e) => !e.currentTarget.contains(e.relatedTarget as Node | null) && setHeld(false)}
             >
-                {/* The scans as a stack of cards in 3D, under the frames' buttons. */}
-                <CertStack images={IMAGES} active={cur} />
+                <div className="ring-stage">
+                    <CertRing images={IMAGES} active={cur} onPick={go} onOpen={() => setOpen(true)} />
+                </div>
 
-                {/* While it turns on its own, a screen reader is not interrupted at every slide; once held, the slide is read as it changes. */}
-                <ol className="cc-list" aria-live={paused ? "polite" : "off"}>
-                    {ORDERED.map((cert, i) => (
-                        <li
-                            key={cert.name}
-                            role="group"
-                            aria-roledescription="slide"
-                            aria-label={`${i + 1} of ${TOTAL}`}
-                            className="cc-item"
-                            data-active={i === cur || undefined}
-                        >
-                            <div className="cc-text">
-                                <span aria-hidden="true" className="cc-big">
-                                    {pad(i + 1)}
-                                </span>
-                                <div className="cc-words">
-                                    <h3 data-flicker="active" className="cc-name">
-                                        <Words text={cert.name} />
-                                    </h3>
-                                    <p className="cc-meta label">
-                                        {groupOf(cert)} <span aria-hidden="true">·</span> {cert.issuer} <span aria-hidden="true">·</span> {cert.year}
-                                    </p>
-                                    <p className="cc-actions label">
-                                        <button type="button" onClick={() => view(i)} className="link text-[var(--fg)]">
-                                            View full size
-                                        </button>
-                                        {cert.url && (
-                                            <a href={cert.url} target="_blank" rel="noopener noreferrer" className="link text-[var(--accent)]">
-                                                Verify ↗
-                                            </a>
-                                        )}
-                                    </p>
-                                </div>
-                            </div>
-
-                            <button
-                                type="button"
-                                onClick={() => view(i)}
-                                aria-label={`View ${cert.name} full size`}
-                                data-cursor="View"
-                                data-tilt
-                                className="cc-frame cert-frame viewport"
-                            >
-                                {cert.image && (
-                                    <Image src={cert.image} alt="" fill sizes="(max-width: 768px) 92vw, 52vw" className="cert-img object-contain" />
-                                )}
-                                <span aria-hidden="true" className="cert-wash" />
-                                <svg aria-hidden="true" className="cert-marks" width="100%" height="100%">
-                                    <rect width="100%" height="100%" fill="url(#cert-cross)" />
-                                </svg>
-                                {/* The reference's caption over a photograph: a block of telemetry in brackets. */}
-                                <span aria-hidden="true" className="cc-cap label">
-                                    {"//"}
-                                    <br />
-                                    C-{pad(i + 1)} / {cert.year}
-                                    <br />
-                                    {cert.issuer}
-                                    <br />
-                                    {"};"}
-                                </span>
-                            </button>
-                        </li>
-                    ))}
-                </ol>
-
-                {/* The slide's time, run along the foot of the scan; when it reaches the end, the next one comes on. Restarted for every slide (key). */}
-                <span key={cur} aria-hidden="true" className="cc-timer" onAnimationEnd={() => go(cur + 1)} />
-
-                {/* How far through: a short green stretch down the right edge. */}
-                <span aria-hidden="true" className="cc-rail">
-                    <span />
-                </span>
-
-                <div className="cc-controls label">
-                    <div className="cc-nav">
-                        {ORDERED.map((cert, i) => (
-                            <button
-                                key={cert.name}
-                                type="button"
-                                onClick={() => go(i)}
-                                aria-label={`Show certificate ${i + 1}: ${cert.name}`}
-                                aria-current={i === cur ? "step" : undefined}
-                                className="tabular-nums"
-                            >
-                                {pad(i + 1)}
-                            </button>
-                        ))}
-                    </div>
-                    <div className="cc-buttons">
-                        <button type="button" onClick={() => go(cur - 1)} aria-label="Previous certificate">
+                <div className="ring-info" aria-live={held ? "polite" : "off"}>
+                    <p className="label text-[var(--fg-dim)]">
+                        <span className="tabular-nums text-[var(--accent)]">{String(cur + 1).padStart(2, "0")}</span> / {String(TOTAL).padStart(2, "0")}
+                        <span aria-hidden="true"> · </span>
+                        {groupOf(cert)} <span aria-hidden="true">·</span> {cert.issuer} <span aria-hidden="true">·</span> {cert.year}
+                    </p>
+                    <h3 key={cur} className="ring-name display text-balance text-[1.75rem] leading-[1.04] text-[var(--fg)] lg:text-[2.5rem]">
+                        {cert.name}
+                    </h3>
+                    <div className="label mt-5 flex flex-wrap items-center gap-x-4 gap-y-3">
+                        <button type="button" onClick={() => go(cur - 1)} aria-label="Previous certificate" className="action">
                             ←
                         </button>
-                        <button type="button" onClick={() => setStopped((s) => !s)} aria-pressed={stopped} className="cc-pause">
-                            {stopped ? "Play" : "Pause"}
-                        </button>
-                        <button type="button" onClick={() => go(cur + 1)} aria-label="Next certificate">
+                        <button type="button" onClick={() => go(cur + 1)} aria-label="Next certificate" className="action">
                             →
                         </button>
-                        <span aria-hidden="true" className="tabular-nums text-[var(--fg-dim)]">
-                            {pad(cur + 1)} / {pad(TOTAL)}
-                        </span>
+                        <button type="button" onClick={() => setOpen(true)} className="action" data-solid data-cursor="View">
+                            View full size
+                        </button>
+                        {cert.url && (
+                            <a href={cert.url} target="_blank" rel="noopener noreferrer" className="action" data-cursor="Open">
+                                Verify ↗
+                            </a>
+                        )}
                     </div>
+                    {/* The slide's time: when the line is full the ring turns to the next one. */}
+                    <span key={`t${cur}`} aria-hidden="true" className="ring-timer" onAnimationEnd={() => go(cur + 1)} />
                 </div>
             </div>
 
-            {/* One pattern of crosses for every frame. */}
-            <svg aria-hidden="true" width="0" height="0" className="absolute">
-                <defs>
-                    <pattern id="cert-cross" width="64" height="64" patternUnits="userSpaceOnUse" x="-32" y="-32">
-                        {/* A pattern takes its colours where it is defined, not where it is used, so they are set here. */}
-                        <path d="M32 27v10M27 32h10" stroke="#ffffff" strokeOpacity="0.4" />
-                    </pattern>
-                </defs>
-            </svg>
-
-            <CertificateLightbox cert={ORDERED[lit]} open={open} index={lit} total={TOTAL} onClose={onClose} onStep={step} />
+            <CertificateLightbox cert={ORDERED[cur]} open={open} index={cur} total={TOTAL} onClose={onClose} onStep={step} />
         </Section>
     );
 }

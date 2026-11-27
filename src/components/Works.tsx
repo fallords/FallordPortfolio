@@ -1,10 +1,8 @@
-import { Fragment, type ReactNode } from "react";
+import { Fragment } from "react";
 import Link from "next/link";
 import Section from "./Section";
 import { Chars } from "./motion/Split";
-import ErrorBoundary from "./ErrorBoundary";
-import WorkStage from "./WorkStage";
-import WorkModel from "./WorkModel";
+import Showcase from "./Showcase";
 
 /*
  * Only real work belongs here: the two apps are live, and the wearable was
@@ -32,7 +30,8 @@ type Project = {
     title: string;
     subtitle: string;
     description: string;
-    machine: ReactNode;
+    /** Its machine in 3D (three/models.ts). */
+    machine: "cv" | "sera" | "wearable";
     href: string;
     /** What the button says; an external link gets ↗, a page of this site →. */
     action: string;
@@ -50,7 +49,7 @@ const projects: Project[] = [
         subtitle: "A CV builder that runs in the browser",
         description:
             "You fill in a form, and the preview lays your CV out on A4 pages as you type. Then you save it as a PDF from the print dialog, with selectable text and no watermark. It’s free and needs no account. The app is in English and Indonesian.",
-        machine: <WorkModel kind="cv" />,
+        machine: "cv",
         href: "https://fallord-cv-maker.vercel.app/",
         action: "Open the app",
         year: "2026",
@@ -81,7 +80,7 @@ const projects: Project[] = [
         subtitle: "Smart Emotional Relationship Adviser",
         description:
             "A web app for reading relationship chats. You paste in a conversation or upload screenshots of it, and it writes up the patterns it sees. After that you can keep asking it questions about the result. The app is in Indonesian.",
-        machine: <WorkModel kind="sera" />,
+        machine: "sera",
         href: "https://s-e-r-a-smart-emotional-relationshi.vercel.app/",
         action: "Open the app",
         year: "2026",
@@ -113,7 +112,7 @@ const projects: Project[] = [
         subtitle: "My thesis: an emergency alert system for the elderly",
         description:
             "A device worn at the waist in an elderly care home. It detects a fall on its own, has a button for calling help, and reaches the staff over LoRa, so it needs no phone and no Wi-Fi on the wearer. I built it and tested it on real hardware.",
-        machine: <WorkModel kind="wearable" />,
+        machine: "wearable",
         href: "/writing/lora-emergency-alert-system",
         action: "Read the case study",
         year: "2026",
@@ -149,7 +148,7 @@ function words(project: Project, index: number) {
             <p data-decode="active" className="label text-[var(--fg-dim)]">
                 Project {index + 1} of {projects.length}
             </p>
-            <h3 data-flicker="active" className="ws-title display mt-2.5 min-w-0 text-[2.25rem] text-[var(--fg)] wrap-anywhere lg:text-5xl">
+            <h3 data-flicker="active" className="display mt-2.5 min-w-0 text-[2.25rem] text-[var(--fg)] wrap-anywhere lg:text-5xl">
                 <Chars text={project.title} />
             </h3>
             <p className="mt-2 text-sm text-[var(--fg-soft)] md:text-base">{project.subtitle}</p>
@@ -177,17 +176,15 @@ function words(project: Project, index: number) {
 }
 
 /*
- * What the project does, as its own list. Stacked, the features are ruled
- * rows under the words; on the held stage of a wide screen they become
- * callouts round the scanning ring, one in each corner (work-stage.css).
+ * What the project does, as its own list: ruled rows under the words (showcase.css).
  */
 function features(project: Project) {
     return (
-        <dl key="features" className="ws-feats">
+        <dl className="sc-list">
             {project.features.map((f, i) => (
-                <div key={f.title} className="ws-feat">
+                <div key={f.title}>
                     <dt className="text-[var(--fg)]">
-                        <span aria-hidden="true" className="label ws-feat-n">
+                        <span aria-hidden="true" className="label sc-list-n">
                             {String(i + 1).padStart(2, "0")}
                         </span>
                         {f.title}
@@ -213,38 +210,22 @@ function features(project: Project) {
 }
 
 /**
- * The projects on one workbench: a big machine and the words for it, one
- * project at a time. WorkStage holds the bench still while the page scrolls
- * and takes each machine apart to bring in the next.
+ * The projects, one at a time: its machine large in 3D, turning, and its words beside it (Showcase).
  */
 export default function Works() {
     return (
         <Section id="work" index="01" title="Work" meta={`${projects.length} projects`} wide>
-            <WorkStage
-                skipTo="#experience"
+            <Showcase
+                label="Projects"
                 items={projects.map((project, index) => ({
-                    id: project.title,
                     label: project.title,
-                    index: String(index + 1).padStart(2, "0"),
-                    note: (
+                    model: project.machine,
+                    body: (
                         <>
-                            {project.year} <span aria-hidden="true">·</span> {project.type}
-                            {project.live && (
-                                <span className="ml-auto flex items-center gap-1.5 text-[var(--live)]">
-                                    <span aria-hidden="true" className="pulse-dot h-1.5 w-1.5 bg-[var(--live)]" />
-                                    Live
-                                </span>
-                            )}
+                            {words(project, index)}
+                            {features(project)}
                         </>
                     ),
-                    // The drawing runs in the browser; if it fails, its place on the bench stays empty.
-                    machine: (
-                        <ErrorBoundary key="machine" fallback={null}>
-                            {project.machine}
-                        </ErrorBoundary>
-                    ),
-                    text: words(project, index),
-                    features: features(project),
                 }))}
             />
         </Section>

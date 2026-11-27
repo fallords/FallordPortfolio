@@ -1,0 +1,187 @@
+/*
+ * A section's items as one large 3D object and the words beside it (Showcase.tsx). On a phone the stage stands
+ * above the words; from 900px they sit side by side, the stage taking the larger share (`data-flip` swaps sides).
+ */
+.sc {
+  display: grid;
+  gap: 1.5rem;
+}
+
+.sc-stage {
+  position: relative;
+  height: min(58svh, 26rem);
+  overflow: clip;
+}
+
+/* The canvas's host takes the drag; a finger moving up or down still scrolls the page. */
+.sc-canvas {
+  position: absolute;
+  inset: 0;
+  touch-action: pan-y;
+  cursor: grab;
+}
+
+.sc-canvas:active {
+  cursor: grabbing;
+}
+
+.sc-fig {
+  position: absolute;
+  top: 0.75rem;
+  left: 0.875rem;
+  pointer-events: none;
+}
+
+.sc-hint {
+  position: absolute;
+  right: 0.875rem;
+  bottom: 0.75rem;
+  color: var(--fg-dim);
+  pointer-events: none;
+}
+
+/* Without WebGL there is nothing to stage: the words take the whole width. */
+.sc[data-flat] .sc-stage {
+  display: none;
+}
+
+.sc-side {
+  display: flex;
+  min-width: 0;
+  flex-direction: column;
+  gap: 1.5rem;
+}
+
+.sc-body {
+  min-width: 0;
+}
+
+@media (prefers-reduced-motion: no-preference) {
+  .sc-body:not([hidden]) {
+    animation: sc-in 600ms var(--ease-expo) both;
+  }
+
+  @keyframes sc-in {
+    from {
+      opacity: 0;
+      translate: 0 0.75rem;
+    }
+  }
+}
+
+/* The numbers: the one on show in green. */
+.sc-nav {
+  display: flex;
+  flex-wrap: wrap;
+  align-items: center;
+  gap: 0.25rem;
+  margin-top: auto;
+  padding-top: 0.75rem;
+  border-top: 1px solid var(--rule);
+}
+
+.sc-nav button {
+  min-width: 2.25rem;
+  min-height: 2.25rem;
+  color: var(--fg-dim);
+  transition: color 200ms ease;
+}
+
+.sc-nav button:hover,
+.sc-nav button[aria-selected="true"] {
+  color: var(--accent);
+}
+
+.sc-count {
+  margin-left: auto;
+  color: var(--fg-dim);
+}
+
+/* The item's time: a green line along the top of the numbers, filling; held while paused, never with motion down. */
+.sc-nav {
+  position: relative;
+}
+
+.sc-timer {
+  position: absolute;
+  top: -1px;
+  left: 0;
+  right: 0;
+  height: 2px;
+  background: var(--accent);
+  transform-origin: left;
+  scale: 0 1;
+}
+
+@media (prefers-reduced-motion: no-preference) {
+  .sc-timer {
+    animation: sc-timer 6s linear both;
+  }
+
+  .sc[data-paused] .sc-timer {
+    animation-play-state: paused;
+  }
+
+  @keyframes sc-timer {
+    to {
+      scale: 1 1;
+    }
+  }
+}
+
+@media (min-width: 900px) {
+  .sc {
+    grid-template-columns: minmax(0, 7fr) minmax(0, 5fr);
+    align-items: stretch;
+    gap: 2.5rem;
+  }
+
+  .sc[data-flip] {
+    grid-template-columns: minmax(0, 5fr) minmax(0, 7fr);
+  }
+
+  .sc[data-flip] .sc-stage {
+    order: 2;
+  }
+
+  .sc-stage {
+    height: min(72svh, 40rem);
+  }
+
+  .sc-side {
+    padding-block: 1rem;
+  }
+
+  .sc[data-flat] {
+    grid-template-columns: minmax(0, 1fr);
+  }
+}
+
+/* A list of what an item does or holds: ruled rows, the number in green (Work's features, Experience's projects). */
+.sc-list {
+  margin-top: 1.5rem;
+  border-top: 1px solid var(--rule);
+}
+
+.sc-list > div {
+  padding-block: 0.5rem;
+  border-bottom: 1px solid var(--rule);
+  font-size: 0.875rem;
+  line-height: 1.55;
+  text-wrap: pretty;
+}
+
+.sc-list dt,
+.sc-list dd {
+  display: inline;
+}
+
+.sc-list dt {
+  margin-right: 0.375rem;
+  font-weight: 500;
+}
+
+.sc-list-n {
+  margin-right: 0.5rem;
+  color: var(--accent);
+}

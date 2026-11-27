@@ -1,27 +1,23 @@
-"use client";
-
-import { useEffect, useRef } from "react";
 import * as THREE from "three";
-import { box, circle, lines, polyline, seg, stage, wire, type Lines, type V } from "./three/wire";
-import type { Plan } from "./iso/iso-kit";
-import * as CV from "./figures/thumbs/cv-view";
-import { LAYOUTS } from "./figures/thumbs/cv";
-import * as SERA from "./figures/thumbs/sera-view";
-import * as WEAR from "./figures/thumbs/wearable-view";
+import { box, circle, cuboid, lines, polyline, seg, wire, type Lines, type V } from "./wire";
+import type { Plan } from "../iso/iso-kit";
+import * as CV from "../figures/thumbs/cv-view";
+import { LAYOUTS } from "../figures/thumbs/cv";
+import * as SERA from "../figures/thumbs/sera-view";
+import * as WEAR from "../figures/thumbs/wearable-view";
 
 /*
- * The Work section's machines in Three.js, as thin green wireframes built from the same sizes as the isometric
- * drawings (figures/thumbs/*-view.ts): the CV maker's printer feeding out a CV in the template its dial points at,
- * S.E.R.A.'s reading stand with the lens sliding down the chat and marking the sentences that read oddly, the
- * wearable on its cutting mat opening and closing. Each turns slowly and leans to the pointer over its viewport.
- * WorkStage writes how far apart the machine is (`data-apart` on .ws-machine, 0 whole to 1 apart); the parts fly
- * out from the middle by that much.
- *
- * The figures' coordinates have x across, y towards the front and z up; here that is x, z and y.
+ * Every 3D object the sections show (Showcase.tsx), as thin green wireframes: the three projects' machines (built
+ * from the same sizes as their isometric drawings, figures/thumbs/*-view.ts, with x across, y towards the front and
+ * z up there, x, z and y here), the five capabilities, the door of the essay, a certificate as a card and the globe.
+ * Each returns the object and, for one that works on its own, a clock to drive it.
  */
 
+export type Model = { root: THREE.Object3D; tick?: (time: number) => void };
+
+const DIM = "#3d8a5c";
+
 const RED = "#e5484d";
-const DIM = "#4f6357";
 const at = (x: number, y: number, z: number): V => [x, z, y];
 
 /** A plan's outline (rounded corners) at height z. */
@@ -71,10 +67,10 @@ function post(l: Lines, x: number, y: number, r: number, z: number, h: number, r
 const rect = (l: Lines, a: V, b: V, c: V, d: V) => polyline(l, [a, b, c, d], true);
 
 type Part = { obj: THREE.Object3D; dir: THREE.Vector3 };
-type Model = { root: THREE.Group; parts: Part[]; size: [number, number]; tick: (time: number) => void };
+type Machine = { root: THREE.Group; parts: Part[]; size: [number, number]; tick: (time: number) => void };
 
 /** Collects the parts of a model, each pushed out from `centre` when the machine comes apart. */
-function assemble(centre: V, size: [number, number], list: THREE.Object3D[], tick: (time: number) => void): Model {
+function assemble(centre: V, size: [number, number], list: THREE.Object3D[], tick: (time: number) => void): Machine {
     const root = new THREE.Group();
     const c = new THREE.Vector3(...centre);
     // Each part in a holder of its own: the part's own motion moves the part, coming apart moves the holder.
@@ -95,7 +91,7 @@ function assemble(centre: V, size: [number, number], list: THREE.Object3D[], tic
 
 /* ------------------------------------------------------------------ the CV maker */
 
-function cvModel(): Model {
+function cvModel(): Machine {
     const { BODY, BODY_TOP, FEET_H, SHEET, SHEET_OUT, DIAL, DIAL_R, DIAL_TOP, DETENTS } = CV;
     const body = lines();
     slab(body, BODY, FEET_H, BODY_TOP - FEET_H);
@@ -175,7 +171,7 @@ function cvModel(): Model {
 
 /* ------------------------------------------------------------------ S.E.R.A. */
 
-function seraModel(): Model {
+function seraModel(): Machine {
     const { BASE, BASE_Z, BASE_TOP, CARD, CARD_FACE, CARD_TOP, CARD_H, POST, POST_TOP, LENS, BUBBLES, LINE_GAP, bubbleOf, flagLineY, heightOf } = SERA;
     const base = lines();
     slab(base, BASE, BASE_Z, BASE_TOP - BASE_Z);
@@ -246,7 +242,7 @@ function seraModel(): Model {
 
 /* ------------------------------------------------------------------ the wearable */
 
-function wearableModel(): Model {
+function wearableModel(): Machine {
     const { MAT, MAT_H, BODY, BOSSES, BOSS_R, CLIP_TOP, SHELL_H, FLOOR, LID_H, TOP, WALL, poseOf } = WEAR;
     // The mat, only the part under the case and where the cover lands.
     const mat = lines();
@@ -314,66 +310,237 @@ function wearableModel(): Model {
     return assemble([30, 14, 0], [150, 96], parts, tick);
 }
 
-const MODELS = { cv: cvModel, sera: seraModel, wearable: wearableModel };
 
-/** One project's machine in 3D, in the viewport WorkStage gives it. */
-export default function WorkModel({ kind }: { kind: keyof typeof MODELS }) {
-    const ref = useRef<HTMLDivElement>(null);
+/* ------------------------------------------------------------------ the capabilities */
 
-    useEffect(() => {
-        const host = ref.current;
-        if (!host) return;
-        const view = host.closest<HTMLElement>(".ws-view") ?? host;
-        const machine = host.closest<HTMLElement>(".ws-machine");
-        const model = MODELS[kind]();
-        // Seen from a little above, three-quarters on.
-        const tilt = kind === "wearable" ? 0.75 : 0.32;
-        let lean = 0, leanTo = 0;
-
-        const ctl = stage(
-            host,
-            ({ scene, w, h }) => {
-                scene.add(model.root);
-                // As large as the viewport allows, the turning width counted as its larger side.
-                const [mw, mh] = model.size;
-                const k = Math.min((w * 0.82) / mw, (h * 0.8) / mh);
-                model.root.scale.setScalar(k);
-                // Full strength on the near side of the machine, dimmer to its back.
-                const cam = h / 2 / Math.tan((15 * Math.PI) / 180);
-                const r = Math.max(mw, mh) * k * 0.5;
-                model.root.traverse((o) => {
-                    const u = ((o as THREE.LineSegments).material as THREE.ShaderMaterial | undefined)?.uniforms;
-                    u?.uFade?.value.set(cam - r * 0.2, cam + r * 1.2);
-                });
-            },
-            (dt, time) => {
-                // Offset by 3 s, so that with motion turned down (time standing at 0) each machine stands mid-way: the sheet out, the lens on the chat, the case open.
-                model.tick(time + 3);
-                lean += (leanTo - lean) * (1 - Math.exp(-dt * 4));
-                model.root.rotation.set(tilt, -0.6 + Math.sin(time * 0.25) * 0.35 + lean, 0);
-                const apart = Number(machine?.dataset.apart) || 0;
-                const reach = Math.max(...model.size) * 0.9;
-                for (const p of model.parts) p.obj.position.copy(p.dir).multiplyScalar(apart * reach);
-                // Gone (WorkStage hides it), nothing to draw.
-                return !machine?.hasAttribute("data-gone");
-            },
-        );
-        if (!ctl) return;
-
-        const onMove = (e: PointerEvent) => {
-            if (e.pointerType !== "mouse") return;
-            const r = view.getBoundingClientRect();
-            leanTo = (((e.clientX - r.left) / r.width) * 2 - 1) * 0.6;
-        };
-        const onLeave = () => (leanTo = 0);
-        view.addEventListener("pointermove", onMove);
-        view.addEventListener("pointerleave", onLeave);
-        return () => {
-            view.removeEventListener("pointermove", onMove);
-            view.removeEventListener("pointerleave", onLeave);
-            ctl.stop();
-        };
-    }, [kind]);
-
-    return <div ref={ref} aria-hidden="true" className="ws-model" />;
+function code() {
+    const g = new THREE.Group();
+    [-0.45, 0, 0.45].forEach((z, k) => {
+        const l = lines();
+        const x0 = -0.85 + k * 0.18, y0 = 0.55 - k * 0.18;
+        polyline(l, [[x0, y0, z], [x0 + 1.5, y0, z], [x0 + 1.5, y0 - 1.05, z], [x0, y0 - 1.05, z]], true);
+        seg(l, [x0, y0 - 0.13, z], [x0 + 1.5, y0 - 0.13, z]);
+        // The title bar's three dots.
+        for (let d = 0; d < 3; d++) polyline(l, circle(1, 8, (a) => [x0 + 0.08 + d * 0.06 + Math.cos(a) * 0.02, y0 - 0.065 + Math.sin(a) * 0.02, z]), true);
+        const g2 = lines();
+        // The code: lines of different lengths, indented as code is.
+        [0.9, 0.6, 0.75, 0.45, 0.8, 0.35].forEach((w, r) => {
+            const ind = [0, 0.12, 0.12, 0.24, 0.12, 0][r]!;
+            const y = y0 - 0.28 - r * 0.12;
+            seg(g2, [x0 + 0.1 + ind, y, z], [x0 + 0.1 + ind + w, y, z], 0, 1);
+        });
+        g.add(wire(l, { color: k === 2 ? undefined : DIM, fade: [1e5, 2e5] }), wire(g2, { pulse: k === 2 ? 1 : 0, opacity: k === 2 ? 1 : 0.6, fade: [1e5, 2e5] }));
+    });
+    return g;
 }
+
+function design() {
+    const g = new THREE.Group();
+    const W = 1.6, H = 1.1;
+    const board = lines();
+    polyline(board, [[-W / 2, -H / 2, 0], [W / 2, -H / 2, 0], [W / 2, H / 2, 0], [-W / 2, H / 2, 0]], true);
+    // The layers, lifted off the artboard: the column grid, the blocks, the type.
+    const grid = lines();
+    for (let c = 0; c <= 12; c++) {
+        const x = -W / 2 + (c / 12) * W;
+        seg(grid, [x, -H / 2, 0.3], [x, H / 2, 0.3]);
+    }
+    const blocks = lines();
+    cuboid(blocks, [-0.7, 0.05, 0.6], [0.1, 0.45, 0.6]);
+    cuboid(blocks, [0.2, -0.45, 0.6], [0.7, 0.45, 0.6]);
+    cuboid(blocks, [-0.7, -0.45, 0.6], [0.1, -0.05, 0.6]);
+    const type = lines();
+    [0.32, 0.2, 0.08].forEach((y, i) => seg(type, [-0.62, y, 0.9], [-0.62 + [0.6, 0.45, 0.5][i]!, y, 0.9], 0, 1));
+    // Guides from the board's corners up through the layers.
+    const guides = lines();
+    for (const [x, y] of [[-W / 2, -H / 2], [W / 2, -H / 2], [W / 2, H / 2], [-W / 2, H / 2]]) seg(guides, [x, y, 0], [x, y, 0.9]);
+    g.add(wire(board, { fade: [1e5, 2e5] }), wire(grid, { color: DIM, opacity: 0.7, fade: [1e5, 2e5] }), wire(blocks, { fade: [1e5, 2e5] }), wire(type, { pulse: 1, fade: [1e5, 2e5] }), wire(guides, { color: DIM, opacity: 0.5, fade: [1e5, 2e5] }));
+    g.rotation.set(-0.5, 0.5, 0);
+    return g;
+}
+
+function systems() {
+    const g = new THREE.Group();
+    const rack = lines();
+    for (let k = 0; k < 3; k++) {
+        const y = -0.5 + k * 0.32;
+        cuboid(rack, [-0.95, y, -0.35], [-0.2, y + 0.26, 0.35]);
+        for (let d = 0; d < 3; d++) seg(rack, [-0.88 + d * 0.06, y + 0.13, 0.35], [-0.86 + d * 0.06, y + 0.13, 0.35]);
+    }
+    // The database: a stack of discs.
+    const db = lines();
+    for (let k = 0; k <= 3; k++) polyline(db, circle(1, 32, (a) => [0.62 + Math.cos(a) * 0.3, -0.5 + k * 0.28, Math.sin(a) * 0.3]), true);
+    for (const a of [0, Math.PI / 2, Math.PI, 1.5 * Math.PI]) seg(db, [0.62 + Math.cos(a) * 0.3, -0.5, Math.sin(a) * 0.3], [0.62 + Math.cos(a) * 0.3, 0.34, Math.sin(a) * 0.3]);
+    // The data running between them, and up to a client.
+    const flow = lines();
+    polyline(flow, [[-0.2, 0.2, 0], [0.1, 0.2, 0], [0.1, -0.08, 0], [0.32, -0.08, 0]]);
+    polyline(flow, [[-0.2, -0.36, 0], [0.32, -0.36, 0]]);
+    polyline(flow, [[-0.57, 0.46, 0], [-0.57, 0.75, 0], [0.62, 0.75, 0], [0.62, 0.34, 0]]);
+    g.add(wire(rack, { fade: [1e5, 2e5] }), wire(db, { fade: [1e5, 2e5] }), wire(flow, { pulse: 1, color: DIM, fade: [1e5, 2e5] }));
+    g.rotation.set(0.35, -0.5, 0);
+    return g;
+}
+
+function ai() {
+    const g = new THREE.Group();
+    const layers = [3, 5, 5, 2].map((n, li) => Array.from({ length: n }, (_, i): V => [-0.9 + li * 0.6, (i - (n - 1) / 2) * 0.32, Math.sin(i * 1.7 + li) * 0.25]));
+    const nodes = lines();
+    for (const layer of layers) for (const [x, y, z] of layer) polyline(nodes, circle(1, 16, (a) => [x + Math.cos(a) * 0.06, y + Math.sin(a) * 0.06, z]), true);
+    const edges = lines();
+    for (let li = 0; li < layers.length - 1; li++)
+        for (const a of layers[li]!) for (const b of layers[li + 1]!) seg(edges, a, b, li / 3 + Math.random() * 0.1, (li + 1) / 3 + Math.random() * 0.1);
+    g.add(wire(edges, { color: DIM, pulse: 1, opacity: 0.8, fade: [1e5, 2e5] }), wire(nodes, { fade: [1e5, 2e5] }));
+    return g;
+}
+
+function hardware() {
+    const g = new THREE.Group();
+    const board = lines();
+    cuboid(board, [-0.9, -0.03, -0.6], [0.9, 0.03, 0.6]);
+    for (const [x, z] of [[-0.82, -0.52], [0.82, -0.52], [-0.82, 0.52], [0.82, 0.52]]) polyline(board, circle(1, 12, (a) => [x + Math.cos(a) * 0.04, 0.031, z + Math.sin(a) * 0.04]), true);
+    const chips = lines();
+    cuboid(chips, [-0.35, 0.03, -0.3], [0.15, 0.12, 0.2]);
+    for (let p = 0; p < 6; p++) {
+        const x = -0.31 + p * 0.08;
+        seg(chips, [x, 0.04, -0.3], [x, 0.04, -0.38]);
+        seg(chips, [x, 0.04, 0.2], [x, 0.04, 0.28]);
+    }
+    cuboid(chips, [0.35, 0.03, -0.45], [0.7, 0.09, -0.15]);
+    cuboid(chips, [0.4, 0.03, 0.15], [0.65, 0.07, 0.4]);
+    // The antenna: a coil off the board's edge.
+    const coil: V[] = [];
+    for (let i = 0; i <= 80; i++) {
+        const a = (i / 80) * Math.PI * 10;
+        coil.push([-0.9 - (i / 80) * 0.45, 0.1 + Math.sin(a) * 0.07, Math.cos(a) * 0.07]);
+    }
+    polyline(chips, coil);
+    const traces = lines();
+    polyline(traces, [[0.15, 0.031, -0.05], [0.28, 0.031, -0.05], [0.28, 0.031, -0.3], [0.35, 0.031, -0.3]]);
+    polyline(traces, [[0.15, 0.031, 0.1], [0.3, 0.031, 0.1], [0.3, 0.031, 0.27], [0.4, 0.031, 0.27]]);
+    polyline(traces, [[-0.35, 0.031, -0.05], [-0.9, 0.031, -0.05], [-0.9, 0.1, 0]]);
+    g.add(wire(board, { color: DIM, fade: [1e5, 2e5] }), wire(chips, { fade: [1e5, 2e5] }), wire(traces, { pulse: 1, fade: [1e5, 2e5] }));
+    g.rotation.set(0.75, -0.4, 0);
+    return g;
+}
+
+
+/* ------------------------------------------------------------------ the essay: a door being shut and bolted */
+
+function door(): Model {
+    const g = new THREE.Group();
+    const frame = lines();
+    cuboid(frame, [-0.75, -1.1, -0.08], [-0.65, 1.1, 0.08]);
+    cuboid(frame, [0.65, -1.1, -0.08], [0.75, 1.1, 0.08]);
+    cuboid(frame, [-0.75, 1.0, -0.08], [0.75, 1.1, 0.08]);
+    cuboid(frame, [-1.2, -1.18, -0.5], [1.2, -1.1, 0.5]);
+    const leaf = lines();
+    cuboid(leaf, [0, -1.0, -0.03], [1.28, 0.98, 0.03]);
+    cuboid(leaf, [0.15, 0.1, 0.03], [1.13, 0.85, 0.05]);
+    cuboid(leaf, [0.15, -0.85, 0.03], [1.13, -0.05, 0.05]);
+    const bolt = lines();
+    cuboid(bolt, [1.0, -0.02, 0.05], [1.2, 0.06, 0.12]);
+    polyline(bolt, circle(1, 16, (a) => [1.12 + Math.cos(a) * 0.05, -0.12 + Math.sin(a) * 0.05, 0.08]), true);
+    const hinge = new THREE.Group();
+    hinge.position.set(-0.65, 0, 0);
+    const leafMesh = wire(leaf);
+    const boltMesh = wire(bolt);
+    hinge.add(leafMesh, boltMesh);
+    g.add(wire(frame, { color: DIM }), hinge);
+    const tick = (time: number) => {
+        // Swinging shut and opening again, slowly.
+        const u = (time % 8) / 8;
+        const k = u < 0.4 ? u / 0.4 : u < 0.6 ? 1 : 1 - (u - 0.6) / 0.4;
+        hinge.rotation.y = -(1 - k * k * (3 - 2 * k)) * 1.1;
+    };
+    return { root: g, tick };
+}
+
+/* ------------------------------------------------------------------ contact: the globe, signals arcing off Java */
+
+function globe(): Model {
+    const g = new THREE.Group();
+    const R = 1.1;
+    const grid = lines();
+    for (let la = -60; la <= 60; la += 30) {
+        const y = Math.sin((la * Math.PI) / 180), r = Math.cos((la * Math.PI) / 180);
+        polyline(grid, circle(R, 72, (a) => [Math.cos(a) * r, y, Math.sin(a) * r]), true);
+    }
+    for (let lo = 0; lo < 180; lo += 30) {
+        const c = Math.cos((lo * Math.PI) / 180), s = Math.sin((lo * Math.PI) / 180);
+        polyline(grid, circle(R, 72, (a) => [Math.cos(a) * c, Math.sin(a), Math.cos(a) * s]), true);
+    }
+    const on = (lat: number, lon: number) => new THREE.Vector3().setFromSphericalCoords(R, ((90 - lat) * Math.PI) / 180, (lon * Math.PI) / 180);
+    const arcs = lines();
+    for (const [la, lo] of [[35, 139], [51, 0], [37, -122], [-33, 151], [1, 104]] as const) {
+        const p = on(-6, 107), q = on(la, lo);
+        const pts: V[] = [];
+        for (let i = 0; i <= 40; i++) {
+            const t = i / 40;
+            const v = p.clone().lerp(q, t).normalize().multiplyScalar(R * (1 + Math.sin(t * Math.PI) * 0.3));
+            pts.push([v.x, v.y, v.z]);
+        }
+        polyline(arcs, pts);
+    }
+    g.add(wire(grid, { color: DIM }), wire(arcs, { pulse: 1 }));
+    return { root: g };
+}
+
+/* ------------------------------------------------------------------ a certificate, as a card with its scan on it */
+
+function card(src?: string): Model {
+    const g = new THREE.Group();
+    const W = 2, H = 1.414;
+    const edge = lines();
+    cuboid(edge, [-W / 2, -H / 2, -0.04], [W / 2, H / 2, 0.04]);
+    g.add(wire(edge));
+    if (src) {
+        // The scan, drawn down to what the stage shows before it goes to the GPU (a phone has little to spare).
+        const mat = new THREE.MeshBasicMaterial({ transparent: true, opacity: 0, color: new THREE.Color("#9fe0b8"), side: THREE.DoubleSide, depthWrite: false });
+        const face = new THREE.Mesh(new THREE.PlaneGeometry(W * 0.96, H * 0.96), mat);
+        face.position.z = 0.045;
+        face.userData.scan = true;
+        g.add(face);
+        const img = new Image();
+        img.decoding = "async";
+        img.src = src;
+        img.onload = () => {
+            const k = Math.min(1, (window.innerWidth < 768 ? 640 : 1100) / Math.max(img.naturalWidth, img.naturalHeight));
+            const c = document.createElement("canvas");
+            c.width = Math.max(1, Math.round(img.naturalWidth * k));
+            c.height = Math.max(1, Math.round(img.naturalHeight * k));
+            c.getContext("2d")!.drawImage(img, 0, 0, c.width, c.height);
+            const t = new THREE.CanvasTexture(c);
+            t.colorSpace = THREE.SRGBColorSpace;
+            t.generateMipmaps = false;
+            t.minFilter = THREE.LinearFilter;
+            mat.map = t;
+            mat.needsUpdate = true;
+            // The card takes the scan's own shape.
+            const aspect = c.width / c.height;
+            g.scale.set(Math.min(1, aspect / (W / H)), Math.min(1, W / H / aspect), 1);
+        };
+    }
+    return { root: g };
+}
+
+/* ------------------------------------------------------------------ the registry */
+
+const wrap = (make: () => THREE.Group): (() => Model) => () => ({ root: make() });
+const machine = (make: () => Machine): (() => Model) => () => {
+    const m = make();
+    return { root: m.root, tick: m.tick };
+};
+
+export const MODELS = {
+    cv: machine(cvModel),
+    sera: machine(seraModel),
+    wearable: machine(wearableModel),
+    code: wrap(code),
+    design: wrap(design),
+    systems: wrap(systems),
+    ai: wrap(ai),
+    hardware: wrap(hardware),
+    door,
+    globe,
+};
+export { card };

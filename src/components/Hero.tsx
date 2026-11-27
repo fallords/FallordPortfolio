@@ -17,7 +17,7 @@ import "./hero.css";
  */
 export default function Hero() {
     return (
-        // data-turn-track: how the bar and the frame know the hero is at the top (Header, HudFrame).
+        // data-turn-track: how the bar knows the hero is at the top (Header).
         <section className="hero" data-turn-track aria-label="Introduction">
             <div className="hero-stage">
                 {/* Should the scene fail, the still drawing inside it stays; should the component itself fail, the words still stand. */}

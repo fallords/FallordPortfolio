@@ -3,7 +3,7 @@
  * of bottom-ruled fields with one filled action.
  */
 .contact-address {
-  font-size: clamp(1.75rem, 6.6vw, 7.25rem);
+  font-size: clamp(1.75rem, 6vw, 6.5rem);
   color: var(--accent);
   transition: opacity 180ms ease;
 }
@@ -73,4 +73,11 @@
 
 .contact-send:active {
   translate: 0 1px;
+}
+
+/* The form sits on the globe: a panel of the page's dark behind it, so the fields read. */
+.contact-form-box {
+  padding: 1.25rem;
+  background: rgb(5 5 5 / 0.72);
+  border: 1px solid var(--rule);
 }

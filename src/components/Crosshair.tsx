@@ -2,7 +2,6 @@
 
 import { useEffect, useRef } from "react";
 
-const pad = (n: number) => String(Math.max(0, Math.round(n))).padStart(4, "0");
 /* Where the pointer is over something to press, the crosshair opens out. */
 const PRESSABLE = "a, button, [role='tab'], [role='button'], label, summary";
 /* Where text is typed, the browser's own caret cursor comes back. */
@@ -13,9 +12,7 @@ const TYPED = "input, textarea, select, [contenteditable='true']";
  *
  * The crosshair: in place of the arrow, drawn in "difference" so it shows
  * on light and dark alike, turning a quarter over anything that can be
- * pressed and growing while a button is held down,
- * with the pointer's X and Y read out in the frame's bottom corners
- * (HudFrame's `data-coord` readouts). It follows the pointer exactly, with
+ * pressed and growing while a button is held down. It follows the pointer exactly, with
  * no easing, so it never lags behind the real position.
  *
  * The word beside it: an element marked `data-cursor="Open"` says what
@@ -48,7 +45,6 @@ export default function Crosshair() {
         let y = -100;
         let target: Element | null = null;
         // Found again only when the page has changed under it (a new route renders new readouts).
-        let coords: HTMLElement[] = [];
         let pulled: HTMLElement | null = null;
         let tilted: HTMLElement | null = null;
         let said = "";
@@ -79,10 +75,6 @@ export default function Crosshair() {
                 tag.toggleAttribute("data-on", !!text);
             }
 
-            if (!coords[0]?.isConnected) coords = [...document.querySelectorAll<HTMLElement>("[data-coord]")];
-            coords.forEach((node) => {
-                node.textContent = pad(node.dataset.coord === "x" ? x : y);
-            });
             if (still) return;
 
             const action = target?.closest<HTMLElement>(".action") ?? null;

@@ -1,9 +1,8 @@
-import { Fragment, type ReactNode } from "react";
+import { Fragment } from "react";
 import Link from "next/link";
 import Section from "./Section";
-import ErrorBoundary from "./ErrorBoundary";
-import { DoorThumb, WearableThumb } from "./figures/thumbs/art";
-import { Words } from "./motion/Split";
+import MultiView from "./MultiView";
+import "./bento.css";
 import { essaysByYear, type Essay } from "@/content/writing";
 
 /**
@@ -55,91 +54,59 @@ export function Cover({ essay }: { essay: Essay }) {
 }
 const readLabel = (essay: Essay) => (essay.label === "Case study" ? "Read the case study" : "Read the essay");
 
-/*
- * Each piece's thumbnail: a small working drawing of the thing it is about,
- * not its cover. The thesis gets its wearable taken apart (Fig 1 on its page
- * is the whole system on a bench); the essay gets a door being shut and bolted.
- */
-const thumbs: Record<string, ReactNode> = {
-    "lora-emergency-alert-system": <WearableThumb />,
-    "privacy-as-boundary-and-pretext": <DoorThumb />,
+/* The 3D object that stands for each piece (three/models.ts): the thesis's wearable, the essay's door. */
+const MODEL: Record<string, "wearable" | "door"> = {
+    "lora-emergency-alert-system": "wearable",
+    "privacy-as-boundary-and-pretext": "door",
 };
 
-/*
- * One piece as a spread: its working drawing large on one side, framed as a
- * figure, and on the other its facts, its title at heading size, its one
- * sentence and the two ways in. The sides swap from one piece to the next.
- * On a phone the drawing sits above the words.
- *
- * The drawing opens the piece for a mouse or a finger but stays out of the
- * Tab order: the title is the same link.
- */
-function Piece({ essay, index }: { essay: Essay; index: number }) {
+/** One piece's words: its facts in one line, its title (the link), its one sentence and the two ways in. */
+function PieceText({ essay }: { essay: Essay }) {
     const href = `/writing/${essay.slug}`;
     const facts = [essay.year, essay.field, `${essay.readingTime} read`];
-    // Every other piece puts its drawing on the right, so the two read as a spread rather than a list.
-    const flip = index % 2 === 1;
     return (
-        <li data-reveal className="grid gap-6 border-b border-[var(--rule)] py-10 md:grid-cols-12 md:items-center md:gap-x-6 md:py-14">
-            <Link
-                href={href}
-                tabIndex={-1}
-                aria-hidden="true"
-                data-cursor="Read"
-                data-tilt
-                className={`viewport open-frame relative block self-start overflow-hidden transition-colors hover:border-[var(--accent-line)] md:col-span-6 ${flip ? "md:order-2 md:col-start-7" : ""}`}
-            >
-                {/* The drawing runs in the browser; if it fails, the empty card holds its place. */}
-                <ErrorBoundary fallback={<span className="block aspect-[4/3]" />}>{thumbs[essay.slug] ?? <Cover essay={essay} />}</ErrorBoundary>
-                <span data-decode className="label pointer-events-none absolute left-3 top-2.5 text-[var(--fg)]">
-                    Fig {String(index + 1).padStart(2, "0")} <span className="text-[var(--fg-dim)]">/ {essay.label ?? "Essay"}</span>
-                </span>
-            </Link>
-
-            <div className={`min-w-0 md:col-span-5 ${flip ? "md:order-1 md:col-start-1" : "md:col-start-8"}`}>
-                {/* One line, broken only between the facts; the dot goes down with the fact after it, never left hanging. */}
-                <p data-decode className="label text-[var(--fg-dim)]">
-                    {facts.map((fact, i) => (
-                        <Fragment key={fact}>
-                            {i > 0 && " "}
-                            <span className="whitespace-nowrap">
-                                {i > 0 && <span aria-hidden="true">· </span>}
-                                {fact}
-                            </span>
-                        </Fragment>
-                    ))}
-                </p>
-                <h3 className="display mt-3 min-w-0 text-pretty text-[1.75rem] leading-[1.02] text-[var(--fg)] wrap-anywhere md:text-[clamp(2rem,3.2vw,3.25rem)]">
-                    <Link href={href} className="transition-colors hover:text-[var(--accent)]">
-                        <Words text={essay.title} />
-                    </Link>
-                </h3>
-                <p className="mt-4 max-w-[34rem] text-pretty text-[15px] leading-relaxed text-[var(--fg-soft)] md:text-base">{essay.summary}</p>
-                <p className="mt-6 flex items-center gap-x-5">
-                    <Link href={href} aria-label={`${readLabel(essay)}: ${essay.title}`} className="action" data-solid>
-                        {readLabel(essay)} →
-                    </Link>
-                    {essay.pdfUrl && (
-                        <a
-                            href={essay.pdfUrl}
-                            target="_blank"
-                            rel="noopener noreferrer"
-                            aria-label={`Download the PDF of ${essay.title}`}
-                            className="label link flex min-h-11 items-center whitespace-nowrap text-[var(--fg-soft)]"
-                        >
-                            PDF ↗
-                        </a>
-                    )}
-                </p>
-            </div>
-        </li>
+        <>
+            {/* One line, broken only between the facts; the dot goes down with the fact after it, never left hanging. */}
+            <p className="label text-[var(--fg-dim)]">
+                {facts.map((fact, i) => (
+                    <Fragment key={fact}>
+                        {i > 0 && " "}
+                        <span className="whitespace-nowrap">
+                            {i > 0 && <span aria-hidden="true">· </span>}
+                            {fact}
+                        </span>
+                    </Fragment>
+                ))}
+            </p>
+            <h3 className="display mt-3 min-w-0 text-pretty text-[1.75rem] leading-[1.02] text-[var(--fg)] wrap-anywhere md:text-[clamp(2rem,3.2vw,3.25rem)]">
+                <Link href={href} className="transition-colors hover:text-[var(--accent)]">
+                    {essay.title}
+                </Link>
+            </h3>
+            <p className="mt-4 max-w-[34rem] text-pretty text-[15px] leading-relaxed text-[var(--fg-soft)] md:text-base">{essay.summary}</p>
+            <p className="mt-6 flex items-center gap-x-5">
+                <Link href={href} aria-label={`${readLabel(essay)}: ${essay.title}`} className="action" data-solid>
+                    {readLabel(essay)} →
+                </Link>
+                {essay.pdfUrl && (
+                    <a
+                        href={essay.pdfUrl}
+                        target="_blank"
+                        rel="noopener noreferrer"
+                        aria-label={`Download the PDF of ${essay.title}`}
+                        className="label link flex min-h-11 items-center whitespace-nowrap text-[var(--fg-soft)]"
+                    >
+                        PDF ↗
+                    </a>
+                )}
+            </p>
+        </>
     );
 }
 
 /**
- * The pieces as an index, not a shelf: one ruled row each, newest first,
- * across the full width so the thumbnails sit in the margin columns and
- * every title starts on the content line at column 4.
+ * The pieces, newest first, as alcoves side by side, the way showrooms give each piece its own room: the thing it
+ * is about turning in 3D above (one canvas for both, MultiView), spinning up while pointed at; the piece under it.
  */
 export default function Writing() {
     if (essaysByYear.length === 0) return null;
@@ -154,11 +121,18 @@ export default function Writing() {
             introClassName="hidden md:block"
             wide
         >
-            <ul>
-                {essaysByYear.map((essay, index) => (
-                    <Piece key={essay.slug} essay={essay} index={index} />
+            {/* One alcove per piece, side by side: the thing it is about turning in 3D above, the piece under it. */}
+            <div className="relative grid gap-4 md:grid-cols-2">
+                {essaysByYear.map((essay, i) => (
+                    <article key={essay.slug} data-view-card={i} className="alcove viewport enter-rise">
+                        <div aria-hidden="true" data-view={i} className="alcove-art" />
+                        <div className="alcove-text">
+                            <PieceText essay={essay} />
+                        </div>
+                    </article>
                 ))}
-            </ul>
+                <MultiView models={essaysByYear.map((essay) => MODEL[essay.slug] ?? "door")} />
+            </div>
         </Section>
     );
 }

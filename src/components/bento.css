@@ -1,0 +1,71 @@
+/*
+ * What I do as a bento grid (About.tsx): cards of different widths, each with an art area its 3D object is drawn
+ * into (MultiView) over its words. The card lifts and its edge turns green while pointed at.
+ */
+.bento-card {
+  display: flex;
+  min-width: 0;
+  flex-direction: column;
+  transition:
+    border-color 300ms ease,
+    translate 400ms var(--ease-expo);
+}
+
+.bento-card:hover {
+  border-color: var(--accent-line);
+  translate: 0 -4px;
+}
+
+.bento-art {
+  height: 11rem;
+}
+
+.bento-text {
+  padding: 1rem 1.125rem 1.25rem;
+}
+
+@media (min-width: 1024px) {
+  .bento-art {
+    height: 13rem;
+  }
+
+  /* The wide card puts its object beside its words. */
+  .bento-card:has(.bento-art-wide) {
+    flex-direction: row;
+  }
+
+  .bento-art-wide {
+    flex: 1;
+    height: auto;
+    min-height: 15rem;
+  }
+
+  .bento-card:has(.bento-art-wide) .bento-text {
+    width: 46%;
+    align-self: center;
+  }
+}
+
+/* Writing's alcoves (Writing.tsx): tall rooms, the object large above, the piece under it; lifting while pointed at. */
+.alcove {
+  display: flex;
+  min-width: 0;
+  flex-direction: column;
+  transition:
+    border-color 300ms ease,
+    translate 400ms var(--ease-expo);
+}
+
+.alcove:hover {
+  border-color: var(--accent-line);
+  translate: 0 -6px;
+}
+
+.alcove-art {
+  height: min(42svh, 22rem);
+  border-bottom: 1px solid var(--rule);
+}
+
+.alcove-text {
+  padding: 1.25rem 1.25rem 1.5rem;
+}

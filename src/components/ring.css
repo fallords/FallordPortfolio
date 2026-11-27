@@ -1,0 +1,77 @@
+/* The certificates' ring (Certifications.tsx, CertRing.tsx): the ring across the full width, the one on show under it. */
+.ring-stage {
+  position: relative;
+  height: min(52svh, 22rem);
+}
+
+.ring-canvas {
+  position: absolute;
+  inset: 0;
+  touch-action: pan-y;
+  cursor: grab;
+}
+
+.ring-canvas:active {
+  cursor: grabbing;
+}
+
+.ring-info {
+  position: relative;
+  max-width: 44rem;
+  margin: 1.5rem auto 0;
+  padding-top: 1.25rem;
+  border-top: 1px solid var(--rule);
+  text-align: center;
+}
+
+.ring-info .label.flex {
+  justify-content: center;
+}
+
+.ring-name {
+  margin-top: 0.75rem;
+}
+
+.ring-timer {
+  position: absolute;
+  top: -1px;
+  left: 0;
+  right: 0;
+  height: 2px;
+  background: var(--accent);
+  transform-origin: left;
+  scale: 0 1;
+}
+
+@media (min-width: 768px) {
+  .ring-stage {
+    height: min(60svh, 30rem);
+  }
+}
+
+@media (prefers-reduced-motion: no-preference) {
+  .ring-name {
+    animation: ring-in 600ms var(--ease-expo) both;
+  }
+
+  @keyframes ring-in {
+    from {
+      opacity: 0;
+      translate: 0 0.75rem;
+    }
+  }
+
+  .ring-timer {
+    animation: ring-timer 4.5s linear both;
+  }
+
+  .ring[data-paused] .ring-timer {
+    animation-play-state: paused;
+  }
+
+  @keyframes ring-timer {
+    to {
+      scale: 1 1;
+    }
+  }
+}
